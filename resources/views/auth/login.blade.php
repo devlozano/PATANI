@@ -202,7 +202,7 @@ a:hover {
     <input type="text" placeholder="Address" required>
 
     <button type="submit">Create account</button>
-  </form>
+  </form> 
 
   <p>Already Have An Account ? <a href="/auth">Log In</a></p>
 </div>
