@@ -197,7 +197,7 @@ a.signup:hover {
     <button type="submit">Login</button>
   </form>
 
-  <p>Don’t Have An Account? <a href="login.blade.php" class="signup">Sign Up</a></p>
+<p>Don’t Have An Account? <a href="/login" class="signup">Sign Up</a></p>
 </div>
 </body>
 </html>

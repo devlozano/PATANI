@@ -204,7 +204,7 @@ a:hover {
     <button type="submit">Create account</button>
   </form>
 
-  <p>Already Have An Account ? <a href="auth/auth.blade.php">Log In</a></p>
+  <p>Already Have An Account ? <a href="/auth">Log In</a></p>
 </div>
 </div>
 </body>
