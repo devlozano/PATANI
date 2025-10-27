@@ -67,6 +67,14 @@ class LoginController extends Controller
             'email' => 'Invalid credentials provided.',
         ]);
     }
+    // Handle logout
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
+    }
 
     // Dashboard method (this fixes your error)
     public function dash()

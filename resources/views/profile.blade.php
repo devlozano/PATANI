@@ -401,9 +401,12 @@
                 </button>
                 <div class="logo">Patani Trinidad</div>
             </div>
-            <button class="logout-btn">
-                Logout <i class="bi bi-box-arrow-right"></i>
-            </button>
+            <form action="{{ route('logout') }}" method="POST" style="display:inline;">
+                @csrf
+                <button type="submit" class="logout-btn">
+                    Logout <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </form>
         </div>
 
         <div class="main-content">
@@ -454,7 +457,7 @@
 
     <form action="{{ route('profile.update') }}" method="POST">
         @csrf
-
+        @method('PUT')
         <div class="form-grid">
             <div class="form-group">
                 <label>Student ID:</label>

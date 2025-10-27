@@ -15,25 +15,28 @@ class ProfileController extends Controller
     }
 
     // ✅ Update user info
-    public function update(Request $request)
+        public function update(Request $request)
     {
-        $user = Auth::user();
+        $user = auth()->user(); // ✅ Get logged-in user model
 
-        // Validate form input
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'You must be logged in to update your profile.');
+        }
+
+        // ✅ Validate the input
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'gender' => 'nullable|string|max:10',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'department' => 'nullable|string|max:100',
-            'program' => 'nullable|string|max:100',
+            'email' => 'required|email|max:255',
+            'gender' => 'nullable|string|max:50',
+            'program' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'contact' => 'nullable|string|max:20',
         ]);
 
-        // Update user info
+        // ✅ Update user
         $user->update($validated);
 
-        // Redirect with success message
         return redirect()->back()->with('success', 'Profile updated successfully!');
     }
+
 }
