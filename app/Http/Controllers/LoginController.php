@@ -50,23 +50,30 @@ class LoginController extends Controller
         return redirect()->route('dash');
     }
 
-    // Handle login
-    public function login(Request $request)
+        public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+
+            // ✅ Redirect based on role
+            if (Auth::user()->is_admin) {
+                return redirect()->route('admin.dashboard');
+            }
+
             return redirect()->route('dash');
         }
 
         return back()->withErrors([
-            'email' => 'Invalid credentials provided.',
+            'email' => 'The provided credentials do not match our records.',
         ]);
     }
+
+
     // Handle logout
     public function logout(Request $request)
     {

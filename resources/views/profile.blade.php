@@ -181,41 +181,57 @@
         }
 
         .section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e0e0e0;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px 50px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e6e6e6;
+            width: 90%;
+            max-width: 900px;
+            transition: box-shadow 0.3s ease;
         }
 
+        .section:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        /* === Header (image + title) === */
         .section-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 30px;
-            font-size: 20px;
-            font-weight: 600;
+            gap: 15px;
+            margin-bottom: 35px;
         }
 
         .section-header img {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
+            border: 3px solid #ff9800;
+            background: #fff;
         }
 
+        .section-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        /* === Info grid for static details === */
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 25px 40px;
+            margin-bottom: 20px;
         }
 
         .info-item label {
             font-size: 14px;
             color: #666;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
         .info-item p {
@@ -224,15 +240,19 @@
             color: #1e1e1e;
         }
 
+        /* === Form grid for inputs === */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 25px;
+            gap: 25px 40px;
+            align-items: start;
         }
 
+        /* === Form groups and inputs === */
         .form-group {
             display: flex;
             flex-direction: column;
+            width: 100%;
         }
 
         .form-group label {
@@ -242,51 +262,59 @@
             font-weight: 500;
         }
 
+        /* ✅ All input/select fields same width */
         .form-group input,
         .form-group select {
+            width: 100%;
+            box-sizing: border-box;
             padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 15px;
             font-family: "Poppins", sans-serif;
             background: #f9f9f9;
+            transition: all 0.25s ease;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: #ff9800;
-            background: white;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.15);
         }
 
         .form-group input:read-only {
             background: #f0f0f0;
-            color: #666;
+            color: #777;
             cursor: not-allowed;
         }
 
+        /* === Button wrapper === */
         .update-btn-wrapper {
             display: flex;
             justify-content: flex-end;
-            margin-top: 25px;
+            margin-top: 35px;
         }
 
+        /* === Update button === */
         .update-btn {
             background-color: #ff9800;
             border: none;
-            color: white;
+            color: #fff;
             padding: 12px 40px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.3s;
             font-size: 15px;
+            box-shadow: 0 3px 6px rgba(255, 152, 0, 0.3);
         }
 
         .update-btn:hover {
             background-color: #f57c00;
+            box-shadow: 0 4px 10px rgba(245, 124, 0, 0.35);
         }
-
         @media (max-width: 1024px) {
             .info-grid,
             .form-grid {
@@ -401,12 +429,18 @@
                 </button>
                 <div class="logo">Patani Trinidad</div>
             </div>
-            <form action="{{ route('logout') }}" method="POST" style="display:inline;">
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:inline;">
                 @csrf
-                <button type="submit" class="logout-btn">
+                <button type="submit" class="logout-btn" onclick="return confirmLogout();">
                     Logout <i class="bi bi-box-arrow-right"></i>
                 </button>
             </form>
+
+            <script>
+            function confirmLogout() {
+                return confirm("Are you sure you want to log out?");
+            }
+            </script>
         </div>
 
         <div class="main-content">
@@ -459,12 +493,6 @@
         @csrf
         @method('PUT')
         <div class="form-grid">
-            <div class="form-group">
-                <label>Student ID:</label>
-                <input type="text" name="student_id" 
-                       value="{{ Auth::user()->student_id ?? '' }}" readonly>
-            </div>
-
             <div class="form-group">
                 <label>Name:</label>
                 <input type="text" name="name" 

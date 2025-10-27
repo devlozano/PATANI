@@ -91,6 +91,7 @@
     input:focus {
         border-color: #ffa000;
     }
+
     .password-row {
         display: flex;
         justify-content: space-between;
@@ -191,7 +192,6 @@
             
             <form action="{{ route('login') }}" method="POST">
                 @csrf
-                
                 <label for="email">Email</label>
                 <input 
                     type="email" 
@@ -206,7 +206,6 @@
                 @enderror
                     <div class="password-row">
                         <label for="password">Password</label>
-                        <a href="{{ route('password.request') }}">Forgot?</a>
                     </div>
 
                 <input 

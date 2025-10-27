@@ -389,11 +389,11 @@
 
             <div class="dashboard-grid">
                <div class="card">
-    <div class="card-header">
-    <img src="/images/image 39.jpg" alt="Profile">
-        <span>My Information</span>
-    </div>
-                    <div class="card-body">
+        <div class="card-header">
+            <i class="fas fa-id-card"></i>
+            <span>My Information</span>
+        </div>
+         <div class="card-body">
                         <div class="info-row">
                             <div class="info-item">
                                 <label>Name:</label>

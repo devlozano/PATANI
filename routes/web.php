@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
@@ -20,18 +22,6 @@ Route::get('/', function () {
 // LOGIN routes
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
-
-// Show "forgot password" form
-Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-
-// Handle email submission
-Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-
-// Show reset password form
-Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-
-// Handle password reset submission
-Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 // REGISTER routes
 Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
@@ -59,3 +49,24 @@ Route::post('/logout', function (Request $request) {
     $request->session()->regenerateToken();
     return redirect('/login');
 })->name('logout');
+
+
+//ADMIN routes can be added here later
+
+// Student dashboard
+Route::get('/dash', [UserController::class, 'dash'])->name('dash');
+
+// Admin dashboard
+Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+// Admin booking management
+Route::get('/admin/booking', [AdminController::class, 'booking'])->name('admin.booking');
+
+// Admin payment management
+Route::get('/admin/payment', [AdminController::class, 'payment'])->name('admin.payment');
+
+// Admin room management
+Route::get('/admin/room', [AdminController::class, 'room'])->name('admin.room');
+
+// Admin report management
+Route::get('/admin/report', [AdminController::class, 'report'])->name('admin.report');

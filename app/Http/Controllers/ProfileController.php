@@ -17,7 +17,7 @@ class ProfileController extends Controller
     // ✅ Update user info
         public function update(Request $request)
     {
-        $user = auth()->user(); // ✅ Get logged-in user model
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login')->with('error', 'You must be logged in to update your profile.');
@@ -34,6 +34,7 @@ class ProfileController extends Controller
         ]);
 
         // ✅ Update user
+        /** @var \App\Models\User $user */
         $user->update($validated);
 
         return redirect()->back()->with('success', 'Profile updated successfully!');

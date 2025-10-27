@@ -20,11 +20,11 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password123'),
         ]);
 
-        // You can create more users here
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@patanitrinidad.com',
             'password' => Hash::make('admin123'),
+            'is_admin' => true, // ✅ This makes the account admin
         ]);
 
         // Or use factory to create multiple users
