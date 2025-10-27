@@ -168,6 +168,40 @@
             text-align: center;
         }
 
+         /* Wrapper for password input and its toggle icon */
+    .password-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px; /* Consistent spacing */
+    }
+
+    /* Styling for the password input itself to make space for the icon */
+    .password-input-container input[type="password"] {
+        flex-grow: 1; /* Allow input to take available space */
+        padding-right: 35px; /* Space for the icon (adjust if needed) */
+        /* Other input styles are inherited from the general input rule above */
+    }
+
+
+          /* Styling for the eye icon */
+    .password-toggle-icon {
+        position: absolute;
+        top: -10%; /* Center vertically */
+        right: 10px; /* Position the icon on the right */
+        cursor: pointer;
+        color: #FCCC4B; /* Default color for the eye icon */
+        font-size: 1.1em; /* Size of the eye icon */
+        z-index: 1; /* Ensure icon is above the input text */
+        display: flex;
+        align-items: center;
+        height: 100%; /* To vertically center the icon */
+    }
+
+     .password-toggle-icon:hover {
+        color: #FF8C00; /* Darker color on hover */
+    }
+
         @media (max-width: 900px) {
             body {
                 flex-direction: column;
@@ -234,15 +268,30 @@
                     </div>
                 </div>
 
-                <label>Password</label>
-                <input type="password" name="password" placeholder="Minimum 6 characters" required>
-                @error('password')
-                    <span class="error">{{ $message }}</span>
-                @enderror
+                 {{-- Password row with eye icon --}}
+    <div class="password-row">
+        <label for="password">Password</label>
+    </div>
+    <div class="password-input-container">
+        <input type="password" id="password" name="password" placeholder="Minimum 6 characters" required>
+        <span class="password-toggle-icon">
+            <i class="fas fa-eye" id="togglePassword"></i> {{-- Font Awesome icon --}}
+        </span>
+    </div>
+    @error('password')
+        <div class="error">{{ $message }}</div>
+    @enderror
 
-                <label>Confirm Password</label>
-                <input type="password" name="password_confirmation" placeholder="Re-enter your password" required>
-
+    {{-- Confirm Password row with eye icon --}}
+    <div class="password-row">
+        <label for="password_confirmation">Confirm Password</label>
+    </div>
+    <div class="password-input-container">
+        <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Re-enter your password" required>
+        <span class="password-toggle-icon">
+            <i class="fas fa-eye" id="togglePasswordConfirmation"></i> {{-- Font Awesome icon --}}
+        </span>
+    </div>
                 <div class="row">
                     <div>
                         <label>Gender</label>
@@ -273,9 +322,33 @@
 
                 <button type="submit">Create account</button>
             </form>
-
+            {{-- Link to Font Awesome CSS (if you haven't already) --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
             <p>Already Have An Account? <a href="{{ route('login') }}">Log In</a></p>
         </div>
     </div>
+    <script>
+    // JavaScript for the Password toggle icon
+    const passwordInput = document.getElementById('password');
+    const togglePasswordIcon = document.getElementById('togglePassword');
+
+    togglePasswordIcon.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    // JavaScript for the Confirm Password toggle icon
+    const passwordConfirmationInput = document.getElementById('password_confirmation');
+    const togglePasswordConfirmationIcon = document.getElementById('togglePasswordConfirmation');
+
+    togglePasswordConfirmationIcon.addEventListener('click', function() {
+        const type = passwordConfirmationInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordConfirmationInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+</script>
 </body>
 </html>

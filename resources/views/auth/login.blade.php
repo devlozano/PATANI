@@ -149,6 +149,49 @@
         color: #721c24;
         border: 1px solid #f5c6cb;
     }
+     .password-input-container {
+        position: relative;
+        display: flex; /* To align input and icon */
+        align-items: center;
+        margin-bottom: 15px; /* Add consistent spacing */
+    }
+
+    /* Style for the password input itself to ensure it doesn't overlap */
+    .password-input-container input[type="password"] {
+        width: 100%; /* Inherit width */
+        padding-right: 35px; /* Space for the icon (adjust if needed) */
+        box-sizing: border-box; /* Ensure padding is included in width */
+        /* Other input styles from your global styles should apply */
+    }
+
+    /* Styling for the eye icon */
+    .password-toggle-icon {
+        position: absolute;
+        top: -10%; /* Center vertically */
+        right: 10px; /* Position the icon on the right */
+        cursor: pointer;
+        color: #FCCC4B; /* Default color for the eye icon */
+        font-size: 1.1em; /* Size of the eye icon */
+        z-index: 1; /* Ensure icon is above the input text */
+        display: flex;
+        align-items: center;
+        height: 100%; /* To vertically center the icon */
+    }
+
+    .password-toggle-icon:hover {
+        color: #FF8C00; /* Darker color on hover */
+    }
+
+    /* Ensure general input styles are applied correctly if not globally */
+    input[type="email"] {
+        width: 100%;
+        padding: 10px; /* Assuming your global input padding */
+        margin-bottom: 15px;
+        border: 1px solid #ccc; /* Assuming your global input border */
+        border-radius: 4px; /* Assuming your global input border-radius */
+        box-sizing: border-box;
+    }
+    
     @media (max-width: 900px) {
         body {
             flex-direction: column;
@@ -204,26 +247,43 @@
                 @error('email')
                     <div class="error">{{ $message }}</div>
                 @enderror
-                    <div class="password-row">
-                        <label for="password">Password</label>
-                    </div>
-
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Enter your password" 
-                    required
-                >
+ {{-- New wrapper for password input and eye icon --}}
+    <div class="password-input-container">
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+        >
+        <span class="password-toggle-icon">
+            <i class="fas fa-eye" id="togglePassword"></i> {{-- Font Awesome icon --}}
+        </span>
+    </div>
                 @error('password')
                     <div class="error">{{ $message }}</div>
                 @enderror
 
                 <button type="submit">Login</button>
             </form>
-
+            {{-- Link to Font Awesome CSS (if you haven't already) --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
             <p class="signup-text">Don't Have An Account? <a href="{{ route('register') }}" class="signup">Sign Up</a></p>
         </div>
     </div>
+    <script>
+    const passwordInput = document.getElementById('password');
+    const togglePasswordIcon = document.getElementById('togglePassword');
+
+    togglePasswordIcon.addEventListener('click', function() {
+        // Toggle the type attribute of the password input
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // Toggle the icon class
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+</script>
 </body>
 </html>
