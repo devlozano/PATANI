@@ -10,4 +10,5 @@ class UserController extends Controller
     {
         return view('dash'); // 👈 Make sure you have resources/views/dash.blade.php
     }
+    
 }

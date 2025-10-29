@@ -414,10 +414,18 @@
                 <p>{{ $user->contact }}</p>
             </div>
         <div class="menu">
-            <a href="{{route ('dash')}}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
-            <a href="{{route ('booking')}}"><i class="bi bi-calendar-check"></i> My Booking</a>
-            <a href="{{route ('payment')}}"><i class="bi bi-credit-card"></i> My Payments</a>
-            <a href="{{route ('profile')}}" class="active"><i class="bi bi-person"></i> Profile</a>
+    <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+        <i class="bi bi-house-door-fill"></i> Dashboard
+    </a>
+    <a href="{{ route('student.booking') }}" class="{{ request()->routeIs('student.booking') ? 'active' : '' }}">
+        <i class="bi bi-calendar-check"></i> My Booking
+    </a>
+    <a href="{{ route('student.payment') }}" class="{{ request()->routeIs('student.payment') ? 'active' : '' }}">
+        <i class="bi bi-credit-card"></i> My Payments
+    </a>
+    <a href="{{ route('profile') }}" class="{{ request()->routeIs('profile') ? 'active' : '' }}">
+        <i class="bi bi-person"></i> Profile
+    </a>
         </div>
     </div>
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Payments - Patani Trinidad</title>
+    <title>Reports - Patani Trinidad</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -176,14 +176,14 @@
             font-size: 36px;
             font-weight: 700;
             margin-bottom: 40px;
+            text-transform: uppercase;
         }
 
-        .payment-section {
+        .report-section {
             background: white;
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 40px;
         }
 
         .section-title {
@@ -217,56 +217,13 @@
             background: #f9f9f9;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-approve {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .btn-approve:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
-
-        .btn-reject {
-            background: #FF4444;
-            color: white;
-        }
-
-        .btn-reject:hover {
-            background: #CC0000;
-            transform: scale(1.05);
-        }
-
         .status-badge {
             padding: 6px 16px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 600;
             display: inline-block;
-        }
-
-        .status-approved {
             background: #4CAF50;
-            color: white;
-        }
-
-        .status-rejected {
-            background: #FF4444;
             color: white;
         }
 
@@ -301,13 +258,13 @@
                 margin-bottom: 25px;
             }
 
-            .payment-section {
+            .report-section {
                 padding: 20px;
                 overflow-x: auto;
             }
 
             table {
-                min-width: 900px;
+                min-width: 700px;
             }
 
             .section-title {
@@ -332,7 +289,7 @@
                 font-size: 24px;
             }
 
-            .payment-section {
+            .report-section {
                 padding: 15px;
             }
 
@@ -358,19 +315,19 @@
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('admin.booking') }}" class="{{ request()->routeIs('admin.bookings') ? 'active' : '' }}">
+            <a href="{{ route('admin.booking') }}" class="{{ request()->routeIs('admin.booking') ? 'active' : '' }}">
                 <i class="fas fa-calendar-alt"></i>
                 <span>Booking</span>
             </a>
-            <a href="" class="active">
+            <a href="{{ route('admin.payment') }}" class="{{ request()->routeIs('admin.payment') ? 'active' : '' }}">
                 <i class="fas fa-credit-card"></i>
                 <span>Payments</span>
             </a>
-            <a href="{{ route('admin.room') }}" class="{{ request()->routeIs('admin.room') ? 'active' : '' }}">
+            <a href="{{ route('admin.rooms.index') }}" class="{{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}">
                 <i class="fas fa-door-open"></i>
                 <span>Rooms</span>
             </a>
-            <a href="{{ route('admin.report') }}" class="{{ request()->routeIs('admin.report') ? 'active' : '' }}">
+            <a href="" class="active">
                 <i class="fas fa-chart-bar"></i>
                 <span>Reports</span>
             </a>
@@ -391,73 +348,54 @@
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </form>
+
         </div>
 
         <div class="main-content">
-            <h1>Manage Payments</h1>
+            <h1>REPORTS</h1>
 
-            <!-- Pending Payments Section -->
-            <div class="payment-section">
-                <h2 class="section-title">Pending Payments</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>PAYMENT ID</th>
-                            <th>STUDENT</th>
-                            <th>AMOUNT</th>
-                            <th>ROOM NUMBER</th>
-                            <th>DATE</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>34</td>
-                            <td>Karl Angelo Nortado</td>
-                            <td>₱1,600.00</td>
-                            <td>4</td>
-                            <td>October 21, 2025</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-approve">Approve</button>
-                                    <button class="btn btn-reject">Reject</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- All Payments Section -->
-            <div class="payment-section">
+            <!-- All Payments Report -->
+            <div class="report-section">
                 <h2 class="section-title">All Payments</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>PAYMENT ID</th>
                             <th>STUDENT</th>
                             <th>AMOUNT</th>
                             <th>DATE</th>
                             <th>STATUS</th>
-                            <th>NOTES</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>34</td>
                             <td>Karl Angelo Nortado</td>
-                            <td>₱1,600.00</td>
+                            <td>₱1,500.00</td>
                             <td>October 21, 2025</td>
-                            <td><span class="status-badge status-approved">Approved</span></td>
-                            <td></td>
+                            <td><span class="status-badge">Approved</span></td>
                         </tr>
                         <tr>
-                            <td>34</td>
-                            <td>Karl Angelo Nortado</td>
+                            <td>Romar Jay Nierva</td>
                             <td>₱1,600.00</td>
-                            <td>October 21, 2025</td>
-                            <td><span class="status-badge status-rejected">Rejected</span></td>
-                            <td>Fake payment</td>
+                            <td>October 20, 2025</td>
+                            <td><span class="status-badge">Approved</span></td>
+                        </tr>
+                        <tr>
+                            <td>Romar Jay Nierva</td>
+                            <td>₱1,600.00</td>
+                            <td>October 20, 2024</td>
+                            <td><span class="status-badge">Approved</span></td>
+                        </tr>
+                        <tr>
+                            <td>Romar Jay Nierva</td>
+                            <td>₱1,600.00</td>
+                            <td>October 20, 2023</td>
+                            <td><span class="status-badge">Approved</span></td>
+                        </tr>
+                        <tr>
+                            <td>Romar Jay Nierva</td>
+                            <td>₱1,600.00</td>
+                            <td>October 20, 2022</td>
+                            <td><span class="status-badge">Approved</span></td>
                         </tr>
                     </tbody>
                 </table>

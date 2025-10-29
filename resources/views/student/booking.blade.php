@@ -235,6 +235,23 @@
             margin-bottom: 15px;
         }
 
+        .status-cancelled {
+    background: #FF8800; /* or any color you like */
+    color: white;
+}
+        .status-rejected {
+    background: #f44336; /* or any color you like */
+    color: white;
+}
+        .status-pending {
+    background: #ff9800; /* or any color you like */
+    color: white;
+}
+        .status-approved {  
+    background: #4caf50; /* or any color you like */
+    color: white;
+}
+
         .amenity-tag {
             background: #f0f0f0;
             border-radius: 15px;
@@ -366,10 +383,18 @@
             <p>{{ Auth::user()->contact }}</p>
         </div>
         <div class="menu">
-            <a href="{{ route('dash') }}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
-            <a href="{{ route('booking') }}" class="active"><i class="bi bi-calendar-check"></i> My Booking</a>
-            <a href="{{ route('payment') }}"><i class="bi bi-credit-card"></i> My Payments</a>
-            <a href="profile"><i class="bi bi-person"></i> Profile</a>
+    <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+        <i class="bi bi-house-door-fill"></i> Dashboard
+    </a>
+    <a href="{{ route('student.booking') }}" class="{{ request()->routeIs('student.booking') ? 'active' : '' }}">
+        <i class="bi bi-calendar-check"></i> My Booking
+    </a>
+    <a href="{{ route('student.payment') }}" class="{{ request()->routeIs('student.payment') ? 'active' : '' }}">
+        <i class="bi bi-credit-card"></i> My Payments
+    </a>
+    <a href="{{ route('profile') }}" class="{{ request()->routeIs('profile') ? 'active' : '' }}">
+        <i class="bi bi-person"></i> Profile
+    </a>
         </div>
     </div>
 
@@ -381,32 +406,31 @@
 
         <h1>Bookings</h1>
 
-        {{-- ✅ Available Rooms --}}
-        <div class="section">
-            <div class="section-title">Available Rooms</div>
-            <div class="rooms-grid">
-                @foreach($rooms as $room)
-                    <div class="room-card">
-                        <div class="room-image">🏢</div>
-                        <div class="room-details">
-                            <div class="room-name">{{ $room->name }}</div>
-                            <div class="room-price">₱{{ number_format($room->price, 2) }}/Month</div>
-                            <div class="room-desc">{{ $room->description }}</div>
+{{-- ✅ Available Rooms --}}
+<div class="section">
+    <div class="section-title">Available Rooms</div>
+    <div class="rooms-grid">
+        @foreach($rooms as $room)
+            <div class="room-card">
+                <div class="room-image">🏢</div>
+                <div class="room-details">
+                    <div class="room-name">{{ $room->room_number }}</div>
+                    <div class="room-price">₱{{ number_format($room->rent_fee, 2) }}/Month</div>
+                    <div class="room-desc">{{ $room->description }}</div>
 
-                            <form action="{{ route('booking.store') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="room_id" value="{{ $room->id }}">
-                                <button type="submit" 
-                                    class="book-btn {{ !$room->available ? 'unavailable' : '' }}" 
-                                    {{ !$room->available ? 'disabled' : '' }}>
-                                    {{ $room->available ? 'BOOK NOW' : 'Unavailable' }}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                @endforeach
+<form action="{{ route('student.booking.store') }}" method="POST"> 
+    @csrf
+    <input type="hidden" name="room_id" value="{{ $room->id }}"> 
+    <button type="submit" class="book-btn {{ $room->status !== 'available' ? 'unavailable' : '' }}" 
+        {{ $room->status !== 'available' ? 'disabled' : '' }}> 
+        {{ $room->status === 'available' ? 'BOOK NOW' : 'Unavailable' }} 
+    </button> 
+</form>
+                </div>
             </div>
-        </div>
+        @endforeach
+    </div>
+</div>
 
         {{-- ✅ My Bookings --}}
         <div class="section">
@@ -417,8 +441,18 @@
                     <div class="booking-info">
                         <h3>{{ $booking->room->name }}</h3>
                         <div class="booking-date">Booked on {{ $booking->created_at->format('F d, Y') }}</div>
-                        <span class="status-badge">{{ ucfirst($booking->status) }}</span>
-                        <div class="rent-amount">Monthly Rent: ₱{{ number_format($booking->room->price, 2) }}</div>
+                        <span class="status-badge 
+                            @if($booking->status === 'approved') status-approved
+                            @elseif($booking->status === 'rejected') status-rejected
+                            @elseif($booking->status === 'cancelled') status-cancelled
+                            @else status-pending
+                            @endif">
+                            {{ ucfirst($booking->status) }}
+                        </span>
+
+            <div class="rent-amount">
+                Monthly Rent: ₱{{ number_format($booking->room->rent_fee ?? 0, 2) }}
+            </div>
                     </div>
                     @if($booking->status === 'approved')
                         <button class="pay-btn">Pay Now</button>

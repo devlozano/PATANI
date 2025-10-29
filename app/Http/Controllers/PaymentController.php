@@ -4,37 +4,34 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Payment;
+use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
-    // Show the payment page
     public function index()
     {
-        $payments = Payment::with('room', 'user')
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('payment', compact('payments'));
+        $payments = Payment::with('room', 'user')->where('user_id', Auth::id())->get();
+        $rooms = Room::where('status', 'available')->get(); // Optional if you want selectable rooms
+        return view('student.payment', compact('payments', 'rooms'));
     }
 
-    // Store a new payment
     public function store(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0',
             'room_id' => 'required|exists:rooms,id',
+            'amount'  => 'required|numeric',
         ]);
 
         Payment::create([
             'user_id' => Auth::id(),
             'room_id' => $request->room_id,
-            'amount' => $request->amount,
-            'payment_date' => now(),
-            'status' => 'Pending',
+            'amount'  => $request->amount,
+            'payment_date' => Carbon::now(),
+            'status' => 'Pending', // initial status
         ]);
 
-        return redirect()->route('payment')->with('success', 'Payment recorded successfully!');
+        return redirect()->back()->with('success', 'Payment submitted successfully!');
     }
 }

@@ -86,7 +86,7 @@ class LoginController extends Controller
     // Dashboard method (this fixes your error)
     public function dash()
     {
-        return view('dash'); // make sure resources/views/dash.blade.php exists
+        return view('student.dash'); // make sure resources/views/dash.blade.php exists
     }
 
     public function booking()

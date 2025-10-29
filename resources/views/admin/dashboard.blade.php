@@ -438,7 +438,7 @@
                 <i class="fas fa-credit-card"></i>
                 <span>Payments</span>
             </a>
-            <a href="{{ route('admin.room') }}" class="{{ request()->routeIs('admin.room') ? 'active' : '' }}">
+            <a href="{{ route('admin.rooms.index') }}" class="{{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}">
                 <i class="fas fa-door-open"></i>
                 <span>Rooms</span>
             </a>
@@ -466,127 +466,125 @@
 
         </div>
 
-        <div class="main-content">
-            <h1>Admin Dashboard</h1>
+<div class="main-content">
+    <h1>Admin Dashboard</h1>
 
-            <!-- Stats Grid -->
-            <div class="stat-cards">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>TOTAL STUDENTS</h3>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-door-open"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>TOTAL ROOMS</h3>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>PENDING BOOKINGS</h3>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>PENDING PAYMENTS</h3>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Bookings -->
-            <div class="section-card">
-                <div class="section-header">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Recent Bookings</span>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>STUDENT</th>
-                            <th>ROOM</th>
-                            <th>DATE</th>
-                            <th>STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Romar Jay Nierva</td>
-                            <td>3</td>
-                            <td>October 20, 2025</td>
-                            <td><span class="status-badge status-checkout">Checkout</span></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Recent Payments -->
-            <div class="section-card">
-                <div class="section-header">
-                    <i class="fas fa-peso-sign"></i>
-                    <span>Recent Payments</span>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>PAYMENT ID</th>
-                            <th>STUDENT</th>
-                            <th>AMOUNT</th>
-                            <th>ROOM NUMBER</th>
-                            <th>DATE</th>
-                            <th>ACTIONS</th>
-                            <th>NOTES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>34</td>
-                            <td>Karl Angelo Nortado</td>
-                            <td>₱1,600.00</td>
-                            <td>4</td>
-                            <td>October 21, 2025</td>
-                            <td><span class="status-badge status-approved">Approved</span></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td>34</td>
-                            <td>Karl Angelo Nortado</td>
-                            <td>₱1,600.00</td>
-                            <td>4</td>
-                            <td>October 21, 2025</td>
-                            <td><span class="status-badge status-rejected">Rejected</span></td>
-                            <td>Fake payment</td>
-                        </tr>
-                        <tr>
-                            <td>26</td>
-                            <td>Romar Jay Nierva</td>
-                            <td>₱1,500.00</td>
-                            <td>3</td>
-                            <td>October 20, 2025</td>
-                            <td><span class="status-badge status-checkout">Checkout</span></td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
+    <!-- Stats Grid -->
+    <div class="stat-cards">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+            <div class="stat-info">
+                <h3>TOTAL STUDENTS</h3>
+                <p>{{ \App\Models\User::count() }}</p>
             </div>
         </div>
+
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-door-open"></i></div>
+            <div class="stat-info">
+                <h3>TOTAL ROOMS</h3>
+                <p>{{ \App\Models\Room::count() }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+            <div class="stat-info">
+                <h3>PENDING BOOKINGS</h3>
+                <p>{{ \App\Models\Booking::where('status', 'Pending')->count() }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+                <h3>PENDING PAYMENTS</h3>
+                <p>{{ \App\Models\Payment::where('status', 'Pending')->count() }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Recent Bookings</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>STUDENT</th>
+                    <th>ROOM</th>
+                    <th>DATE</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(\App\Models\Booking::with('user','room')->latest()->take(5)->get() as $booking)
+                    <tr>
+                        <td>{{ $booking->user->name ?? 'Unknown' }}</td>
+                        <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
+                        <td>{{ $booking->created_at->format('F d, Y') }}</td>
+                        <td>
+                            <span class="status-badge
+                                @if($booking->status === 'approved') status-approved
+                                @elseif($booking->status === 'rejected') status-rejected
+                                @elseif($booking->status === 'cancelled') status-cancelled
+                                @else status-pending
+                                @endif">
+                                {{ ucfirst($booking->status) }}
+                            </span>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-peso-sign"></i>
+            <span>Recent Payments</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>PAYMENT ID</th>
+                    <th>STUDENT</th>
+                    <th>AMOUNT</th>
+                    <th>ROOM NUMBER</th>
+                    <th>DATE</th>
+                    <th>STATUS</th>
+                    <th>NOTES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(\App\Models\Payment::with('user','room')->latest()->take(5)->get() as $payment)
+                    <tr>
+                        <td>{{ $payment->id }}</td>
+                        <td>{{ $payment->user->name ?? 'Unknown' }}</td>
+                        <td>₱{{ number_format($payment->amount, 2) }}</td>
+                        <td>{{ $payment->room->room_number ?? 'N/A' }}</td>
+                        <td>{{ $payment->created_at->format('F d, Y') }}</td>
+                        <td>
+                            <span class="status-badge
+                                @if($payment->status === 'approved') status-approved
+                                @elseif($payment->status === 'rejected') status-rejected
+                                @elseif($payment->status === 'checkout') status-checkout
+                                @else status-pending
+                                @endif">
+                                {{ ucfirst($payment->status) }}
+                            </span>
+                        </td>
+                        <td>{{ $payment->notes ?? '' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+    </div>
     </div>
 
     <script>

@@ -1,3 +1,7 @@
+@php
+    $pending = $pending ?? collect();
+    $all = $all ?? collect();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -381,7 +385,7 @@
                 <i class="fas fa-credit-card"></i>
                 <span>Payments</span>
             </a>
-            <a href="{{ route('admin.room') }}" class="{{ request()->routeIs('admin.room') ? 'active' : '' }}">
+            <a href="{{ route('admin.rooms.index') }}" class="{{ request()->routeIs('admin.room') ? 'active' : '' }}">
                 <i class="fas fa-door-open"></i>
                 <span>Rooms</span>
             </a>
@@ -427,18 +431,26 @@
                         </tr>
                     </thead>
                     <tbody>
+                                                @foreach ($pending as $booking)
                         <tr>
-                            <td>69</td>
-                            <td>Karl Angelo Nortado</td>
-                            <td>4</td>
-                            <td>October 21, 2025</td>
+                            <td>{{ $booking->id }}</td>
+                            <td>{{ $booking->user->name }}</td>
+                            <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
+                            <td>{{ $booking->created_at->format('F d, Y') }}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn btn-approve">Approve</button>
-                                    <button class="btn btn-reject">Reject</button>
+                                    <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-approve">Approve</button>
+                                    </form>
+                                    <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-reject">Reject</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -458,32 +470,29 @@
                         </tr>
                     </thead>
                     <tbody>
+                                            @foreach ($all as $booking)
                         <tr>
-                            <td>69</td>
-                            <td>Karl Angelo Nortado</td>
-                            <td>4</td>
-                            <td>October 21, 2025</td>
-                            <td><span class="status-badge status-approve">Approve</span></td>
+                            <td>{{ $booking->id }}</td>
+                            <td>{{ $booking->user->name }}</td>
+                            <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
+                            <td>{{ $booking->created_at->format('F d, Y') }}</td>
                             <td>
-                                <button class="btn btn-checkout">Checkout</button>
+                                <span class="status-badge 
+                                    {{ $booking->status == 'approved' ? 'status-approve' : 
+                                    ($booking->status == 'rejected' ? 'status-rejected' : 'status-checkout') }}">
+                                    {{ ucfirst($booking->status) }}
+                                </span>
+                            </td>
+                            <td>
+                                @if ($booking->status == 'approved')
+                                <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-checkout">Checkout</button>
+                                </form>
+                                @endif
                             </td>
                         </tr>
-                        <tr>
-                            <td>69</td>
-                            <td>Karl Angelo Nortado</td>
-                            <td>4</td>
-                            <td>October 21, 2025</td>
-                            <td><span class="status-badge status-rejected">Rejected</span></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td>69</td>
-                            <td>Karl Angelo Nortado</td>
-                            <td>4</td>
-                            <td>October 21, 2025</td>
-                            <td><span class="status-badge status-checkout">Checkout</span></td>
-                            <td></td>
-                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>

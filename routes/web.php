@@ -1,48 +1,55 @@
 <?php
 
-use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+
+// Controllers
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
-use Illuminate\Http\Request;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\BookingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\LoginController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ForgotPasswordController;
-use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\StudentBookingController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminBookingController;
+use App\Http\Controllers\AdminPaymentController;
+use App\Http\Controllers\AdminRoomController;
+use App\Http\Controllers\AdminReportController;
 
-// Redirect homepage to login page
+
+// 🏠 Redirect homepage to login page
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// LOGIN routes
+
+// 🔐 AUTH ROUTES
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-// REGISTER routes
 Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 
-// DASHBOARD route
+
+// 🧭 DASHBOARD
 Route::get('/dash', [LoginController::class, 'dash'])->name('dash');
 
-// BOOKING routes
-Route::get('/booking', [BookingController::class, 'index'])->name('booking');
-Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 
-// PROFILE routes
+// 👤 PROFILE ROUTES
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
-// PAYMENT routes
+
+// 💳 PAYMENT ROUTES (student-side)
 Route::get('/payment', [PaymentController::class, 'index'])->name('payment');
 Route::post('/payment', [PaymentController::class, 'store'])->name('payment.store');
 
-// LOGOUT route
+
+// 🚪 LOGOUT
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -51,22 +58,65 @@ Route::post('/logout', function (Request $request) {
 })->name('logout');
 
 
-//ADMIN routes can be added here later
+Route::prefix('student')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('student.dash');
+    })->name('student.dashboard');
 
-// Student dashboard
-Route::get('/dash', [UserController::class, 'dash'])->name('dash');
+    Route::get('/booking', [StudentBookingController::class, 'index'])->name('student.booking');
+    Route::post('/booking', [StudentBookingController::class, 'store'])->name('student.booking.store');
 
-// Admin dashboard
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/payment', [PaymentController::class, 'index'])->name('student.payment');
 
-// Admin booking management
-Route::get('/admin/booking', [AdminController::class, 'booking'])->name('admin.booking');
+    // Student Payment Routes
+Route::prefix('student')->middleware(['auth', 'student'])->group(function () {
+    Route::get('/payment', [PaymentController::class, 'index'])->name('student.payment');
+    Route::post('/payment/store', [PaymentController::class, 'store'])->name('payment.store');
+});
 
-// Admin payment management
-Route::get('/admin/payment', [AdminController::class, 'payment'])->name('admin.payment');
 
-// Admin room management
-Route::get('/admin/room', [AdminController::class, 'room'])->name('admin.room');
+    Route::get('/room', [BookingController::class, 'index'])->name('student.room');
+});
 
-// Admin report management
-Route::get('/admin/report', [AdminController::class, 'report'])->name('admin.report');
+
+/// 🧑‍💼 ADMIN ROUTES
+Route::prefix('admin')->name('admin.')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Booking
+    Route::get('/booking', [AdminBookingController::class, 'index'])->name('booking');
+
+    // Payments page (index)
+    Route::get('/payment', [AdminPaymentController::class, 'index'])->name('payment');
+
+    // Approve a payment
+    Route::post('/payment/{id}/approve', [AdminPaymentController::class, 'approve'])->name('payment.approve');
+
+    // Reject a payment
+    Route::post('/payment/{id}/reject', [AdminPaymentController::class, 'reject'])->name('payment.reject');
+
+    // Reports page
+    Route::get('/report', [AdminReportController::class, 'index'])->name('report');
+});
+Route::prefix('admin')->name('admin.rooms.')->group(function () {
+    Route::get('/rooms', [AdminRoomController::class, 'index'])->name('index'); // Room list
+    Route::get('/rooms/create', [AdminRoomController::class, 'create'])->name('create'); // Add room
+    Route::post('/rooms', [AdminRoomController::class, 'store'])->name('store'); // Store room
+    Route::get('/rooms/{id}/edit', [AdminRoomController::class, 'edit'])->name('edit'); // Edit room
+    Route::put('/rooms/{id}', [AdminRoomController::class, 'update'])->name('update'); // Update room
+    Route::delete('/rooms/{id}', [AdminRoomController::class, 'destroy'])->name('destroy'); // Delete room
+});
+
+// ✅ Approve booking route
+Route::post('/booking{id}/approve', [AdminBookingController::class, 'approve'])->name('admin.booking.approve');
+
+// ✅ Reject booking route
+Route::post('/booking/{id}/reject', [AdminBookingController::class, 'reject'])->name('admin.booking.reject');
+
+    // Report
+    Route::get('/report', [AdminReportController::class, 'index'])->name('report');
+
+    // Rooms CRUD
+    Route::resource('rooms', AdminRoomController::class);

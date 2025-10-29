@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payments | Patani Trinidad</title>
+    <title>Student Dashboard | Patani Trinidad</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-       * {
+        * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -20,7 +20,7 @@
             background: #f5f5f5;
         }
 
-        .sidebar {
+         .sidebar {
             width: 300px;
             background: linear-gradient(to bottom, #FFD36E, #FF9800);
             color: #1e1e1e;
@@ -108,7 +108,6 @@
             margin-right: 15px;
             font-size: 1.3rem;
         }
-
         .content {
             flex: 1;
             margin-left: 365px;
@@ -156,117 +155,131 @@
             margin-bottom: 40px;
         }
 
-        .section {
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
             background: white;
             border-radius: 12px;
             padding: 30px;
-            margin-bottom: 30px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             border: 1px solid #e0e0e0;
         }
 
-        .section-title {
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 25px;
         }
 
-        .payment-card {
-            background: #fffef0;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 25px;
+        .card-header img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
         }
 
-        .payment-card h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 10px;
+        .card-header i {
+            font-size: 28px;
+            color: #ff9800;
         }
 
-        .payment-card .amount {
-            font-size: 22px;
-            font-weight: 700;
+        .info-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-item label {
+            font-size: 14px;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 16px;
+            font-weight: 500;
             color: #1e1e1e;
+        }
+
+        .info-full {
+            margin-bottom: 15px;
+        }
+
+        .info-full label {
+            font-size: 14px;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-full p {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1e1e1e;
+        }
+
+        .room-empty {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .room-empty i {
+            font-size: 80px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .room-empty p {
+            font-size: 16px;
+            color: #666;
             margin-bottom: 25px;
         }
 
-        .pay-btn {
+        .book-btn {
             background-color: #ff9800;
             border: none;
             color: white;
-            padding: 12px 0;
+            padding: 12px 35px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.3s;
-            font-size: 16px;
-            width: 400px;
-            max-width: 100%;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .pay-btn:hover {
-            background-color: #f57c00;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th {
-            background: #f5f5f5;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-            border: 1px solid #ddd;
-        }
-
-        table td {
-            padding: 15px;
-            border: 1px solid #ddd;
             font-size: 15px;
         }
 
-        table tbody tr:hover {
-            background: #f9f9f9;
+        .book-btn:hover {
+            background-color: #f57c00;
+            transform: scale(1.05);
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
+        .payments-card {
+            grid-column: 1 / -1;
+        }
+
+        .payments-empty {
+            padding: 40px;
             text-align: center;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-rejected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-approved {
-            background: #d4edda;
-            color: #155724;
+            color: #999;
+            font-size: 16px;
         }
 
         @media (max-width: 1024px) {
-            .pay-btn {
-                width: 100%;
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .payments-card {
+                grid-column: 1;
             }
         }
 
@@ -301,20 +314,17 @@
                 margin-bottom: 25px;
             }
 
-            .section {
+            .dashboard-grid {
+                gap: 20px;
+            }
+
+            .card {
                 padding: 20px;
             }
 
-            .payment-card {
-                padding: 20px;
-            }
-
-            table {
-                font-size: 13px;
-            }
-
-            table th, table td {
-                padding: 10px 8px;
+            .info-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
             }
         }
 
@@ -335,33 +345,12 @@
                 font-size: 24px;
             }
 
-            .section {
-                padding: 15px;
-            }
-
-            .payment-card {
-                padding: 15px;
-            }
-
-            .payment-card h3 {
+            .card-header {
                 font-size: 18px;
             }
 
-            .payment-card .amount {
-                font-size: 20px;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            table th, table td {
-                padding: 8px 5px;
-            }
-
-            .status-badge {
-                font-size: 11px;
-                padding: 4px 10px;
+            .room-empty i {
+                font-size: 60px;
             }
         }
     </style>
@@ -369,7 +358,7 @@
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
-         <div class="profile">
+        <div class="profile">
             <!-- User photo (optional) -->
             <img src="/images/image 39.jpg" alt="User Photo">
 
@@ -377,11 +366,21 @@
             <h2>{{ Auth::user()->name }}</h2>
             <p>{{ Auth::user()->contact }}</p>
         </div>
+
+
         <div class="menu">
-            <a href="{{route ('dash')}}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
-            <a href="{{route ('booking')}}"><i class="bi bi-calendar-check"></i> My Booking</a>
-            <a href="{{route ('payment')}}" class="active"><i class="bi bi-credit-card"></i> My Payments</a>
-            <a href="{{route ('profile')}}"><i class="bi bi-person"></i> Profile</a>
+    <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+        <i class="bi bi-house-door-fill"></i> Dashboard
+    </a>
+    <a href="{{ route('student.booking') }}" class="{{ request()->routeIs('student.booking') ? 'active' : '' }}">
+        <i class="bi bi-calendar-check"></i> My Booking
+    </a>
+    <a href="{{ route('student.payment') }}" class="{{ request()->routeIs('student.payment') ? 'active' : '' }}">
+        <i class="bi bi-credit-card"></i> My Payments
+    </a>
+    <a href="{{ route('profile') }}" class="{{ request()->routeIs('profile') ? 'active' : '' }}">
+        <i class="bi bi-person"></i> Profile
+    </a>
         </div>
     </div>
 
@@ -394,72 +393,59 @@
         </div>
 
         <div class="main-content">
-            <h1>Payments</h1>
+            <h1>Student Dashboard</h1>
 
-            <!-- ✅ Make Payments Section -->
-            <div class="section">
-                <div class="section-title">Make Payments</div>
-                <div class="payment-card">
-                    <h3>Room 4 - First Floor</h3>
-                    <div class="amount">Monthly Rent: ₱1600.00</div>
+            <div class="dashboard-grid">
+               <div class="card">
+        <div class="card-header">
+            <i class="fas fa-id-card"></i>
+            <span>My Information</span>
+        </div>
+         <div class="card-body">
+                        <div class="info-row">
+                            <div class="info-item">
+                                <label>Name:</label>
+                                <p>{{ Auth::user()->name }}</p>
+                            </div>
+                            <div class="info-item">
+                                <label>CP No.:</label>
+                                <p>{{ Auth::user()->contact }}</p>
+                            </div>
+                        </div>
 
-                    <!-- ✅ Form to create a new payment -->
-                    <form action="{{ route('payment.store') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="room_id" value="4">
-                        <input type="hidden" name="amount" value="1600">
-                        <button type="submit" class="pay-btn">Pay Now</button>
-                    </form>
+                        <div class="info-full">
+                            <label>Address:</label>
+                            <p>{{ Auth::user()->address ?? 'N/A' }}</p>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
 
-            <!-- ✅ Payment Records Table -->
-            <div class="section">
-                <div class="section-title">All Payments</div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>PAYMENT ID</th>
-                                <th>STUDENT</th>
-                                <th>AMOUNT</th>
-                                <th>ROOM NUMBER</th>
-                                <th>DATE</th>
-                                <th>STATUS</th>
-                                <th>NOTES</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($payments as $payment)
-                                <tr>
-                                    <td>{{ $payment->id }}</td>
-                                    <td>{{ $payment->user->name ?? 'Unknown' }}</td>
-                                    <td>₱{{ number_format($payment->amount, 2) }}</td>
-                                    <td>{{ $payment->room->room_number ?? 'N/A' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('F d, Y') }}</td>
-                                    <td>
-                                        @if ($payment->status === 'Pending')
-                                            <span class="status-badge status-pending">Pending</span>
-                                        @elseif ($payment->status === 'Approved')
-                                            <span class="status-badge status-approved">Approved</span>
-                                        @elseif ($payment->status === 'Rejected')
-                                            <span class="status-badge status-rejected">Rejected</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $payment->notes ?? '' }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" style="text-align:center;">No payment records found.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-door-open"></i>
+                        <span>My Room</span>
+                    </div>
+                    <div class="room-empty">
+                        <i class="bi bi-door-closed"></i>
+                        <p>You don't have a room approved yet.</p>
+                        <button class="book-btn">BOOK NOW</button>
+                    </div>
+                </div>
+
+                <div class="card payments-card">
+                    <div class="card-header">
+                        <i class="bi bi-credit-card"></i>
+                        <span>All Payments</span>
+                    </div>
+                    <div class="payments-empty">
+                        No payments.
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
 
     <script>
         function toggleSidebar() {

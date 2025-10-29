@@ -452,7 +452,7 @@
                 <i class="fas fa-credit-card"></i>
                 <span>Payments</span>
             </a>
-            <a href="#" class="active">
+            <a href="{{ route('admin.rooms.index') }}" class="{{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}">
                 <i class="fas fa-door-open"></i>
                 <span>Rooms</span>
             </a>
@@ -463,238 +463,200 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <div class="content" id="content">
-        <div class="top-bar">
-            <button class="menu-toggle" id="menuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="logo">Patani Trinidad</div>
-            <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display:inline;">
-                @csrf
-                <button type="button" class="logout-btn" onclick="confirmLogout()">
-                    <span>Logout</span>
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </form>
+<!-- Content -->
+<div class="content" id="content">
+    <div class="top-bar">
+        <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+        <div class="logo">Patani Trinidad</div>
+        <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display:inline;">
+            @csrf
+            <button type="button" class="logout-btn" onclick="confirmLogout()"><span>Logout</span><i class="fas fa-sign-out-alt"></i></button>
+        </form>
+    </div>
+
+    <div class="main-content">
+        <h1>Manage Rooms</h1>
+
+        <!-- Add/Edit Room -->
+        <div class="form-section">
+            <h2 class="section-title">Add New Room</h2>
+<form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Room Number:</label>
+            <select name="room_number" required>
+                <option value="">Select</option>
+                @for($i = 1; $i <= 6; $i++)
+                    <option value="{{ $i }}">{{ $i }}</option>
+                @endfor
+            </select>
         </div>
-
-        <div class="main-content">
-            <h1>Manage Rooms</h1>
-
-            <!-- Add New Room Form -->
-            <div class="form-section">
-                <h2 class="section-title">Add New Room</h2>
-                <form>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Room Number:</label>
-                            <select>
-                                <option>8</option>
-                                <option>9</option>
-                                <option>10</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Room Floor:</label>
-                            <select>
-                                <option>First Floor</option>
-                                <option>Ground Floor</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Bedspace</label>
-                            <select>
-                                <option>6</option>
-                                <option>4</option>
-                                <option>2</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Status:</label>
-                            <select>
-                                <option>Available</option>
-                                <option>Occupied</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Rent Fee:</label>
-                            <select>
-                                <option>1,600.00</option>
-                                <option>1,500.00</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group form-full">
-                        <label>Description:</label>
-                        <textarea placeholder="okay!!"></textarea>
-                    </div>
-
-                    <div class="form-group form-full">
-                        <label>Pick Image:</label>
-                        <div class="file-input-wrapper">
-                            <button type="button" class="file-button">Browse...</button>
-                            <span class="file-name">No file selected.</span>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn">Add Room</button>
-                </form>
-            </div>
-
-            <!-- Room List -->
-            <div class="room-section">
-                <h2 class="section-title">Room List</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ROOM NO.</th>
-                            <th>ROOM FLOOR</th>
-                            <th>RENT FEE</th>
-                            <th>STATUS</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>6</td>
-                            <td>First Floor</td>
-                            <td>₱1,600.00</td>
-                            <td>Available</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit">EDIT</button>
-                                    <button class="btn btn-delete">DELETE</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td>First Floor</td>
-                            <td>₱1,600.00</td>
-                            <td>Available</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit">EDIT</button>
-                                    <button class="btn btn-delete">DELETE</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>First Floor</td>
-                            <td>₱1,600.00</td>
-                            <td>Occupied</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit">EDIT</button>
-                                    <button class="btn btn-delete">DELETE</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>Ground Floor</td>
-                            <td>₱1,500.00</td>
-                            <td>Available</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit">EDIT</button>
-                                    <button class="btn btn-delete">DELETE</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Ground Floor</td>
-                            <td>₱1,500.00</td>
-                            <td>Available</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit">EDIT</button>
-                                    <button class="btn btn-delete">DELETE</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>1</td>
-                            <td>Ground Floor</td>
-                            <td>₱1,500.00</td>
-                            <td>Available</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit">EDIT</button>
-                                    <button class="btn btn-delete">DELETE</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>7</td>
-                            <td>Ground Floor</td>
-                            <td>₱1,500.00</td>
-                            <td>Deleted</td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="form-group">
+            <label>Room Floor:</label>
+            <select name="room_floor" required>
+                <option value="">Select</option>
+                <option value="Ground Floor">Ground Floor</option>
+                <option value="First Floor">First Floor</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Gender:</label>
+            <select name="gender" required>
+                <option value="">Select</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Bedspace:</label>
+            <select name="bedspace" required>
+                <option value="">Select</option>
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Status:</label>
+            <select name="status" required>
+                <option value="available">Available</option>
+                <option value="occupied">Occupied</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Rent Fee:</label>
+            <select name="rent_fee" required>
+                <option value="">Select</option>
+                <option value="1500">₱1,500.00</option>
+                <option value="1600">₱1,600.00</option>
+            </select>
         </div>
     </div>
 
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        const content = document.getElementById('content');
-        const menuToggle = document.getElementById('menuToggle');
+    <div class="form-group form-full">
+        <label>Description:</label>
+        <textarea name="description" placeholder="Room details..." required></textarea>
+    </div>
 
-        menuToggle.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('open');
-            } else {
-                sidebar.classList.toggle('collapsed');
-                content.classList.toggle('expanded');
-            }
-        });
+    <div class="form-group form-full">
+        <label>Pick Image:</label>
+        <div class="file-input-wrapper">
+            <button type="button" class="file-button">Browse...</button>
+            <span class="file-name">No file selected.</span>
+            <input type="file" name="image" accept="image/*" style="display:none;">
+        </div>
+    </div>
 
-        // Close sidebar on mobile when clicking outside
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768) {
-                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.remove('open');
-                }
-            }
-        });
+    <button type="submit" class="submit-btn">Add Room</button>
+</form>
+        </div>
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('open');
-            }
-        });
+        <!-- Room List -->
+        <div class="room-section">
+            <h2 class="section-title">Room List</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ROOM NO.</th>
+                        <th>ROOM FLOOR</th>
+                        <th>RENT FEE</th>
+                        <th>STATUS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($rooms as $room)
+                        <tr>
+                            <td>{{ $room->room_number }}</td>
+                            <td>{{ $room->room_floor }}</td>
+                            <td>₱{{ number_format($room->rent_fee, 2) }}</td>
+                            <td>{{ ucfirst($room->status) }}</td>
+                            <td>
+                                <div class="action-buttons">
 
-        // File input simulation
-        const fileButton = document.querySelector('.file-button');
-        const fileName = document.querySelector('.file-name');
-        
-        fileButton.addEventListener('click', () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    fileName.textContent = file.name;
-                }
-            };
-            input.click();
-        });
-    </script>
-    <script>
+ <a href="{{ route('admin.rooms.edit', $room->id) }}" class="btn btn-edit">EDIT</a>
+
+   <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
+            @csrf
+            @method('DELETE')
+            <button class="btn btn-delete" onclick="return confirm('Delete this room?')">DELETE</button>
+        </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="text-align:center;">No rooms available.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sidebar toggling
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
+    const menuToggle = document.getElementById('menuToggle');
+
+    menuToggle.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('open');
+        } else {
+            sidebar.classList.toggle('collapsed');
+            content.classList.toggle('expanded');
+        }
+    });
+
+    // File input
+    const fileButton = document.querySelector('.file-button');
+    const fileName = document.querySelector('.file-name');
+    const fileInput = document.querySelector('input[type="file"][name="image"]');
+
+    fileButton.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        fileName.textContent = file ? file.name : 'No file selected.';
+    });
+
     function confirmLogout() {
         if (confirm("Are you sure you want to log out?")) {
             document.getElementById('logoutForm').submit();
         }
     }
-    </script>
+
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const room = JSON.parse(btn.dataset.room);
+        editRoom(room);
+    });
+});
+
+function editRoom(room) {
+    document.querySelector('[name="room_number"]').value = room.room_number || '';
+    document.querySelector('[name="room_floor"]').value = room.room_floor || '';
+    document.querySelector('[name="bedspace"]').value = room.bedspace || '';
+    document.querySelector('[name="status"]').value = room.status || '';
+    document.querySelector('[name="rent_fee"]').value = room.rent_fee || '';
+    document.querySelector('[name="description"]').value = room.description || '';
+
+    document.querySelector('.section-title').textContent = 'Edit Room';
+    document.querySelector('.submit-btn').textContent = 'Update Room';
+
+    const form = document.querySelector('.form-section form');
+    form.action = `/admin/rooms/${room.id}`;
+
+    if (!form.querySelector('input[name="_method"]')) {
+        const method = document.createElement('input');
+        method.type = 'hidden';
+        method.name = '_method';
+        method.value = 'PUT';
+        form.appendChild(method);
+    }
+}
+</script>
+
 </body>
 </html>
