@@ -19,7 +19,7 @@ use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminRoomController;
 use App\Http\Controllers\AdminReportController;
-
+use App\Http\Controllers\Student\DashboardController;
 
 // 🏠 Redirect homepage to login page
 Route::get('/', function () {
@@ -35,9 +35,10 @@ Route::get('/register', [RegisterController::class, 'showRegister'])->name('regi
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 
 
-// 🧭 DASHBOARD
-Route::get('/dash', [LoginController::class, 'dash'])->name('dash');
-
+Route::middleware(['auth'])->group(function () {
+    Route::get('/student/dashboard', [DashboardController::class, 'index'])
+        ->name('dash');
+});
 
 // 👤 PROFILE ROUTES
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
@@ -59,9 +60,7 @@ Route::post('/logout', function (Request $request) {
 
 
 Route::prefix('student')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('student.dash');
-    })->name('student.dashboard');
+
 
     Route::get('/booking', [StudentBookingController::class, 'index'])->name('student.booking');
     Route::post('/booking', [StudentBookingController::class, 'store'])->name('student.booking.store');
@@ -95,7 +94,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/payment/{id}/approve', [AdminPaymentController::class, 'approve'])->name('payment.approve');
 
     // Reject a payment
-    Route::post('/payment/{id}/reject', [AdminPaymentController::class, 'reject'])->name('payment.reject');
+    Route::post('/payment/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payment.reject');
 
     // Reports page
     Route::get('/report', [AdminReportController::class, 'index'])->name('report');

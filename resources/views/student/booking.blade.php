@@ -383,7 +383,7 @@
             <p>{{ Auth::user()->contact }}</p>
         </div>
         <div class="menu">
-    <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+    <a href="{{ route('dash') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door-fill"></i> Dashboard
     </a>
     <a href="{{ route('student.booking') }}" class="{{ request()->routeIs('student.booking') ? 'active' : '' }}">
@@ -412,25 +412,33 @@
     <div class="rooms-grid">
         @foreach($rooms as $room)
             <div class="room-card">
-                <div class="room-image">🏢</div>
+                <div class="room-image">
+                    @if($room->image)
+                        <img src="{{ asset('storage/' . $room->image) }}" alt="Room {{ $room->room_number }}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+                    @else
+                        🏢
+                    @endif
+                </div>
+
                 <div class="room-details">
                     <div class="room-name">{{ $room->room_number }}</div>
                     <div class="room-price">₱{{ number_format($room->rent_fee, 2) }}/Month</div>
                     <div class="room-desc">{{ $room->description }}</div>
 
-<form action="{{ route('student.booking.store') }}" method="POST"> 
-    @csrf
-    <input type="hidden" name="room_id" value="{{ $room->id }}"> 
-    <button type="submit" class="book-btn {{ $room->status !== 'available' ? 'unavailable' : '' }}" 
-        {{ $room->status !== 'available' ? 'disabled' : '' }}> 
-        {{ $room->status === 'available' ? 'BOOK NOW' : 'Unavailable' }} 
-    </button> 
-</form>
+                    <form action="{{ route('student.booking.store') }}" method="POST"> 
+                        @csrf
+                        <input type="hidden" name="room_id" value="{{ $room->id }}"> 
+                        <button type="submit" class="book-btn {{ $room->status !== 'available' ? 'unavailable' : '' }}" 
+                            {{ $room->status !== 'available' ? 'disabled' : '' }}> 
+                            {{ $room->status === 'available' ? 'BOOK NOW' : 'Unavailable' }} 
+                        </button> 
+                    </form>
                 </div>
             </div>
         @endforeach
     </div>
 </div>
+
 
         {{-- ✅ My Bookings --}}
         <div class="section">

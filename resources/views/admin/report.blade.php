@@ -176,20 +176,109 @@
             font-size: 36px;
             font-weight: 700;
             margin-bottom: 40px;
-            text-transform: uppercase;
         }
 
-        .report-section {
+        .form-section {
             background: white;
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
         }
 
         .section-title {
             font-size: 24px;
             font-weight: 700;
             margin-bottom: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: "Poppins", sans-serif;
+        }
+
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: "Poppins", sans-serif;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-button {
+            background: #757575;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .submit-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: #0b7dda;
+            transform: scale(1.02);
+        }
+
+        .room-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         table {
@@ -217,14 +306,45 @@
             background: #f9f9f9;
         }
 
-        .status-badge {
-            padding: 6px 16px;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
             border-radius: 6px;
-            font-size: 13px;
             font-weight: 600;
-            display: inline-block;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-edit {
             background: #4CAF50;
             color: white;
+        }
+
+        .btn-edit:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background: #FF4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #CC0000;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 1024px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 768px) {
@@ -258,17 +378,25 @@
                 margin-bottom: 25px;
             }
 
-            .report-section {
+            .form-section,
+            .room-section {
                 padding: 20px;
-                overflow-x: auto;
             }
 
-            table {
-                min-width: 700px;
+            .form-grid {
+                grid-template-columns: 1fr;
             }
 
             .section-title {
                 font-size: 20px;
+            }
+
+            .room-section {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 800px;
             }
         }
 
@@ -289,7 +417,8 @@
                 font-size: 24px;
             }
 
-            .report-section {
+            .form-section,
+            .room-section {
                 padding: 15px;
             }
 
@@ -327,7 +456,7 @@
                 <i class="fas fa-door-open"></i>
                 <span>Rooms</span>
             </a>
-            <a href="" class="active">
+            <a href="{{ route('admin.report') }}" class="active">
                 <i class="fas fa-chart-bar"></i>
                 <span>Reports</span>
             </a>
@@ -348,7 +477,6 @@
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </form>
-
         </div>
 
         <div class="main-content">
@@ -367,36 +495,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Karl Angelo Nortado</td>
-                            <td>₱1,500.00</td>
-                            <td>October 21, 2025</td>
-                            <td><span class="status-badge">Approved</span></td>
-                        </tr>
-                        <tr>
-                            <td>Romar Jay Nierva</td>
-                            <td>₱1,600.00</td>
-                            <td>October 20, 2025</td>
-                            <td><span class="status-badge">Approved</span></td>
-                        </tr>
-                        <tr>
-                            <td>Romar Jay Nierva</td>
-                            <td>₱1,600.00</td>
-                            <td>October 20, 2024</td>
-                            <td><span class="status-badge">Approved</span></td>
-                        </tr>
-                        <tr>
-                            <td>Romar Jay Nierva</td>
-                            <td>₱1,600.00</td>
-                            <td>October 20, 2023</td>
-                            <td><span class="status-badge">Approved</span></td>
-                        </tr>
-                        <tr>
-                            <td>Romar Jay Nierva</td>
-                            <td>₱1,600.00</td>
-                            <td>October 20, 2022</td>
-                            <td><span class="status-badge">Approved</span></td>
-                        </tr>
+                        @forelse ($payments as $payment)
+                            <tr>
+                                <td>{{ $payment->user->name ?? 'Unknown' }}</td>
+                                <td>₱{{ number_format($payment->amount, 2) }}</td>
+                                <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('F d, Y') }}</td>
+                                <td>
+                                    
+                            <span class="status-badge"
+                                style="background: {{ $payment->status == 'Approved' ? '#4CAF50' : '#FF9800' }};">
+                                {{ ucfirst($payment->status) }}
+                            </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:#777;">No payment records found.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -417,7 +533,6 @@
             }
         });
 
-        // Close sidebar on mobile when clicking outside
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768) {
                 if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
@@ -426,19 +541,17 @@
             }
         });
 
-        // Handle window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
                 sidebar.classList.remove('open');
             }
         });
-    </script>
-    <script>
-    function confirmLogout() {
-        if (confirm("Are you sure you want to log out?")) {
-            document.getElementById('logoutForm').submit();
+
+        function confirmLogout() {
+            if (confirm("Are you sure you want to log out?")) {
+                document.getElementById('logoutForm').submit();
+            }
         }
-    }
     </script>
 </body>
 </html>

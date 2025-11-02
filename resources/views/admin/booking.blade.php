@@ -470,7 +470,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                                            @foreach ($all as $booking)
+                            @foreach ($all as $booking)
                         <tr>
                             <td>{{ $booking->id }}</td>
                             <td>{{ $booking->user->name }}</td>

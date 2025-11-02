@@ -38,11 +38,44 @@ class AdminRoomController extends Controller
     }
 
 
-    // Delete room
-    public function destroy(Room $room)
-    {
-        $room->delete();
-        return redirect()->route('admin.rooms.index')->with('success', 'Room deleted successfully.');
+    public function destroy($id)
+{
+    $room = Room::findOrFail($id);
+
+    // Delete image from storage if exists
+    if ($room->image) {
+        \Storage::disk('public')->delete($room->image);
     }
 
+    $room->delete();
+
+    return redirect()->route('admin.rooms.index')->with('success', 'Room deleted successfully.');
+}
+
+
+public function store(Request $request)
+{
+    $request->validate([
+        'room_number' => 'required',
+        'room_floor' => 'required',
+        'gender' => 'required',
+        'bedspace' => 'required|numeric',
+        'status' => 'required',
+        'rent_fee' => 'required|numeric',
+        'description' => 'nullable',
+        'image' => 'nullable|image|max:2048',
+    ]);
+
+    $data = $request->only(['room_number', 'room_floor', 'gender', 'bedspace', 'status', 'rent_fee', 'description']);
+
+    // Handle image upload
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('rooms', 'public');
+        $data['image'] = $path;
+    }
+
+    Room::create($data);
+
+    return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
+}   
 }

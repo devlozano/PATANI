@@ -15,9 +15,12 @@ class StudentBookingController extends Controller
         $rooms = Room::all();
 
         // Fetch all bookings by the current student
-        $bookings = Booking::where('user_id', Auth::id())->with('room')->get();
+        $bookings = Auth::user()->bookings()->with('room')->get();
 
-        return view('student.booking', compact('rooms', 'bookings'));
+        // Fetch the approved room via the User relationship
+        $room = Auth::user()->approvedRoom; // returns Room or null
+
+        return view('student.booking', compact('rooms', 'bookings', 'room'));
     }
 
     public function store(Request $request)
@@ -29,9 +32,31 @@ class StudentBookingController extends Controller
         Booking::create([
             'user_id' => Auth::id(),
             'room_id' => $request->room_id,
-            'status'  => 'pending',
+            'status'  => 'pending', // default status
         ]);
 
         return redirect()->route('student.booking')->with('success', 'Booking request submitted!');
     }
+
+    /**
+ * Get all bookings of the user
+ */
+public function bookings()
+{
+    return $this->hasMany(Booking::class);
+}
+    /**
+     * Get the approved room via booking
+     */
+    public function approvedRoom()
+    {
+        return $this->hasOneThrough(
+            Room::class,      // Final model
+            Booking::class,   // Intermediate model
+            'user_id',        // Foreign key on bookings table
+            'id',             // Foreign key on rooms table
+            'id',             // Local key on users table
+            'room_id'        // Local key on bookings table
+        )->where('bookings.status', 'approved');
+    }   
 }

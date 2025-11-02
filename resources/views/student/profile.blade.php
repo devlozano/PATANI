@@ -414,7 +414,7 @@
                 <p>{{ $user->contact }}</p>
             </div>
         <div class="menu">
-    <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+    <a href="{{ route('dash') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door-fill"></i> Dashboard
     </a>
     <a href="{{ route('student.booking') }}" class="{{ request()->routeIs('student.booking') ? 'active' : '' }}">

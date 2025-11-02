@@ -43,16 +43,17 @@ class AdminPaymentController extends Controller
     /**
      * Reject a payment.
      */
-    public function reject($id)
-    {
-        $payment = Payment::with('room')->findOrFail($id);
-        $payment->update(['status' => 'Rejected']);
+public function reject(Request $request, Payment $payment)
+{
+    $request->validate([
+        'reason' => 'required|string|max:255',
+    ]);
 
-        // Optional: if needed, mark the room as available
-        if ($payment->room) {
-            $payment->room->update(['status' => 'available']);
-        }
+    $payment->status = 'Rejected';
+    $payment->notes = $request->reason; // store reason in `notes` column
+    $payment->save();
 
-        return redirect()->back()->with('success', 'Payment rejected successfully.');
-    }
+    return redirect()->back()->with('success', 'Payment rejected with reason.');
+}
+
 }

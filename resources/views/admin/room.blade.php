@@ -542,10 +542,17 @@
     <div class="form-group form-full">
         <label>Pick Image:</label>
         <div class="file-input-wrapper">
-            <button type="button" class="file-button">Browse...</button>
-            <span class="file-name">No file selected.</span>
-            <input type="file" name="image" accept="image/*" style="display:none;">
+            <button type="button" class="file-button" id="browseButton">Browse...</button>
+            <span class="file-name" id="fileName">No file selected.</span>
+            <input type="file" name="image" id="roomImage" accept="image/*" style="display:none;">
         </div>
+
+        @if(isset($room) && $room->image)
+            <div class="current-image" style="margin-top:10px;">
+                <p>Current Image:</p>
+                <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image" style="width:150px; border-radius:8px;">
+            </div>
+        @endif
     </div>
 
     <button type="submit" class="submit-btn">Add Room</button>
@@ -575,13 +582,19 @@
                             <td>
                                 <div class="action-buttons">
 
- <a href="{{ route('admin.rooms.edit', $room->id) }}" class="btn btn-edit">EDIT</a>
+                    <a href="{{ route('admin.rooms.edit', $room->id) }}" 
+                    class="btn btn-edit" 
+                    style="text-decoration: none;">
+                    EDIT
+                    </a>
 
-   <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
-            @csrf
-            @method('DELETE')
-            <button class="btn btn-delete" onclick="return confirm('Delete this room?')">DELETE</button>
-        </form>
+<form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this room?')">
+        DELETE
+    </button>
+</form>
 
                                 </div>
                             </td>
@@ -657,6 +670,5 @@ function editRoom(room) {
     }
 }
 </script>
-
 </body>
 </html>

@@ -14,6 +14,7 @@ class Payment extends Model
         'room_id',
         'amount',
         'payment_date',
+        'payment_method',
         'status',
         'notes',
     ];

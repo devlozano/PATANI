@@ -8,11 +8,11 @@ use App\Models\Payment;
 
 class AdminReportController extends Controller
 {
-    public function index()
+      public function index()
     {
-        $bookings = Booking::all();
-        $payments = Payment::all();
+        // Fetch all payment records, with student relation if exists
+        $payments = Payment::with('user')->orderBy('created_at', 'desc')->get();
 
-        return view('admin.report', compact('bookings', 'payments'));
+        return view('admin.report', compact('payments'));
     }
 }
