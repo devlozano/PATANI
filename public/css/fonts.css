@@ -1,0 +1,75 @@
+/* -------------------------------
+   OFFLINE GOOGLE FONTS
+-------------------------------- */
+
+/* Poppins Regular */
+@font-face {
+    font-family: 'Poppins';
+    src: url('/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Poppins Medium */
+@font-face {
+    font-family: 'Poppins';
+    src: url('/fonts/Poppins/Poppins-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+/* Poppins SemiBold */
+@font-face {
+    font-family: 'Poppins';
+    src: url('/fonts/Poppins/Poppins-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* Poppins Bold */
+@font-face {
+    font-family: 'Poppins';
+    src: url('/fonts/Poppins/Poppins-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* Molle Italic */
+@font-face {
+    font-family: 'Molle';
+    src: url('/fonts/Molle/Molle-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+/* Apply globally */
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* -------------------------------
+   OFFLINE FONT AWESOME
+-------------------------------- */
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    src: url('/fonts/fontawesome/webfonts/fa-solid-900.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    src: url('/fonts/fontawesome/webfonts/fa-regular-400.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Font Awesome 6 Brands';
+    src: url('/fonts/fontawesome/webfonts/fa-brands-400.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Include FA core styles (optional if using all.min.css) */
+@import url('/fonts/fontawesome/css/all.min.css');
