@@ -7,20 +7,200 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
-    <style>
-        .reject-modal {
+<style>
+/* Reset & Global */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+}
+body {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f5f5;
+    overflow-x: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 300px;
+    background: linear-gradient(to bottom, #FFD36E, #FF9800);
+    color: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
     position: fixed;
-    top: 0;
-    left: 0;
-    right:0;
-    bottom:0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease;
+}
+.sidebar.collapsed {
+    transform: translateX(-100%);
+}
+.sidebar-header {
+    font-family: "Molle", cursive;
+    font-size: 1.8rem;
+    margin-bottom: 40px;
+    color: #1e1e1e;
+    text-align: center;
+}
+.profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 40px;
+}
+.profile img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    margin-bottom: 15px;
+    background: #ddd;
+}
+.profile h2 { font-size: 1.1rem; font-weight: 600; color: #1e1e1e; margin-bottom: 5px; }
+.profile p { font-size: 0.95rem; color: #333; }
+.menu {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.menu a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #1e1e1e;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+.menu a:hover { background: rgba(255, 255, 255, 0.3); }
+.menu a.active { background: #ff8800; color: white; }
+.menu i { margin-right: 15px; font-size: 1.3rem; }
+
+/* Content */
+.content {
+    flex: 1;
+    margin-left: 300px;
+    transition: margin-left 0.3s ease;
+}
+.content.expanded { margin-left: 0; }
+
+/* Top Bar */
+.top-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #fffbe6;
+    padding: 20px 40px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+}
+.menu-toggle {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #1e1e1e;
+}
+.logo {
+    font-family: "Molle", cursive;
+    font-size: 28px;
+    color: #002d18;
+    flex: 1;
+}
+.logout-btn {
+    background: #FF4444;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+.logout-btn:hover { background: #CC0000; transform: scale(1.05); }
+
+/* Main Content */
+.main-content { padding: 40px; }
+h1 { font-size: 36px; font-weight: 700; margin-bottom: 40px; }
+
+/* Payment Section */
+.payment-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+    overflow-x: auto;
+}
+.section-title { font-size: 24px; font-weight: 700; margin-bottom: 25px; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+th {
+    background: #f5f5f5;
+    padding: 15px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    text-transform: uppercase;
+}
+td { padding: 15px; border: 1px solid #ddd; font-size: 15px; }
+tbody tr:hover { background: #f9f9f9; }
+
+/* Buttons & Status */
+.action-buttons { display: flex; gap: 10px; }
+.btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: none;
+}
+.btn-approve { background: #4CAF50; color: white; }
+.btn-approve:hover { background: #45a049; transform: scale(1.05); }
+.btn-reject { background: #FF4444; color: white; }
+.btn-reject:hover { background: #CC0000; transform: scale(1.05); }
+
+.status-badge {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+}
+.status-approved { background: #4CAF50; color: white; }
+.status-rejected { background: #FF4444; color: white; }
+.status-pending { background: #fff3cd; color: #856404; }
+
+/* Modal */
+.reject-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.6);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 999;
 }
-
 .reject-modal .modal-content {
     background: #fff;
     padding: 25px;
@@ -29,7 +209,6 @@
     max-width: 90%;
     position: relative;
 }
-
 .reject-modal .close {
     position: absolute;
     top: 10px;
@@ -37,7 +216,6 @@
     font-size: 25px;
     cursor: pointer;
 }
-
 .reject-modal textarea {
     width: 100%;
     padding: 8px;
@@ -47,17 +225,36 @@
     margin-bottom: 15px;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Poppins", sans-serif; } body { display: flex; min-height: 100vh; background: #f5f5f5; } .sidebar { width: 300px; background: linear-gradient(to bottom, #FFD36E, #FF9800); color: #1e1e1e; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; transition: transform 0.3s ease; } .sidebar.collapsed { transform: translateX(-100%); } .sidebar-header { font-family: "Molle", cursive; font-size: 1.8rem; margin-bottom: 40px; color: #1e1e1e; text-align: center; } .profile { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 40px; } .profile img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; margin-bottom: 15px; background: #ddd; } .profile h2 { font-size: 1.1rem; font-weight: 600; color: #1e1e1e; margin-bottom: 5px; } .profile p { font-size: 0.95rem; color: #333; } .menu { width: 100%; display: flex; flex-direction: column; gap: 10px; } .menu a { display: flex; align-items: center; padding: 15px 20px; border-radius: 10px; text-decoration: none; color: #1e1e1e; font-weight: 500; transition: all 0.3s ease; font-size: 1rem; } .menu a:hover { background: rgba(255, 255, 255, 0.3); } .menu a.active { background: #ff8800; color: white; } .menu i { margin-right: 15px; font-size: 1.3rem; } .content { flex: 1; margin-left: 300px; padding: 0; transition: margin-left 0.3s ease; } .content.expanded { margin-left: 0; } .top-bar { display: flex; align-items: center; gap: 20px; background: #fffbe6; padding: 20px 40px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); } .menu-toggle { background: none; border: none; font-size: 28px; cursor: pointer; padding: 5px; color: #1e1e1e; display: flex; align-items: center; } .logo { font-family: "Molle", cursive; font-size: 28px; color: #002d18; flex: 1; } .logout-btn { background: #FF4444; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; } .logout-btn:hover { background: #CC0000; transform: scale(1.05); } .main-content { padding: 40px; } h1 { font-size: 36px; font-weight: 700; margin-bottom: 40px; } .payment-section { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 40px; } .section-title { font-size: 24px; font-weight: 700; margin-bottom: 25px; } table { width: 100%; border-collapse: collapse; } th { background: #f5f5f5; padding: 15px; text-align: left; font-weight: 700; font-size: 14px; border: 1px solid #ddd; text-transform: uppercase; } td { padding: 15px; border: 1px solid #ddd; font-size: 15px; } tbody tr:hover { background: #f9f9f9; } .action-buttons { display: flex; gap: 10px; } .btn { padding: 8px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.3s; } .btn-approve { background: #4CAF50; color: white; } .btn-approve:hover { background: #45a049; transform: scale(1.05); } .btn-reject { background: #FF4444; color: white; } .btn-reject:hover { background: #CC0000; transform: scale(1.05); } .status-badge { padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block; } .status-approved { background: #4CAF50; color: white; } .status-rejected { background: #FF4444; color: white; } @media (max-width: 768px) { .sidebar { width: 300px; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .content { margin-left: 0; } .top-bar { padding: 15px 20px; } .logo { font-size: 22px; } .main-content { padding: 20px; } h1 { font-size: 28px; margin-bottom: 25px; } .payment-section { padding: 20px; overflow-x: auto; } table { min-width: 900px; } .section-title { font-size: 20px; } } @media (max-width: 480px) { .top-bar { padding: 12px 15px; } .logo { font-size: 20px; } .main-content { padding: 15px; } h1 { font-size: 24px; } .payment-section { padding: 15px; } .section-title { font-size: 18px; } }
-        .btn { padding: 8px 20px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.3s; border: none; }
-        .btn-approve { background: #4CAF50; color: white; }
-        .btn-approve:hover { background: #45a049; transform: scale(1.05); }
-        .btn-reject { background: #FF4444; color: white; }
-        .btn-reject:hover { background: #CC0000; transform: scale(1.05); }
-        .status-badge { padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block; }
-        .status-approved { background: #4CAF50; color: white; }
-        .status-rejected { background: #FF4444; color: white; }
-        .status-pending { background: #fff3cd; color: #856404; }
-    </style>
+/* Responsive */
+@media (max-width: 1024px) {
+    .content { margin-left: 0; }
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { padding: 30px; }
+    h1 { font-size: 32px; }
+    .payment-section { padding: 25px; }
+    table { min-width: 700px; }
+    .section-title { font-size: 22px; }
+}
+@media (max-width: 768px) {
+    .top-bar { padding: 15px 20px; }
+    .logo { font-size: 22px; }
+    .main-content { padding: 20px; }
+    h1 { font-size: 28px; margin-bottom: 25px; }
+    .payment-section { padding: 20px; overflow-x: auto; }
+    table { min-width: 600px; }
+    .section-title { font-size: 20px; }
+}
+@media (max-width: 480px) {
+    .top-bar { padding: 12px 15px; gap: 10px; }
+    .logo { font-size: 20px; }
+    .main-content { padding: 15px; }
+    h1 { font-size: 24px; }
+    .payment-section { padding: 15px; }
+    .section-title { font-size: 18px; }
+    table { min-width: 500px; font-size: 13px; }
+}
+</style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -165,46 +362,94 @@
 </div>
 
 
-            <!-- All Payments -->
-            <div class="payment-section">
-                <h2 class="section-title">All Payments</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>PAYMENT ID</th>
-                            <th>STUDENT</th>
-                            <th>AMOUNT</th>
-                            <th>DATE</th>
-                            <th>STATUS</th>
-                            <th>NOTES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($payments as $payment)
-                        <tr>
-                            <td>{{ $payment->id }}</td>
-                            <td>{{ $payment->user->name ?? 'Unknown' }}</td>
-                            <td>₱{{ number_format($payment->amount, 2) }}</td>
-                            <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('F d, Y') }}</td>
-                            <td>
-                                @if($payment->status === 'Pending')
-                                    <span class="status-badge status-pending">Pending</span>
-                                @elseif($payment->status === 'Approved')
-                                    <span class="status-badge status-approved">Approved</span>
-                                @elseif($payment->status === 'Rejected')
-                                    <span class="status-badge status-rejected">Rejected</span>
-                                @endif
-                            </td>
-                            <td>{{ $payment->notes ?? '' }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" style="text-align:center;">No payments found.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+ <!-- Filter Section -->
+<div class="filter-container" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
+    <!-- Status Filter -->
+    <div>
+        <label for="statusFilter">Filter by Status:</label>
+        <select id="statusFilter">
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+    </div>
+
+    <!-- Search Filter -->
+    <div>
+        <label for="searchFilter">Search:</label>
+        <input type="text" id="searchFilter" placeholder="Search by student, ID, notes..." style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
+    </div>
+</div>
+
+<!-- Payments Table -->
+<table id="paymentsTable">
+    <thead>
+        <tr>
+            <th>PAYMENT ID</th>
+            <th>STUDENT</th>
+            <th>AMOUNT</th>
+            <th>DATE</th>
+            <th>STATUS</th>
+            <th>NOTES</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($payments as $payment)
+        <tr>
+            <td>{{ $payment->id }}</td>
+            <td>{{ $payment->user->name ?? 'Unknown' }}</td>
+            <td>₱{{ number_format($payment->amount, 2) }}</td>
+            <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('F d, Y') }}</td>
+            <td class="status-cell">
+                @if($payment->status === 'Pending')
+                    <span class="status-badge status-pending">Pending</span>
+                @elseif($payment->status === 'Approved')
+                    <span class="status-badge status-approved">Approved</span>
+                @elseif($payment->status === 'Rejected')
+                    <span class="status-badge status-rejected">Rejected</span>
+                @endif
+            </td>
+            <td>{{ $payment->notes ?? '' }}</td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="6" style="text-align:center;">No payments found.</td>
+        </tr>
+        @endforelse
+    </tbody>
+</table>
+
+<!-- JavaScript Filter -->
+<script>
+const statusFilter = document.getElementById('statusFilter');
+const searchFilter = document.getElementById('searchFilter');
+const tableRows = document.querySelectorAll('#paymentsTable tbody tr');
+
+function filterPayments() {
+    const statusValue = statusFilter.value;
+    const searchValue = searchFilter.value.toLowerCase();
+
+    tableRows.forEach(row => {
+        const statusText = row.querySelector('.status-cell')?.innerText.trim() || '';
+        const rowText = row.innerText.toLowerCase();
+
+        const statusMatch = statusValue === "All" || statusText === statusValue;
+        const searchMatch = rowText.includes(searchValue);
+
+        if(statusMatch && searchMatch) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Event Listeners
+statusFilter.addEventListener('change', filterPayments);
+searchFilter.addEventListener('input', filterPayments);
+</script>
+
         </div>
     </div>
 

@@ -456,47 +456,105 @@
                 </table>
             </div>
 
-            <!-- All Bookings Section -->
-            <div class="booking-section">
-                <h2 class="section-title">All Bookings</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>BOOKING ID</th>
-                            <th>STUDENT</th>
-                            <th>ROOM</th>
-                            <th>DATE</th>
-                            <th>STATUS</th>
-                            <th>CHECKOUT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                            @foreach ($all as $booking)
-                        <tr>
-                            <td>{{ $booking->id }}</td>
-                            <td>{{ $booking->user->name }}</td>
-                            <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
-                            <td>{{ $booking->created_at->format('F d, Y') }}</td>
-                            <td>
-                                <span class="status-badge 
-                                    {{ $booking->status == 'approved' ? 'status-approve' : 
-                                    ($booking->status == 'rejected' ? 'status-rejected' : 'status-checkout') }}">
-                                    {{ ucfirst($booking->status) }}
-                                </span>
-                            </td>
-                            <td>
-                                @if ($booking->status == 'approved')
-                                <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    <button type="submit" class="btn btn-checkout">Checkout</button>
-                                </form>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+           <!-- Filter Section for Admin Booking -->
+<div class="filter-container" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
+    <!-- Status Filter -->
+    <div>
+        <label for="adminBookingStatusFilter">Filter by Status:</label>
+        <select id="adminBookingStatusFilter" data-target="adminBookingsTable">
+            <option value="All">All</option>
+            <option value="approved">Approved</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="checkout">Checkout</option>
+        </select>
+    </div>
+
+    <!-- Search Filter -->
+    <div>
+        <label for="adminBookingSearchFilter">Search:</label>
+        <input type="text" id="adminBookingSearchFilter" placeholder="Search by student, room, ID..." data-target="adminBookingsTable" style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
+    </div>
+</div>
+
+<!-- Admin Bookings Table -->
+<div class="booking-section">
+    <h2 class="section-title">All Bookings</h2>
+    <table id="adminBookingsTable">
+        <thead>
+            <tr>
+                <th>BOOKING ID</th>
+                <th>STUDENT</th>
+                <th>ROOM</th>
+                <th>DATE</th>
+                <th>STATUS</th>
+                <th>CHECKOUT</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($all as $booking)
+            <tr>
+                <td>{{ $booking->id }}</td>
+                <td>{{ $booking->user->name }}</td>
+                <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
+                <td>{{ $booking->created_at->format('F d, Y') }}</td>
+<td class="status-cell">
+    <span class="status-badge 
+        {{ $booking->status == 'approved' ? 'status-approve' : 
+          ($booking->status == 'rejected' ? 'status-rejected' : 
+          ($booking->status == 'cancelled' ? 'status-cancelled' : 'status-checkout')) }}">
+        {{ ucfirst($booking->status) }}
+    </span>
+</td>
+
+                <td>
+                    @if ($booking->status == 'approved')
+                    <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" class="checkout-form" style="display:inline;">
+                        @csrf
+                        <button type="submit" class="btn btn-checkout">Checkout</button>
+                    </form>
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
+<!-- JavaScript Filter for Admin Bookings -->
+<script>
+const bookingStatusFilter = document.getElementById('adminBookingStatusFilter');
+const bookingSearchFilter = document.getElementById('adminBookingSearchFilter');
+const bookingRows = document.querySelectorAll('#adminBookingsTable tbody tr');
+
+function filterBookings() {
+    const statusValue = bookingStatusFilter.value.toLowerCase();
+    const searchValue = bookingSearchFilter.value.toLowerCase();
+
+    bookingRows.forEach(row => {
+        const statusText = row.querySelector('.status-cell')?.innerText.trim().toLowerCase() || '';
+        const rowText = row.innerText.toLowerCase();
+
+        // Fix: match exact statuses like "rejected", "approved", "checkout"
+        const statusMatch = statusValue === "all" || statusText === statusValue;
+        const searchMatch = rowText.includes(searchValue);
+
+        row.style.display = (statusMatch && searchMatch) ? '' : 'none';
+    });
+}
+
+// Event Listeners
+bookingStatusFilter.addEventListener('change', filterBookings);
+bookingSearchFilter.addEventListener('input', filterBookings);
+
+// Checkout Confirmation
+document.querySelectorAll('.checkout-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        const confirmed = confirm('Are you sure you want to checkout this student?');
+        if(!confirmed) e.preventDefault();
+    });
+});
+</script>
+
         </div>
     </div>
 
