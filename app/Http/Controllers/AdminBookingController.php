@@ -16,13 +16,23 @@ class AdminBookingController extends Controller
     }
 
     public function approve($id)
-    {
-        $booking = Booking::findOrFail($id);
-        $booking->status = 'Approved';
-        $booking->save();
+{
+    // Find the booking being approved
+    $booking = Booking::findOrFail($id);
 
-        return redirect()->back()->with('success', 'Booking approved successfully!');
-    }
+    // Approve this booking
+    $booking->status = 'Approved';
+    $booking->save();
+
+    // Automatically cancel other bookings for the same student
+    Booking::where('user_id', $booking->user_id)
+        ->where('id', '!=', $booking->id)  // Exclude the approved booking
+        ->whereIn('status', ['Pending', 'Approved']) // Cancel only pending or mistakenly approved ones
+        ->update(['status' => 'Cancelled']);
+
+    return redirect()->back()->with('success', 'Booking approved. Other bookings for this student have been cancelled.');
+}
+
 
     public function reject($id)
     {
@@ -33,12 +43,13 @@ class AdminBookingController extends Controller
         return redirect()->back()->with('error', 'Booking rejected.');
     }
 
-    public function checkout($id)
-    {
-        $booking = Booking::findOrFail($id);
-        $booking->status = 'Checked_out';
-        $booking->save();
+public function checkout($id)
+{
+    $booking = Booking::findOrFail($id);
+    $booking->status = 'CheckedOut';
+    $booking->save();
 
-        return redirect()->back()->with('success', 'Guest checked out successfully.');
-    }
+    return redirect()->back()->with('success', 'Student has been checked out successfully.');
+}
+
 }

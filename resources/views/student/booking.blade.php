@@ -1,3 +1,6 @@
+@php
+    $hasActiveBooking = $hasActiveBooking ?? false;
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -410,6 +413,11 @@
 {{-- ✅ Available Rooms --}}
 <div class="section">
     <div class="section-title">Available Rooms</div>
+@if($hasActiveBooking)
+    <div style="background-color:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:12px;">
+        ⚠️ You already have an approved booking. You must be checked out by the admin before booking another room.
+    </div>
+@endif
     <div class="rooms-grid">
         @foreach($rooms as $room)
             <div class="room-card">
@@ -426,19 +434,20 @@
                     <div class="room-price">₱{{ number_format($room->rent_fee, 2) }}/Month</div>
                     <div class="room-desc">{{ $room->description }}</div>
 
-                    <form action="{{ route('student.booking.store') }}" method="POST"> 
+                    <form action="{{ route('student.booking.store') }}" method="POST">
                         @csrf
-                        <input type="hidden" name="room_id" value="{{ $room->id }}"> 
-                        <button type="submit" class="book-btn {{ $room->status !== 'available' ? 'unavailable' : '' }}" 
-                            {{ $room->status !== 'available' ? 'disabled' : '' }}> 
-                            {{ $room->status === 'available' ? 'BOOK NOW' : 'Unavailable' }} 
-                        </button> 
+                        <input type="hidden" name="room_id" value="{{ $room->id }}">
+                        <button type="submit" class="book-btn {{ $room->status !== 'available' || $hasActiveBooking ? 'unavailable' : '' }}"
+                            {{ $room->status !== 'available' || $hasActiveBooking ? 'disabled' : '' }}>
+                            {{ $room->status === 'available' ? 'BOOK NOW' : 'Unavailable' }}
+                        </button>
                     </form>
                 </div>
             </div>
         @endforeach
     </div>
 </div>
+
 
 
         {{-- ✅ My Bookings --}}

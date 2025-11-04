@@ -90,8 +90,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Payments page (index)
     Route::get('/payment', [AdminPaymentController::class, 'index'])->name('payment');
 
-    // Approve a payment
-    Route::post('/payment/{id}/approve', [AdminPaymentController::class, 'approve'])->name('payment.approve');
+    Route::post('/payments/{id}/approve', [AdminPaymentController::class, 'approve'])->name('payment.approve');
+
 
     // Reject a payment
     Route::post('/payment/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payment.reject');
@@ -119,3 +119,7 @@ Route::post('/booking/{id}/reject', [AdminBookingController::class, 'reject'])->
 
     // Rooms CRUD
     Route::resource('rooms', AdminRoomController::class);
+
+Route::post('/admin/bookings/{id}/checkout', [AdminBookingController::class, 'checkout'])
+    ->name('admin.booking.checkout')
+    ->middleware('auth');

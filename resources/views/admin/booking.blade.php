@@ -258,13 +258,18 @@
         }
 
         .btn-checkout {
-            background: #2196F3;
+            background-color: #E53935; /* bright red */
             color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
         }
 
         .btn-checkout:hover {
-            background: #0b7dda;
-            transform: scale(1.05);
+            background-color: #C62828;
         }
 
         .status-badge {
@@ -418,8 +423,8 @@
         <div class="main-content">
             <h1>Manage Bookings</h1>
 
-            <!-- Pending Bookings Section -->
-            <div class="booking-section">
+           <!-- Pending Bookings Section -->
+            <div class="booking -section">
                 <h2 class="section-title">Pending Bookings</h2>
                 <table>
                     <thead>
@@ -499,21 +504,23 @@
                 <td>{{ $booking->created_at->format('F d, Y') }}</td>
 <td class="status-cell">
     <span class="status-badge 
-        {{ $booking->status == 'approved' ? 'status-approve' : 
-          ($booking->status == 'rejected' ? 'status-rejected' : 
-          ($booking->status == 'cancelled' ? 'status-cancelled' : 'status-checkout')) }}">
-        {{ ucfirst($booking->status) }}
-    </span>
+    {{ $booking->status == 'Approved' ? 'status-approve' : 
+       ($booking->status == 'Cancelled' ? 'status-cancelled' : 
+       ($booking->status == 'CheckedOut' ? 'status-checkout' : 'status-pending')) }}">
+    {{ ucfirst($booking->status) }}
+</span>
+
 </td>
 
-                <td>
-                    @if ($booking->status == 'approved')
-                    <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" class="checkout-form" style="display:inline;">
-                        @csrf
-                        <button type="submit" class="btn btn-checkout">Checkout</button>
-                    </form>
-                    @endif
-                </td>
+<td>
+    @if (in_array($booking->status, ['Approved', 'paid']))
+        <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" class="checkout-form" style="display:inline;">
+            @csrf
+            <button type="submit" class="btn btn-checkout">Checkout</button>
+        </form>
+    @endif
+</td>
+
             </tr>
             @endforeach
         </tbody>

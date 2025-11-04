@@ -194,29 +194,85 @@
         }
 
         .stat-card {
-            background: #D9D9D9;
+            background: white;
             border-radius: 12px;
             padding: 25px;
             display: flex;
             align-items: center;
             gap: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Total Students - Blue */
+        .stat-card:nth-child(1) {
+            border-left: 5px solid #4A90E2;
+        }
+
+        .stat-card:nth-child(1) .stat-icon {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white;
+        }
+
+        /* Total Rooms - Purple */
+        .stat-card:nth-child(2) {
+            border-left: 5px solid #7B68EE;
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: linear-gradient(135deg, #7B68EE, #6A5ACD);
+            color: white;
+        }
+
+        /* Pending Bookings - Orange */
+        .stat-card:nth-child(3) {
+            border-left: 5px solid #FF9800;
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        /* Pending Payments - Red */
+        .stat-card:nth-child(4) {
+            border-left: 5px solid #E74C3C;
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background: linear-gradient(135deg, #E74C3C, #C0392B);
+            color: white;
         }
 
         .stat-icon {
             width: 70px;
             height: 70px;
-            background: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 35px;
+            flex-shrink: 0;
         }
 
         .stat-info h3 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info p {
+            font-size: 28px;
+            font-weight: 700;
             color: #1e1e1e;
+            margin: 0;
         }
 
         .card {

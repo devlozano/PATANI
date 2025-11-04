@@ -366,25 +366,28 @@ table tbody tr:hover {
             <!-- ✅ Make Payments Section -->
             <div class="section">
     <div class="section-title">Make Payments</div>
+    @php
+$hasApprovedPayment = auth()->user()->payments()->where('status', 'Approved')->exists();
+@endphp
 
-    @foreach($rooms as $room)
-        <div class="payment-card">
-            <h3>Room {{ $room->room_number }} - {{ $room->room_floor }}</h3>
-            <div class="amount">Monthly Rent: ₱{{ number_format($room->rent_fee, 2) }}</div>
+@foreach($rooms as $room)
+    <div class="payment-card">
+        <h3>Room {{ $room->room_number }} - {{ $room->room_floor }}</h3>
+        <div class="amount">Monthly Rent: ₱{{ number_format($room->rent_fee, 2) }}</div>
 
-            <form action="{{ route('payment.store') }}" method="POST">
-                @csrf
-                <input type="hidden" name="room_id" value="{{ $room->id }}">
-                <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
+        <form action="{{ route('payment.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="room_id" value="{{ $room->id }}">
+            <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
             <button type="button" 
                     class="pay-btn" 
-                    {{ $room->status !== 'available' ? 'disabled' : '' }} 
+                    {{ $room->status !== 'available' || $hasApprovedPayment ? 'disabled' : '' }} 
                     onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}')">
-                {{ $room->status === 'available' ? 'Pay Now' : 'Unavailable' }}
+                {{ $room->status === 'available' && !$hasApprovedPayment ? 'Pay Now' : 'Unavailable' }}
             </button>
-            </form>
-        </div>
-    @endforeach
+        </form>
+    </div>
+@endforeach
 </div>
 <div id="paymentModal" class="payment-modal" style="display:none;">
     <div class="modal-content">

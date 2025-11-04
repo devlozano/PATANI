@@ -16,7 +16,7 @@ public function up(): void
         $table->foreignId('user_id')->constrained()->onDelete('cascade');
         $table->foreignId('room_id')->constrained()->onDelete('cascade');
         $table->date('booking_date')->default(now());
-        $table->enum('status', ['Pending', 'Approved', 'Cancelled'])->default('Pending');
+        $table->enum('status', ['Pending', 'Approved', 'Cancelled', 'CheckedOut'])->default('Pending');
         $table->timestamps();
     });
 }

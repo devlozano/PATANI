@@ -47,21 +47,23 @@ class AdminPaymentController extends Controller
         return view('admin.payment', compact('payments', 'pendingPayments'));
     }
 
-    /**
-     * Approve a payment.
-     */
-    public function approve($id)
-    {
-        $payment = Payment::with('room')->findOrFail($id);
-        $payment->update(['status' => 'Approved']);
+public function approve($id)
+{
+    // Find the payment being approved
+    $payment = Payment::findOrFail($id);
 
-        // ✅ Optionally mark the room as occupied
-        if ($payment->room) {
-            $payment->room->update(['status' => 'occupied']);
-        }
+    // Approve this payment
+    $payment->status = 'Approved';
+    $payment->save();
 
-        return redirect()->back()->with('success', 'Payment approved successfully.');
-    }
+    // Automatically cancel or delete other payments for the same student
+    Payment::where('user_id', $payment->user_id)
+        ->where('id', '!=', $payment->id) // Exclude the approved payment
+        ->whereIn('status', ['Pending', 'Submitted']) // Only remove pending/submitted
+        ->update(['status' => 'Cancelled']); // Or delete() if you prefer: ->delete()
+
+    return redirect()->back()->with('success', 'Payment approved. Other payments have been cancelled.');
+}
 
     /**
      * Reject a payment.
@@ -78,4 +80,28 @@ class AdminPaymentController extends Controller
 
         return redirect()->back()->with('success', 'Payment rejected with reason.');
     }
+
+    public function store(Request $request)
+{
+    $user = auth()->user();
+
+    // Prevent multiple active payments
+    $hasApprovedPayment = Payment::where('user_id', $user->id)
+        ->where('status', 'Approved')
+        ->exists();
+
+    if ($hasApprovedPayment) {
+        return redirect()->back()->with('error', 'You already have an approved payment. You cannot pay another until your current payment is processed.');
+    }
+
+    Payment::create([
+        'user_id' => $user->id,
+        'room_id' => $request->room_id,
+        'amount' => $request->amount,
+        'status' => 'Pending',
+    ]);
+
+    return redirect()->back()->with('success', 'Payment submitted successfully.');
+}
+
 }
