@@ -423,43 +423,88 @@
         <div class="main-content">
             <h1>Manage Bookings</h1>
 
-           <!-- Pending Bookings Section -->
-            <div class="booking -section">
-                <h2 class="section-title">Pending Bookings</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>BOOKING ID</th>
-                            <th>STUDENT</th>
-                            <th>ROOM</th>
-                            <th>DATE</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                                                @foreach ($pending as $booking)
-                        <tr>
-                            <td>{{ $booking->id }}</td>
-                            <td>{{ $booking->user->name }}</td>
-                            <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
-                            <td>{{ $booking->created_at->format('F d, Y') }}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-approve">Approve</button>
-                                    </form>
-                                    <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-reject">Reject</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+          <!-- ✅ Pending Bookings Section -->
+<div class="booking-section" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:25px;">
+    <h2 class="section-title" style="font-size:22px; font-weight:600; margin-bottom:18px; color:#333; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-hourglass-half" style="color:#f0a500;"></i> Pending Bookings
+    </h2>
+
+    <table style="width:100%; border-collapse:collapse; text-align:left;">
+        <thead>
+            <tr style="background:#f9fafb; color:#555;">
+                <th style="padding:12px; border-bottom:2px solid #eee;">BOOKING ID</th>
+                <th style="padding:12px; border-bottom:2px solid #eee;">STUDENT</th>
+                <th style="padding:12px; border-bottom:2px solid #eee;">ROOM</th>
+                <th style="padding:12px; border-bottom:2px solid #eee;">DATE</th>
+                <th style="padding:12px; border-bottom:2px solid #eee;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($pending as $booking)
+                <tr style="transition: all 0.2s ease-in-out;">
+                    <td style="padding:12px; border-bottom:1px solid #eee;">#{{ $booking->id }}</td>
+                    <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->user->name }}</td>
+                    <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->room->room_number ?? 'N/A' }}</td>
+                    <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->created_at->format('F d, Y') }}</td>
+                    <td style="padding:12px; border-bottom:1px solid #eee;">
+                        <div class="action-buttons" style="display:flex; gap:8px;">
+                            <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn-approve">Approve</button>
+                            </form>
+                            <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn-reject">Reject</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:20px; color:#777;">No pending bookings.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<!-- ✅ Inline Styles for Buttons -->
+<style>
+.btn-approve {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.3s ease;
+}
+.btn-approve:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
+
+.btn-reject {
+    background-color: #e74c3c;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.3s ease;
+}
+.btn-reject:hover {
+    background-color: #c0392b;
+    transform: scale(1.05);
+}
+
+.booking-section table tr:hover {
+    background-color: #fdf7e6;
+}
+</style>
+
 
            <!-- Filter Section for Admin Booking -->
 <div class="filter-container" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">

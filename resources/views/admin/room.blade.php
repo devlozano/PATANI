@@ -478,136 +478,231 @@
     <div class="main-content">
         <h1>Manage Rooms</h1>
 
-        <!-- Add/Edit Room -->
-        <div class="form-section">
-            <h2 class="section-title">Add New Room</h2>
-<form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    <div class="form-grid">
-        <div class="form-group">
-            <label>Room Number:</label>
-            <select name="room_number" required>
-                <option value="">Select</option>
-                @for($i = 1; $i <= 6; $i++)
-                    <option value="{{ $i }}">{{ $i }}</option>
-                @endfor
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Room Floor:</label>
-            <select name="room_floor" required>
-                <option value="">Select</option>
-                <option value="Ground Floor">Ground Floor</option>
-                <option value="First Floor">First Floor</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Gender:</label>
-            <select name="gender" required>
-                <option value="">Select</option>
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Bedspace:</label>
-            <select name="bedspace" required>
-                <option value="">Select</option>
-                <option value="4">4</option>
-                <option value="6">6</option>
-                <option value="8">8</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Status:</label>
-            <select name="status" required>
-                <option value="available">Available</option>
-                <option value="occupied">Occupied</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Rent Fee:</label>
-            <select name="rent_fee" required>
-                <option value="">Select</option>
-                <option value="1500">₱1,500.00</option>
-                <option value="1600">₱1,600.00</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="form-group form-full">
-        <label>Description:</label>
-        <textarea name="description" placeholder="Room details..." required></textarea>
-    </div>
-
-    <div class="form-group form-full">
-        <label>Pick Image:</label>
-        <div class="file-input-wrapper">
-            <button type="button" class="file-button" id="browseButton">Browse...</button>
-            <span class="file-name" id="fileName">No file selected.</span>
-            <input type="file" name="image" id="roomImage" accept="image/*" style="display:none;">
-        </div>
-
-        @if(isset($room) && $room->image)
-            <div class="current-image" style="margin-top:10px;">
-                <p>Current Image:</p>
-                <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image" style="width:150px; border-radius:8px;">
-            </div>
-        @endif
-    </div>
-
-    <button type="submit" class="submit-btn">Add Room</button>
-</form>
-        </div>
-
-        <!-- Room List -->
-        <div class="room-section">
-            <h2 class="section-title">Room List</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ROOM NO.</th>
-                        <th>ROOM FLOOR</th>
-                        <th>RENT FEE</th>
-                        <th>STATUS</th>
-                        <th>ACTIONS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($rooms as $room)
-                        <tr>
-                            <td>{{ $room->room_number }}</td>
-                            <td>{{ $room->room_floor }}</td>
-                            <td>₱{{ number_format($room->rent_fee, 2) }}</td>
-                            <td>{{ ucfirst($room->status) }}</td>
-                            <td>
-                                <div class="action-buttons">
-
-                    <a href="{{ route('admin.rooms.edit', $room->id) }}" 
-                    class="btn btn-edit" 
-                    style="text-decoration: none;">
-                    EDIT
-                    </a>
-
-<form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this room?')">
-        DELETE
-    </button>
-</form>
-
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="5" style="text-align:center;">No rooms available.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+        <!-- Toggle Buttons -->
+<div class="toggle-buttons" style="margin-bottom: 20px;">
+    <button id="showAddRoom" class="toggle-btn active">Add New Room</button>
+    <button id="showRoomList" class="toggle-btn">Room List</button>
 </div>
+
+<!-- Add/Edit Room -->
+<div class="form-section" id="addRoomSection">
+    <h2 class="section-title">Add New Room</h2>
+    <form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Room Number:</label>
+                <select name="room_number" required>
+                    <option value="">Select</option>
+                    @for($i = 1; $i <= 6; $i++)
+                        <option value="{{ $i }}">{{ $i }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Room Floor:</label>
+                <select name="room_floor" required>
+                    <option value="">Select</option>
+                    <option value="Ground Floor">Ground Floor</option>
+                    <option value="First Floor">First Floor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Gender:</label>
+                <select name="gender" required>
+                    <option value="">Select</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Bedspace:</label>
+                <select name="bedspace" required>
+                    <option value="">Select</option>
+                    <option value="4">4</option>
+                    <option value="6">6</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Status:</label>
+                <select name="status" required>
+                    <option value="available">Available</option>
+                    <option value="occupied">Occupied</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Rent Fee:</label>
+                <select name="rent_fee" required>
+                    <option value="">Select</option>
+                    <option value="1500">₱1,500.00</option>
+                    <option value="1600">₱1,600.00</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group form-full">
+            <label>Description:</label>
+            <textarea name="description" placeholder="Room details..." required></textarea>
+        </div>
+
+        <div class="form-group form-full">
+            <label>Pick Image:</label>
+            <div class="file-input-wrapper">
+                <button type="button" class="file-button" id="browseButton">Browse...</button>
+                <span class="file-name" id="fileName">No file selected.</span>
+                <input type="file" name="image" id="roomImage" accept="image/*" style="display:none;">
+            </div>
+
+            @if(isset($room) && $room->image)
+                <div class="current-image" style="margin-top:10px;">
+                    <p>Current Image:</p>
+                    <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image" style="width:150px; border-radius:8px;">
+                </div>
+            @endif
+        </div>
+
+        <button type="submit" class="submit-btn">Add Room</button>
+    </form>
+</div>
+
+<!-- Room List -->
+<div class="room-section" id="roomListSection" style="display:none;">
+    <h2 class="section-title">Room List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ROOM NO.</th>
+                <th>ROOM FLOOR</th>
+                <th>BEDSPACE</th>
+                <th>CURRENT OCCUPANCY</th>
+                <th>AVAILABLE BEDS</th>
+                <th>STUDENTS</th>
+                <th>RENT FEE</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($rooms as $room)
+@php
+    // Count only approved bookings for this room
+    $occupancy = $room->bookings()
+                      ->where('status', 'approved')
+                      ->count();
+
+    $bedspace = $room->bedspace ?? 1;
+    $availableBeds = max($bedspace - $occupancy, 0);
+    $occupancyPercent = ($occupancy / $bedspace) * 100;
+
+    if ($occupancyPercent == 0) {
+        $rowClass = 'available-room';
+    } elseif ($occupancyPercent < 100) {
+        $rowClass = 'partial-room';
+    } else {
+        $rowClass = 'full-room';
+    }
+@endphp
+
+                <tr class="{{ $rowClass }}">
+                    <td>{{ $room->room_number }}
+                    </td>
+                    <td>{{ $room->room_floor }}</td>
+                    <td>{{ $room->bedspace }}</td>
+                    <td>{{ $occupancy }}</td>
+                    <td>{{ $availableBeds }}</td>
+                    <td>-</td> <!-- Students names removed -->
+                    <td>₱{{ number_format($room->rent_fee, 2) }}</td>
+                    <td>{{ ucfirst($room->status) }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ route('admin.rooms.edit', $room->id) }}" class="btn btn-edit" style="text-decoration: none;">EDIT</a>
+                            <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this room?')">DELETE</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr><td colspan="9" style="text-align:center;">No rooms available.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .available-room {
+        background-color: #d4edda; /* light green */
+    }
+    .partial-room {
+        background-color: #fff3cd; /* light yellow */
+    }
+    .full-room {
+        background-color: #f8d7da; /* light red/pink */
+    }
+    .badge {
+        background-color: #6c757d;
+        color: white;
+        padding: 2px 6px;
+        font-size: 12px;
+        border-radius: 4px;
+        margin-left: 8px;
+    }
+    table tbody tr:hover {
+        opacity: 0.85;
+    }
+</style>
+
+
+<!-- Toggle Script -->
+<script>
+    const addBtn = document.getElementById('showAddRoom');
+    const listBtn = document.getElementById('showRoomList');
+    const addSection = document.getElementById('addRoomSection');
+    const listSection = document.getElementById('roomListSection');
+
+    addBtn.addEventListener('click', () => {
+        addBtn.classList.add('active');
+        listBtn.classList.remove('active');
+        addSection.style.display = 'block';
+        listSection.style.display = 'none';
+    });
+
+    listBtn.addEventListener('click', () => {
+        listBtn.classList.add('active');
+        addBtn.classList.remove('active');
+        addSection.style.display = 'none';
+        listSection.style.display = 'block';
+    });
+
+    // File browse button
+    document.getElementById('browseButton').addEventListener('click', () => {
+        document.getElementById('roomImage').click();
+    });
+    document.getElementById('roomImage').addEventListener('change', (e) => {
+        const fileName = e.target.files[0]?.name || 'No file selected.';
+        document.getElementById('fileName').textContent = fileName;
+    });
+</script>
+
+<!-- Optional Toggle Button Styling -->
+<style>
+    .toggle-btn {
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background: #fffff0;
+        margin-right: 5px;
+        border-radius: 5px;
+    }
+    .toggle-btn.active {
+        background: #ffd966;
+        font-weight: bold;
+    }
+</style>
+
 
 <script>
     // Sidebar toggling

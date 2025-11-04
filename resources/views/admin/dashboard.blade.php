@@ -562,41 +562,100 @@
     </div>
 
     <!-- Recent Bookings -->
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Recent Bookings</span>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>STUDENT</th>
-                    <th>ROOM</th>
-                    <th>DATE</th>
-                    <th>STATUS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(\App\Models\Booking::with('user','room')->latest()->take(5)->get() as $booking)
-                    <tr>
-                        <td>{{ $booking->user->name ?? 'Unknown' }}</td>
-                        <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
-                        <td>{{ $booking->created_at->format('F d, Y') }}</td>
-                        <td>
-                            <span class="status-badge
-                                @if($booking->status === 'approved') status-approved
-                                @elseif($booking->status === 'rejected') status-rejected
-                                @elseif($booking->status === 'cancelled') status-cancelled
-                                @else status-pending
-                                @endif">
-                                {{ ucfirst($booking->status) }}
-                            </span>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+<div class="section-card">
+    <div class="section-header">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Recent Bookings</span>
     </div>
+    <table>
+        <thead>
+            <tr>
+                <th>STUDENT</th>
+                <th>ROOM</th>
+                <th>BEDSPACE</th>
+                <th>DATE</th>
+                <th>STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(\App\Models\Booking::with('user','room.bookings.user')->latest()->take(5)->get() as $booking)
+@php
+    $room = $booking->room;
+    $totalBeds = $room->bedspace ?? 1;
+
+    // Count only approved bookings
+    $occupiedBeds = $room->bookings()->where('status', 'approved')->count();
+
+    $availableBeds = max($totalBeds - $occupiedBeds, 0);
+    $occupancyPercent = ($occupiedBeds / $totalBeds) * 100;
+
+    // Optional: list of approved students
+    $studentNames = $room->bookings()
+                        ->where('status', 'approved')
+                        ->with('user')
+                        ->get()
+                        ->pluck('user.name')
+                        ->filter()
+                        ->join(', ');
+@endphp
+
+                <tr>
+                    <td>{{ $booking->user->name ?? 'Unknown' }}</td>
+                    <td>{{ $room->room_number ?? 'N/A' }}</td>
+                    <td>
+                        <!-- Progress bar with tooltip showing student names -->
+                        <div class="progress-bar-wrapper" title="{{ $studentNames ?: 'No students' }}">
+                            <div class="progress-bar" 
+                                 style="width: {{ $occupancyPercent }}%;
+                                        background-color: 
+                                        @if($occupancyPercent == 100) #dc3545
+                                        @elseif($occupancyPercent >= 50) #ffc107
+                                        @else #28a745
+                                        @endif;">
+                            </div>
+                        </div>
+                        <small>{{ $occupiedBeds }}/{{ $totalBeds }} occupied</small>
+                    </td>
+                    <td>{{ $booking->created_at->format('F d, Y') }}</td>
+                    <td>
+                        <span class="status-badge
+                            @if($booking->status === 'approved') status-approved
+                            @elseif($booking->status === 'rejected') status-rejected
+                            @elseif($booking->status === 'cancelled') status-cancelled
+                            @else status-pending
+                            @endif">
+                            {{ ucfirst($booking->status) }}
+                        </span>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .progress-bar-wrapper {
+        width: 100%;
+        background-color: #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+        height: 16px;
+        margin-bottom: 4px;
+        cursor: pointer;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.3s ease;
+    }
+
+    small {
+        font-size: 11px;
+        color: #555;
+    }
+</style>
+
 
     <!-- Recent Payments -->
     <div class="section-card">

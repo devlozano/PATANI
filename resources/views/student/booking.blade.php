@@ -413,13 +413,23 @@
 {{-- ✅ Available Rooms --}}
 <div class="section">
     <div class="section-title">Available Rooms</div>
-@if($hasActiveBooking)
-    <div style="background-color:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:12px;">
-        ⚠️ You already have an approved booking. You must be checked out by the admin before booking another room.
-    </div>
-@endif
+
+    {{-- Warning if they already have an approved booking --}}
+    @if($hasActiveBooking)
+        <div style="background-color:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:12px;">
+            ⚠️ You already have an approved booking. You must be checked out by the admin before booking another room.
+        </div>
+    @endif
+
     <div class="rooms-grid">
         @foreach($rooms as $room)
+            @php
+                // Calculate bed availability
+                $approvedBookings = $room->bookings()->where('status', 'approved')->count();
+                $availableBeds = max($room->bedspace - $approvedBookings, 0);
+                $isFull = $availableBeds <= 0;
+            @endphp
+
             <div class="room-card">
                 <div class="room-image">
                     @if($room->image)
@@ -430,16 +440,42 @@
                 </div>
 
                 <div class="room-details">
-                    <div class="room-name">{{ $room->room_number }}</div>
+                    <div class="room-name">Room {{ $room->room_number }}</div>
                     <div class="room-price">₱{{ number_format($room->rent_fee, 2) }}/Month</div>
                     <div class="room-desc">{{ $room->description }}</div>
 
-                    <form action="{{ route('student.booking.store') }}" method="POST">
+                    <div class="bedspace-status" style="margin-top:6px;">
+                        <small>
+                            🛏️ {{ $room->bedspace }} beds — 
+                            <span style="color:{{ $isFull ? '#b30000' : '#007b00' }}">
+                                {{ $availableBeds }} available
+                            </span>
+                        </small>
+
+                        {{-- cute progress bar --}}
+                        <div style="background:#e9ecef; border-radius:6px; overflow:hidden; height:8px; margin-top:4px;">
+                            <div style="
+                                width: {{ ($approvedBookings / $room->bedspace) * 100 }}%;
+                                background: {{ $isFull ? '#dc3545' : (($approvedBookings / $room->bedspace) >= 0.5 ? '#ffc107' : '#28a745') }};
+                                height: 100%;
+                                transition: width 0.4s ease;">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Booking button --}}
+                    <form action="{{ route('student.booking.store') }}" method="POST" style="margin-top:10px;">
                         @csrf
                         <input type="hidden" name="room_id" value="{{ $room->id }}">
-                        <button type="submit" class="book-btn {{ $room->status !== 'available' || $hasActiveBooking ? 'unavailable' : '' }}"
-                            {{ $room->status !== 'available' || $hasActiveBooking ? 'disabled' : '' }}>
-                            {{ $room->status === 'available' ? 'BOOK NOW' : 'Unavailable' }}
+
+                        @php
+                            $canBook = !$hasActiveBooking && !$isFull && $room->status === 'available';
+                        @endphp
+
+                        <button type="submit"
+                                class="book-btn {{ !$canBook ? 'unavailable' : '' }}"
+                                {{ !$canBook ? 'disabled' : '' }}>
+                            {{ $canBook ? 'BOOK NOW' : ($isFull ? 'Full' : ($hasActiveBooking ? 'Not Allowed' : 'Unavailable')) }}
                         </button>
                     </form>
                 </div>
@@ -447,7 +483,6 @@
         @endforeach
     </div>
 </div>
-
 
 
         {{-- ✅ My Bookings --}}
