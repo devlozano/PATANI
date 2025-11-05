@@ -13,6 +13,7 @@ class Payment extends Model
         'user_id',
         'room_id',
         'amount',
+        'booking_id',
         'payment_date',
         'payment_method',
         'status',
@@ -29,4 +30,10 @@ class Payment extends Model
     {
         return $this->belongsTo(Room::class);
     }
+
+    public function booking()
+{
+    return $this->belongsTo(Booking::class, 'booking_id');
+}
+
 }

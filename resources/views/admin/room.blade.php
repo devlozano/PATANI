@@ -611,7 +611,26 @@
                     <td>{{ $room->bedspace }}</td>
                     <td>{{ $occupancy }}</td>
                     <td>{{ $availableBeds }}</td>
-                    <td>-</td> <!-- Students names removed -->
+                    <td>
+    @php
+        // Get approved bookings for this room
+        $students = $room->bookings()
+                         ->where('status', 'approved')
+                         ->with('user')
+                         ->get();
+    @endphp
+
+    @if($students->count() > 0)
+        <ul style="padding-left: 15px; margin:0;">
+            @foreach($students as $booking)
+                <li>{{ $booking->user->name ?? 'N/A' }}</li>
+            @endforeach
+        </ul>
+    @else
+        -
+    @endif
+</td>
+
                     <td>₱{{ number_format($room->rent_fee, 2) }}</td>
                     <td>{{ ucfirst($room->status) }}</td>
                     <td>

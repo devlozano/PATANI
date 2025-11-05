@@ -411,8 +411,14 @@
             <div class="profile">
                 <img src="/images/image 39.jpg" alt="User Photo">
 
-                <h2>{{ $user->name }}</h2>
-                <p>{{ $user->contact }}</p>
+@if(Auth::check())
+    <h2>{{ Auth::user()->name }}</h2>
+    <p>{{ Auth::user()->contact }}</p>
+@else
+    <h2>Guest</h2>
+    <p>Not logged in</p>
+@endif
+
             </div>
         <div class="menu">
     <a href="{{ route('dash') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
@@ -467,7 +473,12 @@
                     </div>
                     <div class="info-item">
                         <label>Name:</label>
-                        <p>{{ $user->name }}</p>
+@if(Auth::check())
+    <p>{{ Auth::user()->name }}</p>
+@else
+    <p>Guest</p>
+@endif
+
                     </div>
                     <div class="info-item">
                         <label>Gender:</label>
@@ -481,10 +492,11 @@
                         <label>Program:</label>
                         <p>{{ Auth::user()->program ?? 'N/A' }}</p>
                     </div>
-                    <div class="info-item">
-                        <label>Address:</label>
-                        <p>{{ $user->address }}</p>
-                    </div>
+<div class="info-item">
+    <label>Address:</label>
+    <p>{{ Auth::user()?->address ?? '-' }}</p>
+</div>
+
                     <div class="info-item">
                         <label>Contact:</label>
                         <p>{{ Auth::user()->contact ?? 'N/A' }}</p>
@@ -511,8 +523,8 @@
             <div class="form-group">
                 <label>Gender:</label>
                 <select name="gender">
-                    <option value="Male" {{ Auth::user()->gender === 'Male' ? 'selected' : '' }}>Male</option>
-                    <option value="Female" {{ Auth::user()->gender === 'Female' ? 'selected' : '' }}>Female</option>
+                   <option value="Male" {{ Auth::user()?->gender === 'Male' ? 'selected' : '' }}>Male</option>
+<option value="Female" {{ Auth::user()?->gender === 'Female' ? 'selected' : '' }}>Female</option>
                 </select>
             </div>
 
