@@ -66,6 +66,19 @@
         margin-bottom: 25px;
         font-weight: 700;
     }
+#backHomeBtn {
+  background: transparent;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #0A142F;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+#backHomeBtn:hover {
+  color: #FFF200;
+}
     p.subtitle {
         color: #666;
         margin-bottom: 5px;
@@ -215,6 +228,7 @@
     <div class="left"> 
         <div class="logo">Patani Trinidad</div> 
         <h1>Welcome Back!</h1>
+        <button id="backHomeBtn">Back to Homepage</button>
     </div> 
     
     <div class="right"> 
@@ -271,6 +285,9 @@
         </div>
     </div>
     <script>
+      document.getElementById('backHomeBtn').addEventListener('click', function() {
+    window.location.href = "{{ url('/') }}"; // Redirects to homepage
+  });
     const passwordInput = document.getElementById('password');
     const togglePasswordIcon = document.getElementById('togglePassword');
 

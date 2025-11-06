@@ -42,7 +42,7 @@
     font-style: italic;
 }
 
-/* Apply globally */
+/* Apply globally with Montserrat as primary font */
 * {
     font-family: 'Poppins', sans-serif;
 }
@@ -73,3 +73,12 @@
 
 /* Include FA core styles (optional if using all.min.css) */
 @import url('/fonts/fontawesome/css/all.min.css');
+
+
+/* Montserrat SemiBold (if needed) */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/fonts/Montserrat/Montserrat-VariableFont_wght.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}

@@ -20,6 +20,7 @@ use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminRoomController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\Student\DashboardController;
+use App\Http\Controllers\LandingController;
 
 // 🏠 Redirect homepage to login page
 Route::get('/', function () {
@@ -123,3 +124,17 @@ Route::post('/booking/{id}/reject', [AdminBookingController::class, 'reject'])->
 Route::post('/admin/bookings/{id}/checkout', [AdminBookingController::class, 'checkout'])
     ->name('admin.booking.checkout')
     ->middleware('auth');
+
+
+Route::get('/test-session', function () {
+    session(['test' => 'hello']);
+    return session('test');
+});
+
+// main landing page route
+Route::get('/', [LandingController::class, 'index'])->name('landing.home');
+
+// redirect /home to landing
+Route::get('/home', function () {
+    return redirect()->route('landing.home');
+});
