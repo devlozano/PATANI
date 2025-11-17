@@ -64,6 +64,19 @@
             padding: 40px 20px;
             min-height: 100vh;
         }
+        #backHomeBtn {
+  background: transparent;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #0A142F;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+#backHomeBtn:hover {
+  color: #FFF200;
+}
 
         .form-container {
             width: 100%;
@@ -237,6 +250,7 @@
     <div class="left">
         <div class="logo">Patani Trinidad</div>
         <h1>Welcome!</h1>
+                <button id="backHomeBtn">Back to Homepage</button>
     </div>
 
     <div class="right">
@@ -258,16 +272,6 @@
                 @error('email')
                     <span class="error">{{ $message }}</span>
                 @enderror
-
-                <div class="row">
-                    <div>
-                        <label>Program</label>
-                        <input type="text" name="program" placeholder="e.g., BSIT" value="{{ old('program') }}" required>
-                        @error('program')
-                            <span class="error">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </div>
 
                  {{-- Password row with eye icon --}}
     <div class="password-row">
@@ -329,6 +333,9 @@
         </div>
     </div>
     <script>
+      document.getElementById('backHomeBtn').addEventListener('click', function() {
+    window.location.href = "{{ url('/') }}"; // Redirects to homepage
+  });
     // JavaScript for the Password toggle icon
     const passwordInput = document.getElementById('password');
     const togglePasswordIcon = document.getElementById('togglePassword');

@@ -187,76 +187,93 @@
             margin-bottom: 40px;
         }
 
-        .section-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 25px;
-        }
+        .section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.section-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+}
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
+.form-group label {
+    font-weight: 500;
+    color: #444;
+    font-size: 14px;
+}
 
-        .form-group select,
-        .form-group input {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: "Poppins", sans-serif;
-        }
+.form-group select,
+.form-group input,
+.form-group textarea {
+    border: 1.8px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: 0.2s;
+    font-family: 'Poppins', sans-serif;
+}
 
-        .form-group textarea {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: "Poppins", sans-serif;
-            resize: vertical;
-            min-height: 100px;
-        }
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #ff9800;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.15);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
 
         .form-full {
             grid-column: 1 / -1;
         }
 
         .file-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-        .file-button {
-            background: #757575;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-        }
+.file-button {
+    background: #ff9800;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
 
-        .file-name {
-            font-size: 14px;
-            color: #666;
-        }
+.file-button:hover {
+    background: #f57c00;
+}
 
-        .submit-btn {
+.file-name {
+    color: #777;
+    font-size: 14px;
+}
+
+
+        .book-btn {
             background: #2196F3;
             color: white;
             border: none;
@@ -270,77 +287,140 @@
             margin-top: 10px;
         }
 
-        .submit-btn:hover {
+        .book-btn:hover {
             background: #0b7dda;
             transform: scale(1.02);
         }
 
-        .room-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+       .room-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  overflow-x: auto; /* allow horizontal scroll only when needed */
+  max-width: 1000px;
+  margin: 20px auto;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+/* ===== TABLE STYLES ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* fix column layout */
+  font-size: 14px;
+}
 
-        th {
-            background: #f5f5f5;
-            padding: 15px;
-            text-align: left;
-            font-weight: 700;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            text-transform: uppercase;
-        }
+thead th {
+  background: #f5f5f5;
+  color: #333;
+  padding: 10px 8px;
+  text-align: left;
+  border: 1px solid #ddd;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: normal;  /* allow wrapping */
+  word-wrap: break-word;
+  line-height: 1.3;
+}
 
-        td {
-            padding: 15px;
-            border: 1px solid #ddd;
-            font-size: 15px;
-        }
+tbody td {
+  padding: 10px 8px;
+  border: 1px solid #eee;
+  vertical-align: top;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.5;
+  color: #444;
+}
 
-        tbody tr:hover {
-            background: #f9f9f9;
-        }
+/* ===== COLUMN WIDTHS ===== */
+th:nth-child(1), td:nth-child(1) { width: 10%; }   /* ROOM NO */
+th:nth-child(2), td:nth-child(2) { width: 15%; }  /* ROOM FLOOR */
+th:nth-child(3), td:nth-child(3) { width: 15%; }   /* BEDSPACE */
+th:nth-child(4), td:nth-child(4) { width: 18%; }  /* CURRENT OCCUPANCY */
+th:nth-child(5), td:nth-child(5) { width: 15%; }  /* AVAILABLE BEDS */
+th:nth-child(6), td:nth-child(6) { width: 20%; }  /* STUDENTS */
+th:nth-child(7), td:nth-child(7) { width: 15%; }  /* RENT FEE */
+th:nth-child(8), td:nth-child(8) { width: 16%; }   /* STATUS */
+th:nth-child(9), td:nth-child(9) { width: 18%; }  /* ACTIONS */
 
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
+/* ===== HOVER ===== */
+tbody tr:hover {
+  background: #fafafa;
+}
 
-        .btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+}
 
-        .btn-edit {
-            background: #4CAF50;
-            color: white;
-        }
+.btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
 
-        .btn-edit:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
+.btn-edit {
+  background: #4CAF50;
+  color: #fff;
+}
 
-        .btn-delete {
-            background: #FF4444;
-            color: white;
-        }
+.btn-edit:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
 
-        .btn-delete:hover {
-            background: #CC0000;
-            transform: scale(1.05);
-        }
+.btn-delete {
+  background: #FF4444;
+  color: #fff;
+}
+
+.btn-delete:hover {
+  background: #CC0000;
+  transform: scale(1.05);
+}
+
+/* ===== RESPONSIVE FIXES ===== */
+@media (max-width: 992px) {
+  .room-section {
+    max-width: 95%;
+    padding: 15px;
+  }
+
+  table {
+    font-size: 13px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 12.5px;
+  }
+
+  th, td {
+    line-height: 1.3;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 
         @media (max-width: 1024px) {
             .form-grid {
@@ -436,8 +516,8 @@
 
         <div class="profile">
             <img src="/images/Screenshot 2025-10-28 033031.png" alt="User Photo">
-            <h2>Cora P. Trinidad</h2>
-            <p>0912-345-6789</p>
+    <h2>{{ Auth::user()->name }}</h2>
+    <p>{{ Auth::user()->contact }}</p>
         </div>
 
         <nav class="menu">
@@ -478,136 +558,248 @@
     <div class="main-content">
         <h1>Manage Rooms</h1>
 
-        <!-- Add/Edit Room -->
-        <div class="form-section">
-            <h2 class="section-title">Add New Room</h2>
-<form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    <div class="form-grid">
-        <div class="form-group">
-            <label>Room Number:</label>
-            <select name="room_number" required>
-                <option value="">Select</option>
-                @for($i = 1; $i <= 6; $i++)
-                    <option value="{{ $i }}">{{ $i }}</option>
-                @endfor
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Room Floor:</label>
-            <select name="room_floor" required>
-                <option value="">Select</option>
-                <option value="Ground Floor">Ground Floor</option>
-                <option value="First Floor">First Floor</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Gender:</label>
-            <select name="gender" required>
-                <option value="">Select</option>
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Bedspace:</label>
-            <select name="bedspace" required>
-                <option value="">Select</option>
-                <option value="4">4</option>
-                <option value="6">6</option>
-                <option value="8">8</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Status:</label>
-            <select name="status" required>
-                <option value="available">Available</option>
-                <option value="occupied">Occupied</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Rent Fee:</label>
-            <select name="rent_fee" required>
-                <option value="">Select</option>
-                <option value="1500">₱1,500.00</option>
-                <option value="1600">₱1,600.00</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="form-group form-full">
-        <label>Description:</label>
-        <textarea name="description" placeholder="Room details..." required></textarea>
-    </div>
-
-    <div class="form-group form-full">
-        <label>Pick Image:</label>
-        <div class="file-input-wrapper">
-            <button type="button" class="file-button" id="browseButton">Browse...</button>
-            <span class="file-name" id="fileName">No file selected.</span>
-            <input type="file" name="image" id="roomImage" accept="image/*" style="display:none;">
-        </div>
-
-        @if(isset($room) && $room->image)
-            <div class="current-image" style="margin-top:10px;">
-                <p>Current Image:</p>
-                <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image" style="width:150px; border-radius:8px;">
-            </div>
-        @endif
-    </div>
-
-    <button type="submit" class="submit-btn">Add Room</button>
-</form>
-        </div>
-
-        <!-- Room List -->
-        <div class="room-section">
-            <h2 class="section-title">Room List</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ROOM NO.</th>
-                        <th>ROOM FLOOR</th>
-                        <th>RENT FEE</th>
-                        <th>STATUS</th>
-                        <th>ACTIONS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($rooms as $room)
-                        <tr>
-                            <td>{{ $room->room_number }}</td>
-                            <td>{{ $room->room_floor }}</td>
-                            <td>₱{{ number_format($room->rent_fee, 2) }}</td>
-                            <td>{{ ucfirst($room->status) }}</td>
-                            <td>
-                                <div class="action-buttons">
-
-                    <a href="{{ route('admin.rooms.edit', $room->id) }}" 
-                    class="btn btn-edit" 
-                    style="text-decoration: none;">
-                    EDIT
-                    </a>
-
-<form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this room?')">
-        DELETE
-    </button>
-</form>
-
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="5" style="text-align:center;">No rooms available.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+        <!-- Toggle Buttons -->
+<div class="toggle-buttons" style="margin-bottom: 20px;">
+    <button id="showAddRoom" class="toggle-btn active">Add New Room</button>
+    <button id="showRoomList" class="toggle-btn">Room List</button>
 </div>
+
+<!-- Add/Edit Room -->
+<div class="section" id="addRoomSection">
+    <div class="section-title">Add New Room</div>
+
+    <form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Room Number:</label>
+                <select name="room_number" required>
+                    <option value="">Select</option>
+                    @for($i = 1; $i <= 6; $i++)
+                        <option value="{{ $i }}">{{ $i }}</option>
+                    @endfor
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Room Floor:</label>
+                <select name="room_floor" required>
+                    <option value="">Select</option>
+                    <option value="Ground Floor">Ground Floor</option>
+                    <option value="First Floor">First Floor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Gender:</label>
+                <select name="gender" required>
+                    <option value="">Select</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Bedspace:</label>
+                <select name="bedspace" required>
+                    <option value="">Select</option>
+                    <option value="4">4</option>
+                    <option value="6">6</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Status:</label>
+                <select name="status" required>
+                    <option value="available">Available</option>
+                    <option value="occupied">Occupied</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Rent Fee:</label>
+                <select name="rent_fee" required>
+                    <option value="">Select</option>
+                    <option value="1500">₱1,500.00</option>
+                    <option value="1600">₱1,600.00</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group form-full">
+            <label>Description:</label>
+            <textarea name="description" placeholder="Room details..." required></textarea>
+        </div>
+
+        <div class="form-group form-full">
+            <label>Room Image:</label>
+            <div class="file-input-wrapper">
+                <button type="button" class="file-button" id="browseButton">Browse</button>
+                <span class="file-name" id="fileName">No file selected</span>
+                <input type="file" name="image" id="roomImage" accept="image/*" style="display:none;">
+            </div>
+
+            @if(isset($room) && $room->image)
+                <div class="current-image" style="margin-top:12px;">
+                    <p>Current Image:</p>
+                    <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image" style="width:150px; border-radius:8px;">
+                </div>
+            @endif
+        </div>
+
+        <button type="submit" class="book-btn">Add Room</button>
+    </form>
+</div>
+
+<!-- Room List -->
+<div class="room-section" id="roomListSection" style="display:none;">
+    <h2 class="section-title">Room List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ROOM NO.</th>
+                <th>ROOM FLOOR</th>
+                <th>BEDSPACE</th>
+                <th>OCCUPANCY</th>
+                <th>AVAILABLE</th>
+                <th>STUDENTS</th>
+                <th>RENT FEE</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($rooms as $room)
+@php
+    // Count only approved bookings for this room
+    $occupancy = $room->bookings()
+                      ->where('status', 'approved')
+                      ->count();
+
+    $bedspace = $room->bedspace ?? 1;
+    $availableBeds = max($bedspace - $occupancy, 0);
+    $occupancyPercent = ($occupancy / $bedspace) * 100;
+
+    if ($occupancyPercent == 0) {
+        $rowClass = 'available-room';
+    } elseif ($occupancyPercent < 100) {
+        $rowClass = 'partial-room';
+    } else {
+        $rowClass = 'full-room';
+    }
+@endphp
+
+                <tr class="{{ $rowClass }}">
+                    <td>{{ $room->room_number }}
+                    </td>
+                    <td>{{ $room->room_floor }}</td>
+                    <td>{{ $room->bedspace }}</td>
+                    <td>{{ $occupancy }}</td>
+                    <td>{{ $availableBeds }}</td>
+                    <td>
+    @php
+        // Get approved bookings for this room
+        $students = $room->bookings()
+                         ->where('status', 'approved')
+                         ->with('user')
+                         ->get();
+    @endphp
+
+    @if($students->count() > 0)
+        <ul style="padding-left: 15px; margin:0;">
+            @foreach($students as $booking)
+                <li>{{ $booking->user->name ?? 'N/A' }}</li>
+            @endforeach
+        </ul>
+    @else
+        -
+    @endif
+</td>
+
+                    <td>₱{{ number_format($room->rent_fee, 2) }}</td>
+                    <td>{{ ucfirst($room->status) }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ route('admin.rooms.edit', $room->id) }}" class="btn btn-edit" style="text-decoration: none;">EDIT</a>
+                            <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this room?')">DELETE</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr><td colspan="9" style="text-align:center;">No rooms available.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .available-room {
+        background-color: #d4edda; /* light green */
+    }
+    .partial-room {
+        background-color: #fff3cd; /* light yellow */
+    }
+    .full-room {
+        background-color: #f8d7da; /* light red/pink */
+    }
+    .badge {
+        background-color: #6c757d;
+        color: white;
+        padding: 2px 6px;
+        font-size: 12px;
+        border-radius: 4px;
+        margin-left: 8px;
+    }
+    table tbody tr:hover {
+        opacity: 0.85;
+    }
+</style>
+
+
+<!-- Toggle Script -->
+<script>
+    const addBtn = document.getElementById('showAddRoom');
+    const listBtn = document.getElementById('showRoomList');
+    const addSection = document.getElementById('addRoomSection');
+    const listSection = document.getElementById('roomListSection');
+
+    addBtn.addEventListener('click', () => {
+        addBtn.classList.add('active');
+        listBtn.classList.remove('active');
+        addSection.style.display = 'block';
+        listSection.style.display = 'none';
+    });
+
+    listBtn.addEventListener('click', () => {
+        listBtn.classList.add('active');
+        addBtn.classList.remove('active');
+        addSection.style.display = 'none';
+        listSection.style.display = 'block';
+    });
+    </script>
+
+<!-- Optional Toggle Button Styling -->
+<style>
+    .toggle-btn {
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background: #fffff0;
+        margin-right: 5px;
+        border-radius: 5px;
+    }
+    .toggle-btn.active {
+        background: #ffd966;
+        font-weight: bold;
+    }
+</style>
+
 
 <script>
     // Sidebar toggling

@@ -220,8 +220,8 @@
 
         <div class="profile">
             <img src="/images/Screenshot 2025-10-28 033031.png" alt="Profile">
-            <h2>Cora P. Trinidad</h2>
-            <p>0912-345-6789</p>
+    <h2>{{ Auth::user()->name }}</h2>
+    <p>{{ Auth::user()->contact }}</p>
         </div>
 
         <div class="menu">

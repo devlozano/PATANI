@@ -59,15 +59,31 @@
             margin-bottom: 40px;
         }
 
-        .profile img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            margin-bottom: 15px;
-        }
+.avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
+.avatar-img {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-initials {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #FF8D01;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fffff0;
+}
         .profile h2 {
             font-size: 1.1rem;
             font-weight: 600;
@@ -156,25 +172,24 @@
             margin-bottom: 40px;
         }
 
-        .section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+.section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.section-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
 
-        .section-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 25px;
-        }
-
-        .rooms-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
 
         .room-card {
             border: 2px solid #e0e0e0;
@@ -183,61 +198,79 @@
             overflow: hidden;
         }
 
-        .room-image {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #FFD36E 0%, #FFA726 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
-        }
+.room-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #FFD36E 0%, #FFA726 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+}
 
-        .room-details {
-            padding: 20px;
-        }
+.room-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+}
 
-        .room-name {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
+.room-details {
+    padding: 20px;
+}
 
-        .room-price {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ff8800;
-            margin-bottom: 10px;
-        }
+.room-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
 
-        .room-desc {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
+.room-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ff8800;
+    margin-bottom: 10px;
+}
 
-        .room-info {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            font-size: 13px;
-            color: #555;
-        }
+.room-desc {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
 
-        .room-info span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+.bedspace-status small {
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+}
 
-        .amenities {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
+.bedspace-status div {
+    background:#e9ecef; 
+    border-radius:6px; 
+    overflow:hidden; 
+    height:8px; 
+    margin-top:4px;
+}
+
+
+.amenities {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.amenity-tag {
+    background: #f0f0f0;
+    border-radius: 15px;
+    padding: 5px 12px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
 
         .status-cancelled {
     background: #FF8800; /* or any color you like */
@@ -256,43 +289,162 @@
     color: white;
 }
 
-        .amenity-tag {
-            background: #f0f0f0;
-            border-radius: 15px;
-            padding: 5px 12px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+       .book-btn {
+    width: 100%;
+    background-color: #ff9800;
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 14px;
+}
+.book-btn:hover { background-color: #f57c00; }
+.book-btn.unavailable {
+    background-color: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+}
+.book-btn.unavailable:hover { background-color: #e0e0e0; }
 
-        .book-btn {
-            width: 100%;
-            background-color: #ff9800;
-            border: none;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 14px;
-        }
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1500;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 15, 15, 0.65);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
 
-        .book-btn:hover {
-            background-color: #f57c00;
-        }
+.modal-content {
+    background: #fff;
+    border-radius: 14px;
+    padding: 25px 30px;
+    width: 95%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    animation: slideUp 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
-        .book-btn.unavailable {
-            background-color: #e0e0e0;
-            color: #999;
-            cursor: not-allowed;
-        }
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
 
-        .book-btn.unavailable:hover {
-            background-color: #e0e0e0;
-        }
+.modal-content .close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 22px;
+    color: #666;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.modal-content .close:hover {
+    color: #ff3b30;
+    transform: rotate(90deg);
+}
 
+.modal-content h2 { font-size: 1.25rem; font-weight: 600; color: #1f1f1f; margin-bottom: 4px; }
+.modal-content p { font-size: 0.95rem; color: #444; line-height: 1.5; }
+.modal-content h4 { font-size: 1rem; color: #333; margin-top: 15px; margin-bottom: 6px; }
+
+#modalInclusions { padding-left: 20px; margin: 0; color: #555; }
+#modalInclusions li { font-size: 0.9rem; margin-bottom: 4px; position: relative; }
+#modalInclusions li::before { content: "✓"; color: #28a745; margin-right: 6px; }
+
+.modal-actions { text-align: center; margin-top: 18px; }
+.reserve-btn {
+    background: linear-gradient(135deg, #ff8c00, #ff6a00);
+    color: #fff;
+    border: none;
+    padding: 8px 35px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(255, 140, 0, 0.35);
+    transition: all 0.3s ease;
+}
+
+.reserve-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 16px rgba(255, 106, 0, 0.45);
+}
+
+.modal-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+.modal-gallery img {
+    width: 85px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+.modal-gallery img:hover {
+    transform: scale(1.06);
+    border-color: #ff8c00;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+/* ===== IMAGE ZOOM ===== */
+.img-zoom-overlay {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background: rgba(10,10,10,0.9);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+    cursor: zoom-out;
+}
+.img-zoom-overlay img {
+    max-width: 100%;
+    max-height: 95%;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+    animation: zoomIn 0.25s ease;
+}
+@keyframes zoomIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .modal-content { padding: 20px; max-width: 92%; }
+    .modal-gallery img { width: 65px; height: 48px; }
+    .reserve-btn { padding: 7px 25px; font-size: 0.95rem; }
+}
         .my-booking-card {
             background: #fff;
             border: 2px solid #e0e0e0;
@@ -381,11 +533,20 @@
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
-        <div class="profile">
-            <img src="/images/image 39.jpg" alt="User Photo">
-            <h2>{{ Auth::user()->name }}</h2>
-            <p>{{ Auth::user()->contact }}</p>
+<div class="profile">
+ <div class="avatar">
+            @if(Auth::user()->avatar)
+                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}" alt="Avatar" class="avatar-img">
+            @else
+                <div class="avatar-initials">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(strrchr(Auth::user()->name, ' '), 1, 1)) }}
+                </div>
+            @endif
         </div>
+    <!-- User info -->
+    <h2>{{ Auth::user()->name }}</h2>
+    <p>{{ Auth::user()->contact }}</p>
+</div>
         <div class="menu">
     <a href="{{ route('dash') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door-fill"></i> Dashboard
@@ -408,79 +569,162 @@
             <div class="logo">Patani Trinidad</div>
         </div>
 
-        <h1>Bookings</h1>
+      <h1>Bookings</h1>
 
 {{-- ✅ Available Rooms --}}
 <div class="section">
     <div class="section-title">Available Rooms</div>
-@if($hasActiveBooking)
-    <div style="background-color:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:12px;">
-        ⚠️ You already have an approved booking. You must be checked out by the admin before booking another room.
-    </div>
-@endif
+
+    {{-- Warning if they already have an approved booking --}}
+    @if($hasActiveBooking)
+        <div style="background-color:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:12px;">
+            ⚠️ You already have an approved booking. You must be checked out by the admin before booking another room.
+        </div>
+    @endif
+
     <div class="rooms-grid">
         @foreach($rooms as $room)
+            @php
+                $approvedBookings = $room->bookings()->where('status', 'approved')->count();
+                $availableBeds = max($room->bedspace - $approvedBookings, 0);
+                $isFull = $availableBeds <= 0;
+                $canBook = !$hasActiveBooking && !$isFull && $room->status === 'available';
+            @endphp
+
             <div class="room-card">
                 <div class="room-image">
                     @if($room->image)
-                        <img src="{{ asset('storage/' . $room->image) }}" alt="Room {{ $room->room_number }}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+                        <img src="{{ asset('storage/' . $room->image) }}" alt="Room {{ $room->room_number }}">
                     @else
                         🏢
                     @endif
                 </div>
 
                 <div class="room-details">
-                    <div class="room-name">{{ $room->room_number }}</div>
+                    <div class="room-name">Room {{ $room->room_number }}</div>
                     <div class="room-price">₱{{ number_format($room->rent_fee, 2) }}/Month</div>
                     <div class="room-desc">{{ $room->description }}</div>
 
-                    <form action="{{ route('student.booking.store') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="room_id" value="{{ $room->id }}">
-                        <button type="submit" class="book-btn {{ $room->status !== 'available' || $hasActiveBooking ? 'unavailable' : '' }}"
-                            {{ $room->status !== 'available' || $hasActiveBooking ? 'disabled' : '' }}>
-                            {{ $room->status === 'available' ? 'BOOK NOW' : 'Unavailable' }}
-                        </button>
-                    </form>
+                    <div class="bedspace-status" style="margin-bottom:10px;">
+                        <small>
+                            🛏️ {{ $room->bedspace }} beds — 
+                            <span style="color:{{ $isFull ? '#b30000' : '#007b00' }}">
+                                {{ $availableBeds }} available
+                            </span>
+                        </small>
+                        <div style="background:#e9ecef; border-radius:6px; overflow:hidden; height:8px; margin-top:4px;">
+                            <div style="
+                                width: {{ ($approvedBookings / $room->bedspace) * 100 }}%;
+                                background: {{ $isFull ? '#dc3545' : (($approvedBookings / $room->bedspace) >= 0.5 ? '#ffc107' : '#28a745') }};
+                                height: 100%;
+                                transition: width 0.4s ease;">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Amenities --}}
+                    <div class="amenities">
+                        @foreach($room->inclusions ?? [] as $inc)
+                            <div class="amenity-tag">{{ $inc }}</div>
+                        @endforeach
+                    </div>
+
+                    {{-- Booking / Modal button --}}
+                    <button class="{{ !$canBook ? 'book-btn unavailable' : 'book-btn open-modal' }}" 
+                            {{ !$canBook ? 'disabled' : '' }}
+                            data-room-id="{{ $room->id }}"
+                            data-room-title="Room {{ $room->room_number }}"
+                            data-room-price="₱{{ number_format($room->rent_fee, 2) }}/Month"
+                            data-room-desc="{{ $room->description }}"
+                            data-room-inclusions='@json($room->inclusions ?? [])'
+                            data-room-images='@json($room->images ?? [])'>
+                        {{ $canBook ? 'BOOK NOW' : ($isFull ? 'Full' : ($hasActiveBooking ? 'Not Allowed' : 'Unavailable')) }}
+                    </button>
                 </div>
             </div>
         @endforeach
     </div>
 </div>
 
+{{-- MODAL --}}
+<div id="roomModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 id="modalTitle"></h2>
+    <p id="modalPrice"></p>
+    <p id="modalDesc"></p>
 
+    <h4>Inclusions:</h4>
+    <ul id="modalInclusions"></ul>
 
-        {{-- ✅ My Bookings --}}
-        <div class="section">
-            <div class="section-title"><i class="bi bi-calendar-check"></i> My Bookings</div>
+    <h4>Gallery</h4>
+    <div id="modalGallery" class="modal-gallery"></div>
 
-            @forelse($bookings as $booking)
-                <div class="my-booking-card">
-                    <div class="booking-info">
-                        <h3>{{ $booking->room->name }}</h3>
-                        <div class="booking-date">Booked on {{ $booking->created_at->format('F d, Y') }}</div>
-                        <span class="status-badge 
-                            @if($booking->status === 'approved') status-approved
-                            @elseif($booking->status === 'rejected') status-rejected
-                            @elseif($booking->status === 'cancelled') status-cancelled
-                            @else status-pending
-                            @endif">
-                            {{ ucfirst($booking->status) }}
-                        </span>
-
-            <div class="rent-amount">
-                Monthly Rent: ₱{{ number_format($booking->room->rent_fee ?? 0, 2) }}
-            </div>
-                    </div>
-                    @if($booking->status === 'approved')
-                        <button class="pay-btn">Pay Now</button>
-                    @endif
-                </div>
-            @empty
-                <p>No current bookings yet.</p>
-            @endforelse
-        </div>
+    <div class="modal-actions">
+      <form id="modalBookingForm" method="POST" action="{{ route('student.booking.store') }}">
+        @csrf
+        <input type="hidden" name="room_id" id="modalRoomId">
+        <button type="submit" class="reserve-btn">Reserve Now</button>
+      </form>
     </div>
+  </div>
+</div>
+
+{{-- JS --}}
+<script>
+const modal = document.getElementById('roomModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalPrice = document.getElementById('modalPrice');
+const modalDesc = document.getElementById('modalDesc');
+const modalInclusions = document.getElementById('modalInclusions');
+const modalGallery = document.getElementById('modalGallery');
+const modalRoomId = document.getElementById('modalRoomId');
+const closeBtn = document.querySelector('.close');
+
+// Open modal
+document.querySelectorAll('.open-modal').forEach(btn => {
+    btn.addEventListener('click', () => {
+        modalTitle.textContent = btn.dataset.roomTitle;
+        modalPrice.textContent = btn.dataset.roomPrice;
+        modalDesc.textContent = btn.dataset.roomDesc;
+        modalRoomId.value = btn.dataset.roomId;
+
+        const inclusions = JSON.parse(btn.dataset.roomInclusions || '[]');
+        modalInclusions.innerHTML = '';
+        inclusions.forEach(i => {
+            const li = document.createElement('li');
+            li.textContent = i;
+            modalInclusions.appendChild(li);
+        });
+
+        const images = JSON.parse(btn.dataset.roomImages || '[]');
+        modalGallery.innerHTML = '';
+        images.forEach(src => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = btn.dataset.roomTitle;
+            img.addEventListener('click', () => openZoom(src));
+            modalGallery.appendChild(img);
+        });
+
+        modal.style.display = 'flex';
+    });
+});
+
+// Close modal
+closeBtn.addEventListener('click', () => modal.style.display = 'none');
+window.addEventListener('click', e => { if(e.target == modal) modal.style.display = 'none'; });
+
+// Zoom overlay
+const zoomOverlay = document.createElement('div');
+zoomOverlay.classList.add('img-zoom-overlay');
+const zoomImg = document.createElement('img');
+zoomOverlay.appendChild(zoomImg);
+document.body.appendChild(zoomOverlay);
+function openZoom(src){ zoomImg.src=src; zoomOverlay.style.display='flex'; }
+zoomOverlay.addEventListener('click',()=>zoomOverlay.style.display='none');
+</script>
+
 
     <script>
         function toggleSidebar() {

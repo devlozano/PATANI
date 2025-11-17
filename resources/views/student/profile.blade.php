@@ -56,14 +56,46 @@
             margin-bottom: 40px;
         }
 
-        .profile img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            margin-bottom: 15px;
-        }
+.avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avatar-img {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-initials {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #FF8D01;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fffff0;
+}
+
+.upload-avatar-btn,
+.remove-avatar-btn {
+    background: #f0b429;
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.remove-avatar-btn {
+    background: #d9534f;
+}
 
         .profile h2 {
             font-size: 1.1rem;
@@ -408,12 +440,22 @@
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
-            <div class="profile">
-                <img src="/images/image 39.jpg" alt="User Photo">
+          <div class="profile">
+ <div class="avatar">
+            @if(Auth::user()->avatar)
+                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}" alt="Avatar" class="avatar-img">
+            @else
+                <div class="avatar-initials">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(strrchr(Auth::user()->name, ' '), 1, 1)) }}
+                </div>
+            @endif
+        </div>
 
-                <h2>{{ $user->name }}</h2>
-                <p>{{ $user->contact }}</p>
-            </div>
+    <!-- User info -->
+    <h2>{{ Auth::user()->name }}</h2>
+    <p>{{ Auth::user()->contact }}</p>
+</div>
+
         <div class="menu">
     <a href="{{ route('dash') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door-fill"></i> Dashboard
@@ -457,7 +499,15 @@
 
             <div class="section">
                 <div class="section-header">
-                    <img src="/images/image 39.jpg" alt="Profile">
+ <div class="avatar">
+            @if(Auth::user()->avatar)
+                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}" alt="Avatar" class="avatar-img">
+            @else
+                <div class="avatar-initials">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(strrchr(Auth::user()->name, ' '), 1, 1)) }}
+                </div>
+            @endif
+        </div>
                     <span>My Information</span>
                 </div>
                 <div class="info-grid">
@@ -467,7 +517,12 @@
                     </div>
                     <div class="info-item">
                         <label>Name:</label>
-                        <p>{{ $user->name }}</p>
+@if(Auth::check())
+    <p>{{ Auth::user()->name }}</p>
+@else
+    <p>Guest</p>
+@endif
+
                     </div>
                     <div class="info-item">
                         <label>Gender:</label>
@@ -477,14 +532,11 @@
                         <label>Email:</label>
                         <p>{{ Auth::user()->email ?? 'N/A' }}</p>
                     </div>
-                    <div class="info-item">
-                        <label>Program:</label>
-                        <p>{{ Auth::user()->program ?? 'N/A' }}</p>
-                    </div>
-                    <div class="info-item">
-                        <label>Address:</label>
-                        <p>{{ $user->address }}</p>
-                    </div>
+<div class="info-item">
+    <label>Address:</label>
+    <p>{{ Auth::user()?->address ?? '-' }}</p>
+</div>
+
                     <div class="info-item">
                         <label>Contact:</label>
                         <p>{{ Auth::user()->contact ?? 'N/A' }}</p>
@@ -493,113 +545,69 @@
             </div>
 
             <div class="section">
-    <div class="section-header">
-        <img src="/images/image 39.jpg" alt="Profile">
-        <span>Update Information</span>
-    </div>
+                 {{-- 🟡 Title beside avatar --}}
+        <span style="font-size: 20px; font-weight: 600; color: #333;">Update Information</span>
+    <div class="section-header" style="display: flex; align-items: center; justify-content: start; gap: 20px;">
+        
+        {{-- 🟡 Avatar + Upload/Remove --}}
+        <div class="avatar" style="text-align: center;">
+            @if(Auth::user()->avatar)
+                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}" alt="Avatar" class="avatar-img">
 
-    <form action="{{ route('profile.update') }}" method="POST">
+                {{-- Remove Avatar --}}
+                <form action="{{ route('profile.removeAvatar') }}" method="POST" style="margin-top:6px;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="remove-avatar-btn">Remove</button>
+                </form>
+            @else
+                {{-- Default Initials Avatar --}}
+                <div class="avatar-initials">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(strrchr(Auth::user()->name, ' '), 1, 1)) }}
+                </div>
+            @endif
+
+            {{-- Upload Avatar --}}
+            <form action="{{ route('profile.uploadAvatar') }}" method="POST" enctype="multipart/form-data" style="margin-top:6px;">
+                @csrf
+                <input type="file" name="avatar" accept="image/*" required>
+                <button type="submit" class="upload-avatar-btn">Upload</button>
+            </form>
+        </div>
+       </div>
+
+    {{-- ✅ Update Profile Form --}}
+    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
+
         <div class="form-grid">
             <div class="form-group">
                 <label>Name:</label>
-                <input type="text" name="name" 
-                       value="{{ Auth::user()->name ?? '' }}">
+                <input type="text" name="name" value="{{ Auth::user()->name ?? '' }}">
             </div>
 
             <div class="form-group">
                 <label>Gender:</label>
                 <select name="gender">
-                    <option value="Male" {{ Auth::user()->gender === 'Male' ? 'selected' : '' }}>Male</option>
-                    <option value="Female" {{ Auth::user()->gender === 'Female' ? 'selected' : '' }}>Female</option>
+                    <option value="Male" {{ Auth::user()?->gender === 'Male' ? 'selected' : '' }}>Male</option>
+                    <option value="Female" {{ Auth::user()?->gender === 'Female' ? 'selected' : '' }}>Female</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label>Email:</label>
-                <input type="email" name="email" 
-                       value="{{ Auth::user()->email ?? '' }}">
+                <input type="email" name="email" value="{{ Auth::user()->email ?? '' }}">
             </div>
 
-            <div class="form-group">
-                <label>Program:</label>
-                <select name="program">
-        <option value="">Select Program</option>
-
-        {{-- 🖥️ College of Information Technology Education --}}
-        <optgroup label="College of Information Technology Education">
-            <option value="BSIT" {{ Auth::user()->program === 'BSIT' ? 'selected' : '' }}>BS in Information Technology (BSIT)</option>
-            <option value="BSCS" {{ Auth::user()->program === 'BSCS' ? 'selected' : '' }}>BS in Computer Science (BSCS)</option>
-            <option value="BSIS" {{ Auth::user()->program === 'BSIS' ? 'selected' : '' }}>BS in Information Systems (BSIS)</option>
-        </optgroup>
-
-        {{-- 🧮 College of Business and Accountancy --}}
-        <optgroup label="College of Business Management and Accountancy">
-            <option value="BSBA" {{ Auth::user()->program === 'BSBA' ? 'selected' : '' }}>BS in Business Administration (BSBA)</option>
-            <option value="BSA" {{ Auth::user()->program === 'BSA' ? 'selected' : '' }}>BS in Accountancy (BSA)</option>
-            <option value="BSMA" {{ Auth::user()->program === 'BSMA' ? 'selected' : '' }}>BS in Management Accounting (BSMA)</option>
-        </optgroup>
-
-        {{-- 🧪 College of Arts and Sciences --}}
-        <optgroup label="College of Arts and Sciences">
-            <option value="BAComm" {{ Auth::user()->program === 'BAComm' ? 'selected' : '' }}>BA in Communication</option>
-            <option value="BAPsych" {{ Auth::user()->program === 'BAPsych' ? 'selected' : '' }}>BA in Psychology</option>
-            <option value="BSBio" {{ Auth::user()->program === 'BSBio' ? 'selected' : '' }}>BS in Biology</option>
-        </optgroup>
-
-        {{-- 🏗️ College of Engineering --}}
-        <optgroup label="College of Engineerin and Architecture">
-            <option value="BSCpE" {{ Auth::user()->program === 'BSCpE' ? 'selected' : '' }}>BS in Computer Engineering (BSCpE)</option>
-            <option value="BSEE" {{ Auth::user()->program === 'BSEE' ? 'selected' : '' }}>BS in Electrical Engineering (BSEE)</option>
-            <option value="BSCE" {{ Auth::user()->program === 'BSCE' ? 'selected' : '' }}>BS in Civil Engineering (BSCE)</option>
-            <option value="BSECE" {{ Auth::user()->program === 'BSECE' ? 'selected' : '' }}>BS in Electronics Engineering (BSECE)</option>
-            <option value="BSME" {{ Auth::user()->program === 'BSME' ? 'selected' : '' }}>BS in Mechanical Engineering (BSME)</option>
-            <option value="BSArch" {{ Auth::user()->program === 'BSArch' ? 'selected' : '' }}>BS in Architecture (BSArch)</option>
-        </optgroup>
-
-        {{-- 🍎 College of Teacher Education --}}
-        <optgroup label="College of Teacher Education">
-            <option value="BSEd" {{ Auth::user()->program === 'BSEd' ? 'selected' : '' }}>Bachelor of Secondary Education (BSEd)</option>
-            <option value="BEEd" {{ Auth::user()->program === 'BEEd' ? 'selected' : '' }}>Bachelor of Elementary Education (BEEd)</option>
-            <option value="BPEd" {{ Auth::user()->program === 'BPEd' ? 'selected' : '' }}>Bachelor of Physical Education (BPEd)</option>
-            <option value="BTLEd" {{ Auth::user()->program === 'BTLEd' ? 'selected' : '' }}>Bachelor of Technology and Livelihood Education (BTLEd)</option>
-        </optgroup>
-
-        {{-- 🩺 College of Nursing --}}
-        <optgroup label="College of Nursing">
-            <option value="BSN" {{ Auth::user()->program === 'BSN' ? 'selected' : '' }}>BS in Nursing (BSN)</option>
-        </optgroup>
-
-        {{-- 💊 College of Pharmacy --}}
-        <optgroup label="College of Pharmacy">
-            <option value="BSP" {{ Auth::user()->program === 'BSP' ? 'selected' : '' }}>BS in Pharmacy (BSP)</option>
-            <option value="BSPharmTech" {{ Auth::user()->program === 'BSPharmTech' ? 'selected' : '' }}>BS in Pharmaceutical Technology (BSPharmTech)</option>
-        </optgroup>
-
-        {{-- 🧠 College of Psychology --}}
-        <optgroup label="College of Psychology">
-            <option value="BSPsych" {{ Auth::user()->program === 'BSPsych' ? 'selected' : '' }}>BS in Psychology (BSPsych)</option>
-            <option value="BAPsych" {{ Auth::user()->program === 'BAPsych' ? 'selected' : '' }}>BA in Psychology (BAPsych)</option>
-        </optgroup>
-
-        {{-- 🏛️ College of Criminal Justice Education --}}
-        <optgroup label="College of Criminal Justice Education">
-            <option value="BSCrim" {{ Auth::user()->program === 'BSCrim' ? 'selected' : '' }}>BS in Criminology (BSCrim)</option>
-        </optgroup>
-    </select>
-            </div>
-        
             <div class="form-group">
                 <label>Contact:</label>
-                <input type="text" name="contact" 
-                      <input type="text" name="contact" value="{{ $user->contact ?? '' }}">
+                <input type="text" name="contact" value="{{ Auth::user()->contact ?? '' }}">
             </div>
 
-                        <div class="form-group">
+            <div class="form-group">
                 <label>Address:</label>
-                <input type="text" name="address" 
-                       <input type="text" name="address" value="{{ $user->address ?? '' }}">
+                <input type="text" name="address" value="{{ Auth::user()->address ?? '' }}">
             </div>
         </div>
 
@@ -609,8 +617,7 @@
     </form>
 </div>
 
-        </div>
-    </div>
+
 
     <script>
         function toggleSidebar() {

@@ -4,21 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patani Trinidad | Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
     * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        font-family: "Montserrat", sans-serif;
+        font-family: "Poppins", sans-serif;
     }
     body {
         display: flex;
         height: 100vh;
         background-color: #fff;
-        overflow: hidden;
     }
     .left {
         flex: 1;
@@ -66,12 +63,26 @@
         margin-bottom: 25px;
         font-weight: 700;
     }
+#backHomeBtn {
+  background: transparent;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #0A142F;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+#backHomeBtn:hover {
+  color: #FFF200;
+}
     p.subtitle {
         color: #666;
         margin-bottom: 5px;
         font-size: 0.9rem;
     }
     label {
+        font: "Poppins";
         display: block;
         font-size: 0.9rem;
         margin-bottom: 5px;
@@ -215,6 +226,7 @@
     <div class="left"> 
         <div class="logo">Patani Trinidad</div> 
         <h1>Welcome Back!</h1>
+        <button id="backHomeBtn">Back to Homepage</button>
     </div> 
     
     <div class="right"> 
@@ -247,6 +259,7 @@
                     <div class="error">{{ $message }}</div>
                 @enderror
  {{-- New wrapper for password input and eye icon --}}
+         <label for="password">Password</label>
     <div class="password-input-container">
         <input
             type="password"
@@ -271,6 +284,9 @@
         </div>
     </div>
     <script>
+      document.getElementById('backHomeBtn').addEventListener('click', function() {
+    window.location.href = "{{ url('/') }}"; // Redirects to homepage
+  });
     const passwordInput = document.getElementById('password');
     const togglePasswordIcon = document.getElementById('togglePassword');
 

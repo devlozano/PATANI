@@ -15,14 +15,24 @@ protected $fillable = [
     'status', 'rent_fee', 'description', 'image'
 ];
 
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
-    }
+   // Room.php
+public function bookings()
+{
+    return $this->hasMany(Booking::class);
+}
+
+// Get students through bookings
+public function students()
+{
+    return $this->hasManyThrough(User::class, Booking::class, 'room_id', 'id', 'id', 'user_id');
+}
+
 
     public function room()
 {
     return $this->belongsTo(Room::class);
 }
+
+
 
 }

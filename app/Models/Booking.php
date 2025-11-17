@@ -20,15 +20,19 @@ class Booking extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    // App/Models/Booking.php
-    public function room()
-    {
-        return $this->belongsTo(Room::class);
-    }
+public function room()
+{
+    return $this->belongsTo(Room::class, 'room_id');
+}
 
         public function student()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+public function payments()
+{
+    return $this->hasMany(Payment::class, 'booking_id');
+}
+
 }
