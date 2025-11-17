@@ -4,21 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patani Trinidad | Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
     * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        font-family: "Montserrat", sans-serif;
+        font-family: "Poppins", sans-serif;
     }
     body {
         display: flex;
         height: 100vh;
         background-color: #fff;
-        overflow: hidden;
     }
     .left {
         flex: 1;
@@ -85,6 +82,7 @@
         font-size: 0.9rem;
     }
     label {
+        font: "Poppins";
         display: block;
         font-size: 0.9rem;
         margin-bottom: 5px;
@@ -261,6 +259,7 @@
                     <div class="error">{{ $message }}</div>
                 @enderror
  {{-- New wrapper for password input and eye icon --}}
+         <label for="password">Password</label>
     <div class="password-input-container">
         <input
             type="password"

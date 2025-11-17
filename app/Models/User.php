@@ -22,10 +22,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'program',
         'gender',
         'address',
         'contact',
+        'avatar',
     ];
 
     /**
@@ -88,4 +88,16 @@ class User extends Authenticatable
     {
         return $this->bookings()->with('room')->latest()->first()?->room;
     }
+
+public function getAvatarUrlAttribute()
+{
+    if ($this->avatar && file_exists(storage_path('app/public/avatars/' . $this->avatar))) {
+        return asset('storage/avatars/' . $this->avatar);
+    }
+
+    // Generate initials avatar dynamically
+    $name = urlencode($this->name ?? 'User');
+    return "https://ui-avatars.com/api/?name={$name}&background=random&color=fff";
+}
+
 }

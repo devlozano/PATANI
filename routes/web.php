@@ -138,3 +138,6 @@ Route::get('/', [LandingController::class, 'index'])->name('landing.home');
 Route::get('/home', function () {
     return redirect()->route('landing.home');
 });
+Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.uploadAvatar');
+Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.removeAvatar');

@@ -57,15 +57,31 @@ body {
     margin-bottom: 40px;
 }
 
-.profile img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #fff;
-    margin-bottom: 15px;
+.avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+.avatar-img {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-initials {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #FF8D01;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fffff0;
+}
 .profile h2 {
     font-size: 1.1rem;
     font-weight: 600;
@@ -328,14 +344,21 @@ table tbody tr:hover {
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
-         <div class="profile">
-            <!-- User photo (optional) -->
-            <img src="/images/image 39.jpg" alt="User Photo">
-
-            <!-- Dynamic user info -->
-            <h2>{{ Auth::user()->name }}</h2>
-            <p>{{ Auth::user()->contact }}</p>
+<div class="profile">
+ <div class="avatar">
+            @if(Auth::user()->avatar)
+                <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}" alt="Avatar" class="avatar-img">
+            @else
+                <div class="avatar-initials">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(strrchr(Auth::user()->name, ' '), 1, 1)) }}
+                </div>
+            @endif
         </div>
+
+    <!-- User info -->
+    <h2>{{ Auth::user()->name }}</h2>
+    <p>{{ Auth::user()->contact }}</p>
+</div>
         <div class="menu">
     <a href="{{ route('dash') }}" class="{{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door-fill"></i> Dashboard
@@ -412,6 +435,7 @@ table tbody tr:hover {
         <form id="paymentForm" method="POST" action="{{ route('payment.store') }}">
             @csrf
             <input type="hidden" name="room_id" id="modalRoomId">
+            <input type="hidden" name="booking_id" value="{{ $booking->id }}">
             <input type="hidden" name="amount" id="modalAmount">
 
             <div class="form-group">

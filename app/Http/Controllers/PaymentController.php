@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Booking; // <- Add this line
 use Carbon\Carbon;
 
 class PaymentController extends Controller
@@ -25,7 +26,7 @@ public function store(Request $request)
     $validated = $request->validate([
         'room_id' => 'required|exists:rooms,id',
         'amount' => 'required|numeric|min:0',
-        'booking_id' => 'nullable|exists:bookings,id',
+        'booking_id' => 'required|exists:bookings,id',
         'payment_method' => 'required|string',
     ]);
 
