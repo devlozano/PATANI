@@ -11,9 +11,21 @@ class Room extends Model
 
 // app/Models/Room.php
 protected $fillable = [
-    'room_number', 'room_floor', 'gender', 'bedspace', 
-    'status', 'rent_fee', 'description', 'image'
+    'room_number',
+        'room_floor',
+        'gender',
+        'bedspace',
+        'status',
+        'rent_fee',
+        'description',
+        'image',
+        'gallery', // store gallery as JSON
+        'inclusions', // store inclusions as JSON
 ];
+protected $casts = [
+        'gallery' => 'array',
+        'inclusions' => 'array',
+    ];
 
    // Room.php
 public function bookings()

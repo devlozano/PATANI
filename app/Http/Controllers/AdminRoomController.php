@@ -59,23 +59,43 @@ public function store(Request $request)
         'room_number' => 'required',
         'room_floor' => 'required',
         'gender' => 'required',
-        'bedspace' => 'required|numeric',
+        'bedspace' => 'required|integer',
         'status' => 'required',
         'rent_fee' => 'required|numeric',
-        'description' => 'nullable',
-        'image' => 'nullable|image|max:2048',
+        'description' => 'required',
+        'inclusions' => 'required|array',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        'gallery.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
     ]);
 
-    $data = $request->only(['room_number', 'room_floor', 'gender', 'bedspace', 'status', 'rent_fee', 'description']);
+    $room = new Room();
+    $room->room_number = $request->room_number;
+    $room->room_floor = $request->room_floor;
+    $room->gender = $request->gender;
+    $room->bedspace = $request->bedspace;
+    $room->status = $request->status;
+    $room->rent_fee = $request->rent_fee;
+    $room->description = $request->description;
 
-    // Handle image upload
+    // Save inclusions as JSON
+    $room->inclusions = json_encode($request->inclusions);
+
+    // Save main image
     if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('rooms', 'public');
-        $data['image'] = $path;
+        $room->image = $request->file('image')->store('rooms', 'public');
     }
 
-    Room::create($data);
+    // Save gallery images as JSON
+    if ($request->hasFile('gallery')) {
+        $galleryPaths = [];
+        foreach ($request->file('gallery') as $file) {
+            $galleryPaths[] = $file->store('rooms/gallery', 'public');
+        }
+        $room->gallery = json_encode($galleryPaths);
+    }
+
+    $room->save();
 
     return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
-}   
+}
 }

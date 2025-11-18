@@ -410,7 +410,7 @@ table tbody tr:hover {
             <form action="{{ route('payment.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="room_id" value="{{ $room->id }}">
-                <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                <input type="hidden" name="bookings" value="{{ $bookings }}">
                 <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
 
                 <button type="button" class="pay-btn" onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}', {{ $booking->id }})">
@@ -435,7 +435,7 @@ table tbody tr:hover {
         <form id="paymentForm" method="POST" action="{{ route('payment.store') }}">
             @csrf
             <input type="hidden" name="room_id" id="modalRoomId">
-            <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+            <input type="hidden" name="bookings" value="{{ $bookings}}">
             <input type="hidden" name="amount" id="modalAmount">
 
             <div class="form-group">

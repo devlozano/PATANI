@@ -26,7 +26,7 @@ public function store(Request $request)
     $validated = $request->validate([
         'room_id' => 'required|exists:rooms,id',
         'amount' => 'required|numeric|min:0',
-        'booking_id' => 'required|exists:bookings,id',
+        'bookings' => 'required|exists:bookings,id',
         'payment_method' => 'required|string',
     ]);
 
@@ -53,7 +53,7 @@ public function store(Request $request)
     Payment::create([
         'user_id' => $student->id,
         'room_id' => $validated['room_id'],
-        'booking_id' => $booking->id,
+        'bookings' => $bookings->id,
         'amount' => $validated['amount'],
         'payment_method' => $validated['payment_method'],
         'status' => 'Pending', // Admin will approve

@@ -6,14 +6,6 @@
 <div class="form-section">
     <h1 class="section-title">Edit Room #{{ $room->id }}</h1>
 
-    <form action="{{ route('admin.rooms.update', $room->id) }}" method="POST">
-        @csrf
-        @method('PUT')
-
-       <!-- Edit Room -->
-<div class="form-section">
-    <h2 class="section-title">Edit Room</h2>
-
     <form action="{{ route('admin.rooms.update', $room->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -80,73 +72,67 @@
             <textarea name="description" placeholder="Room details..." required>{{ old('description', $room->description) }}</textarea>
         </div>
 
-<div class="form-group form-full">
-    <label>Pick Image:</label>
-    <div class="file-input-wrapper">
-        <button type="button" class="file-button" id="browseButton">Browse...</button>
-        <span class="file-name" id="fileName">No file selected.</span>
-        <input type="file" name="image" id="roomImage" accept="image/*" style="display:none;">
-    </div>
+        <!-- Room Image -->
+        <div class="form-group form-full">
+            <label>Pick Image:</label>
+            <div class="file-input-wrapper">
+                <button type="button" class="file-button" id="browseButton">Browse...</button>
+                <span class="file-name" id="fileName">No file selected.</span>
+                <input type="file" name="image" id="roomImage" accept="image/*" style="display:none;">
+            </div>
 
-    @if(isset($room) && $room->image)
-        <div class="current-image" style="margin-top:10px;">
-            <p>Current Image:</p>
-            <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image" style="width:150px; border-radius:8px;">
+            @if($room->image)
+                <div class="current-image" style="margin-top:10px;">
+                    <p>Current Image:</p>
+                    <img src="{{ asset('storage/' . $room->image) }}" alt="Room Image" style="width:150px; border-radius:8px;">
+                </div>
+            @endif
         </div>
-    @endif
-</div>
 
-{{-- JavaScript to show selected file name and preview --}}
-<script>
-    function resetForm() {
-    const form = document.querySelector('.form-section form');
-    form.reset();
-    document.querySelector('.section-title').textContent = 'Add New Room';
-    document.querySelector('.submit-btn').textContent = 'Add Room';
-    form.action = "{{ route('admin.rooms.store') }}";
+        <!-- Inclusions -->
+        <div class="form-group form-full">
+            <label>Room Inclusions (separate by comma):</label>
+            <input type="text" name="inclusions" placeholder="WiFi, Electric Fan, Cabinet"
+                value="{{ old('inclusions', implode(', ', $room->inclusions ?? [])) }}">
+        </div>
 
-    // Remove PUT method if exists
-    const methodInput = form.querySelector('input[name="_method"]');
-    if (methodInput) methodInput.remove();
+        <!-- Gallery Upload -->
+        <div class="form-group form-full">
+            <label>Room Gallery (You can upload multiple images):</label>
+            <input type="file" name="gallery[]" accept="image/*" multiple>
 
-    fileName.textContent = 'No file selected.';
-    const img = document.querySelector('.current-image img');
-    if (img) img.src = '';
-}
-
-    const currentImageDiv = document.querySelector('.current-image');
-if (!currentImageDiv) {
-    const div = document.createElement('div');
-    div.classList.add('current-image');
-    div.style.marginTop = '10px';
-    div.innerHTML = `<p>Current Image:</p><img src="" alt="Room Image" style="width:150px; border-radius:8px;">`;
-    document.querySelector('.form-group.form-full').appendChild(div);
-}
-document.querySelector('.current-image img').src = room.image ? `/storage/${room.image}` : '';
-
-(() => {
-    const browseButton = document.getElementById('browseButton');
-const fileInput = document.getElementById('roomImage');
-const fileName = document.getElementById('fileName');
-
-browseButton.addEventListener('click', () => {
-    fileInput.click();
-});
-
-fileInput.addEventListener('change', () => {
-    if(fileInput.files.length > 0) {
-        fileName.textContent = fileInput.files[0].name;
-    } else {
-        fileName.textContent = "No file selected.";
-    }
-});
-
-})();
-</script>
+            @if($room->gallery)
+                <div style="margin-top: 12px;">
+                    <p>Current Gallery:</p>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        @foreach($room->gallery as $img)
+                            <img src="{{ asset('storage/' . $img) }}" style="width:100px; border-radius:8px;">
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
 
         <button type="submit" class="logout-btn" style="background:#4CAF50; margin-top:20px;">
             <i class="bi bi-save"></i> Update Room
         </button>
     </form>
 </div>
+
+<!-- JS for file input -->
+<script>
+(() => {
+    const browseButton = document.getElementById('browseButton');
+    const fileInput = document.getElementById('roomImage');
+    const fileName = document.getElementById('fileName');
+
+    browseButton.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+        fileName.textContent = fileInput.files.length > 0 
+            ? fileInput.files[0].name 
+            : 'No file selected.';
+    });
+})();
+</script>
 @endsection

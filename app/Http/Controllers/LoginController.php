@@ -29,7 +29,6 @@ class LoginController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed|min:6',
-            'program' => 'required|string|max:100',
             'gender' => 'required|string',
             'contact' => 'required|string|max:15',
             'address' => 'required|string|max:255',
@@ -39,7 +38,6 @@ class LoginController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'program' => $request->program,
             'gender' => $request->gender,
             'contact' => $request->contact,
             'address' => $request->address,

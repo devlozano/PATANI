@@ -630,16 +630,24 @@
                     </div>
 
                     {{-- Booking / Modal button --}}
-                    <button class="{{ !$canBook ? 'book-btn unavailable' : 'book-btn open-modal' }}" 
-                            {{ !$canBook ? 'disabled' : '' }}
-                            data-room-id="{{ $room->id }}"
-                            data-room-title="Room {{ $room->room_number }}"
-                            data-room-price="₱{{ number_format($room->rent_fee, 2) }}/Month"
-                            data-room-desc="{{ $room->description }}"
-                            data-room-inclusions='@json($room->inclusions ?? [])'
-                            data-room-images='@json($room->images ?? [])'>
-                        {{ $canBook ? 'BOOK NOW' : ($isFull ? 'Full' : ($hasActiveBooking ? 'Not Allowed' : 'Unavailable')) }}
-                    </button>
+<button class="book-btn {{ $canBook ? 'open-modal' : 'unavailable' }}"
+        {{ $canBook ? '' : 'disabled' }}
+        data-room-id="{{ $room->id }}"
+        data-room-title="Room {{ $room->room_number }}"
+        data-room-price="₱{{ number_format($room->rent_fee, 2) }}/Month"
+        data-room-desc="{{ $room->description }}"
+        data-room-inclusions='@json($room->inclusions ?? [])'
+        data-room-images='@json($room->gallery ?? [])'>
+    @if($canBook)
+        BOOK NOW
+    @elseif($isFull)
+        Full
+    @elseif($hasActiveBooking)
+        Not Allowed
+    @else
+        Unavailable
+    @endif
+</button>
                 </div>
             </div>
         @endforeach
@@ -669,6 +677,38 @@
     </div>
   </div>
 </div>
+
+ {{-- ✅ My Bookings --}}
+        <div class="section">
+            <div class="section-title"><i class="bi bi-calendar-check"></i> My Bookings</div>
+
+            @forelse($bookings as $booking)
+                <div class="my-booking-card">
+                    <div class="booking-info">
+                        <h3>{{ $booking->room->name }}</h3>
+                        <div class="booking-date">Booked on {{ $booking->created_at->format('F d, Y') }}</div>
+                        <span class="status-badge 
+                            @if($booking->status === 'approved') status-approved
+                            @elseif($booking->status === 'rejected') status-rejected
+                            @elseif($booking->status === 'cancelled') status-cancelled
+                            @else status-pending
+                            @endif">
+                            {{ ucfirst($booking->status) }}
+                        </span>
+
+            <div class="rent-amount">
+                Monthly Rent: ₱{{ number_format($booking->room->rent_fee ?? 0, 2) }}
+            </div>
+                    </div>
+                    @if($booking->status === 'approved')
+                        <button class="pay-btn">Pay Now</button>
+                    @endif
+                </div>
+            @empty
+                <p>No current bookings yet.</p>
+            @endforelse
+        </div>
+    </div>
 
 {{-- JS --}}
 <script>
@@ -701,9 +741,9 @@ document.querySelectorAll('.open-modal').forEach(btn => {
         modalGallery.innerHTML = '';
         images.forEach(src => {
             const img = document.createElement('img');
-            img.src = src;
+            img.src = "{{ asset('storage/') }}/" + src;
             img.alt = btn.dataset.roomTitle;
-            img.addEventListener('click', () => openZoom(src));
+            img.addEventListener('click', (e) => openZoom(e.target.src));
             modalGallery.appendChild(img);
         });
 

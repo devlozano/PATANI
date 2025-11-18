@@ -648,6 +648,30 @@ tbody tr:hover {
                 </div>
             @endif
         </div>
+<!-- Inclusions -->
+<div class="form-group form-full">
+    <label>Room Inclusions (separate by comma):</label>
+    <input type="text" name="inclusions" placeholder="WiFi, Electric Fan, Cabinet"
+        value="{{ old('inclusions', isset($room) ? implode(', ', json_decode($room->inclusions ?? '[]')) : '') }}">
+</div>
+
+<!-- Gallery Upload -->
+<div class="form-group form-full">
+    <label>Room Gallery (You can upload multiple images):</label>
+    <input type="file" name="gallery[]" accept="image/*" multiple>
+
+    @if(isset($room) && $room->gallery)
+        <div style="margin-top: 12px;">
+            <p>Current Gallery:</p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                @foreach(json_decode($room->gallery, true) as $img)
+                    <img src="{{ asset('storage/' . $img) }}" style="width:100px; border-radius:8px;">
+                @endforeach
+            </div>
+        </div>
+    @endif
+</div>
+
 
         <button type="submit" class="book-btn">Add Room</button>
     </form>
@@ -720,16 +744,19 @@ tbody tr:hover {
 
                     <td>₱{{ number_format($room->rent_fee, 2) }}</td>
                     <td>{{ ucfirst($room->status) }}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <a href="{{ route('admin.rooms.edit', $room->id) }}" class="btn btn-edit" style="text-decoration: none;">EDIT</a>
-                            <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this room?')">DELETE</button>
-                            </form>
-                        </div>
-                    </td>
+<!-- In the Room List Table -->
+<td>
+    <div class="action-buttons">
+        <a href="#" class="btn btn-edit" 
+           data-room='@json($room)'
+           onclick="editRoom(this)">EDIT</a>
+        <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this room?')">DELETE</button>
+        </form>
+    </div>
+</td>
                 </tr>
             @empty
                 <tr><td colspan="9" style="text-align:center;">No rooms available.</td></tr>
@@ -840,20 +867,19 @@ tbody tr:hover {
     });
 });
 
-function editRoom(room) {
-    document.querySelector('[name="room_number"]').value = room.room_number || '';
-    document.querySelector('[name="room_floor"]').value = room.room_floor || '';
-    document.querySelector('[name="bedspace"]').value = room.bedspace || '';
-    document.querySelector('[name="status"]').value = room.status || '';
-    document.querySelector('[name="rent_fee"]').value = room.rent_fee || '';
-    document.querySelector('[name="description"]').value = room.description || '';
+// EDIT ROOM FUNCTION
+function editRoom(el) {
+    const room = JSON.parse(el.dataset.room);
 
-    document.querySelector('.section-title').textContent = 'Edit Room';
-    document.querySelector('.submit-btn').textContent = 'Update Room';
+    // Show Add Room Section if hidden
+    document.getElementById('addRoomSection').style.display = 'block';
+    document.getElementById('roomListSection').style.display = 'none';
+    document.getElementById('showAddRoom').classList.add('active');
+    document.getElementById('showRoomList').classList.remove('active');
 
-    const form = document.querySelector('.form-section form');
+    // Set form action
+    const form = document.querySelector('#addRoomSection form');
     form.action = `/admin/rooms/${room.id}`;
-
     if (!form.querySelector('input[name="_method"]')) {
         const method = document.createElement('input');
         method.type = 'hidden';
@@ -861,6 +887,25 @@ function editRoom(room) {
         method.value = 'PUT';
         form.appendChild(method);
     }
+
+    // Update button text
+    form.querySelector('button[type="submit"]').textContent = 'Update Room';
+    document.querySelector('#addRoomSection .section-title').textContent = 'Edit Room';
+
+    // Fill inputs
+    form.querySelector('[name="room_number"]').value = room.room_number || '';
+    form.querySelector('[name="room_floor"]').value = room.room_floor || '';
+    form.querySelector('[name="gender"]').value = room.gender || '';
+    form.querySelector('[name="bedspace"]').value = room.bedspace || '';
+    form.querySelector('[name="status"]').value = room.status || '';
+    form.querySelector('[name="rent_fee"]').value = room.rent_fee || '';
+    form.querySelector('[name="description"]').value = room.description || '';
+    form.querySelector('[name="inclusions"]').value = (room.inclusions || []).join(', ');
+
+    // Current image preview
+    const currentImgDiv = form.querySelector('.current-image');
+    const imgTag = currentImgDiv.querySelector('img');
+    imgTag.src = room.image ? `/storage/${room.image}` : '';
 }
 </script>
 </body>

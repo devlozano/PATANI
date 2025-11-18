@@ -512,10 +512,6 @@
                 </div>
                 <div class="info-grid">
                     <div class="info-item">
-                        <label>Student Id:</label>
-                        <p>20001919</p>
-                    </div>
-                    <div class="info-item">
                         <label>Name:</label>
 @if(Auth::check())
     <p>{{ Auth::user()->name }}</p>

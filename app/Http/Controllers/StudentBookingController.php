@@ -33,7 +33,7 @@ public function dashboard()
 
     // ✅ Check if the student has an approved or paid booking
     $hasActiveBooking = Booking::where('user_id', $user->id)
-        ->whereIn('status', ['approved', 'paid'])
+        ->whereIn('status', ['Approved', 'Paid'])
         ->exists();
 
     return view('student.dash', compact('bookings', 'rooms', 'hasActiveBooking'));
@@ -67,7 +67,7 @@ public function storeBooking(Request $request)
 
     // ✅ Check if student already has an active or paid booking
     $activeBooking = Booking::where('user_id', $user->id)
-        ->whereIn('status', ['approved', 'paid'])
+        ->whereIn('status', ['Approved', 'Paid'])
         ->first();
 
     if ($activeBooking) {

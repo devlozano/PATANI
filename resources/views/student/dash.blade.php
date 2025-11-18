@@ -569,39 +569,47 @@
 
 <div class="card">
     <div class="card-header">
-        @if($room)
-            <i class="bi {{ in_array($room->status, ['approved', 'occupied']) ? 'bi-door-open' : 'bi-door-closed' }}"></i>
+
+        @if($bookings && $bookings->room)
+            <i class="bi {{ in_array($bookings->status, ['Approved', 'Occupied', 'Paid']) ? 'bi-door-open' : 'bi-door-closed' }}"></i>
+
             <span>
-                My Room 
-                @if(in_array($room->status, ['approved', 'occupied']))
-                    : {{ $room->room_number ?? 'N/A' }}
+                My Room
+                @if(in_array($bookings->status, ['Approved', 'Occupied', 'Paid']))
+                    : {{ $bookings->room->room_number }}
                 @else
-                    ({{ ucfirst($room->status) }})
+                    ({{ ucfirst($bookings->status) }})
                 @endif
             </span>
+
         @else
             <i class="bi bi-door-closed"></i>
             <span>My Room</span>
         @endif
+
     </div>
 
-    @if($room)
-        {{-- Show details for approved or occupied rooms --}}
-        @if(in_array($room->status, ['approved', 'occupied']))
+    {{-- If user has a booking --}}
+    @if($bookings)
+
+        {{-- If approved or occupied --}}
+        @if(in_array($bookings->status, ['Approved', 'Occupied','Paid']))
             <div class="room-details">
-                <p><strong>Room Number:</strong> {{ $room->room_number ?? 'N/A' }}</p>
-                <p><strong>Status:</strong> {{ ucfirst($room->status) }}</p>
+                <p><strong>Room Number:</strong> {{ $bookings->room->room_number }}</p>
+                <p><strong>Status:</strong> {{ ucfirst($bookings->status) }}</p>
             </div>
+
+        {{-- If not approved yet --}}
         @else
-            {{-- If booking exists but not approved --}}
             <div class="room-empty">
                 <i class="bi bi-door-closed"></i>
-                <p>Your room request is <strong>{{ ucfirst($room->status) }}</strong>. Please wait for approval.</p>
+                <p>Your room request is <strong>{{ ucfirst($bookings->status) }}</strong>. Please wait for approval.</p>
                 <a href="{{ route('student.booking') }}">
                     <button class="book-btn" type="button">BOOK NOW</button>
                 </a>
             </div>
         @endif
+
     @else
         {{-- No booking at all --}}
         <div class="room-empty">
