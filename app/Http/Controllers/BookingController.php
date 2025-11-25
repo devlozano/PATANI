@@ -29,28 +29,38 @@ class BookingController extends Controller
     }
 
     // Handle booking a room
-    public function store(Request $request)
-    {
-        $request->validate(['room_id' => 'required|exists:rooms,id']);
+  public function store(Request $request)
+{
+    $request->validate([
+        'room_id' => 'required|exists:rooms,id'
+    ]);
 
-        $room = Room::findOrFail($request->room_id);
+    $room = Room::findOrFail($request->room_id);
+    $user = Auth::user();
 
-        if (!$room->available) {
-            return back()->with('error', 'This room is not available.');
-        }
-
-        Booking::create([
-            'user_id' => Auth::id(),
-            'room_id' => $room->id,
-            'booking_date' => now(),
-            'status' => 'Pending',
-        ]);
-
-        // Optional: mark room as unavailable
-        $room->update(['available' => false]);
-
-        return redirect()->route('booking')->with('success', 'Room booked successfully!');
+    // 🔥 Gender check
+    if ($room->gender !== 'Mixed' && $room->gender !== $user->gender) {
+        return back()->with('error', 'This room is for ' . $room->gender . ' only.');
     }
+
+    // 🔥 Availability check
+    if (!$room->available) {
+        return back()->with('error', 'This room is not available.');
+    }
+
+    // ✔ Create booking
+    Booking::create([
+        'user_id' => $user->id,
+        'room_id' => $room->id,
+        'booking_date' => now(),
+        'status' => 'Pending',
+    ]);
+
+    // ✔ Optional: mark room unavailable after booking
+    $room->update(['available' => false]);
+
+    return redirect()->route('booking')->with('success', 'Room booked successfully!');
+}
 
     // Show student booking page with rooms and user's bookings
     public function create()

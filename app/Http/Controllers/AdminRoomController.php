@@ -55,18 +55,19 @@ class AdminRoomController extends Controller
 
 public function store(Request $request)
 {
-    $request->validate([
-        'room_number' => 'required',
-        'room_floor' => 'required',
-        'gender' => 'required',
-        'bedspace' => 'required|integer',
-        'status' => 'required',
-        'rent_fee' => 'required|numeric',
-        'description' => 'required',
-        'inclusions' => 'required|array',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-        'gallery.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-    ]);
+   $request->validate([
+    'room_number' => 'required',
+    'room_floor' => 'required',
+    'gender' => 'required',
+    'bedspace' => 'required|integer',
+    'status' => 'required',
+    'rent_fee' => 'required|numeric',
+    'description' => 'required',
+    'inclusions' => 'nullable|string', // change to string
+    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+    'gallery.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+]);
+
 
     $room = new Room();
     $room->room_number = $request->room_number;
@@ -76,16 +77,12 @@ public function store(Request $request)
     $room->status = $request->status;
     $room->rent_fee = $request->rent_fee;
     $room->description = $request->description;
-
-    // Save inclusions as JSON
     $room->inclusions = json_encode($request->inclusions);
 
-    // Save main image
     if ($request->hasFile('image')) {
         $room->image = $request->file('image')->store('rooms', 'public');
     }
 
-    // Save gallery images as JSON
     if ($request->hasFile('gallery')) {
         $galleryPaths = [];
         foreach ($request->file('gallery') as $file) {
@@ -96,6 +93,6 @@ public function store(Request $request)
 
     $room->save();
 
-    return redirect()->route('admin.rooms.store')->with('success', 'Room added successfully.');
+    return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
 }
 }

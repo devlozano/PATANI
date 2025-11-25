@@ -621,14 +621,6 @@
                             </div>
                         </div>
                     </div>
-
-                    {{-- Amenities --}}
-                    <div class="amenities">
-                        @foreach($room->inclusions ?? [] as $inc)
-                            <div class="amenity-tag">{{ $inc }}</div>
-                        @endforeach
-                    </div>
-
                     {{-- Booking / Modal button --}}
 <button class="book-btn {{ $canBook ? 'open-modal' : 'unavailable' }}"
         {{ $canBook ? '' : 'disabled' }}
