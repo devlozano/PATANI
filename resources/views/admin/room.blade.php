@@ -389,6 +389,34 @@ tbody tr:hover {
   background: #CC0000;
   transform: scale(1.05);
 }
+.modal {
+    display: none;
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background:#fff;
+    padding:25px;
+    border-radius:12px;
+    width:90%;
+    max-width:600px;
+    max-height:90vh;
+    overflow-y:auto;
+    position:relative;
+}
+
+.modal .close {
+    position:absolute;
+    top:10px; right:15px;
+    font-size:28px;
+    cursor:pointer;
+}
 
 /* ===== RESPONSIVE FIXES ===== */
 @media (max-width: 992px) {
@@ -658,7 +686,7 @@ tbody tr:hover {
 <!-- Gallery Upload -->
 <div class="form-group form-full">
     <label>Room Gallery (You can upload multiple images):</label>
-    <input type="file" name="gallery[]" accept="image/*" multiple>
+    <input type="file" name="gallery" accept="image/*" multiple>
 
     @if(isset($room) && $room->gallery)
         <div style="margin-top: 12px;">
@@ -747,9 +775,10 @@ tbody tr:hover {
 <!-- In the Room List Table -->
 <td>
     <div class="action-buttons">
-        <a href="#" class="btn btn-edit" 
-           data-room='@json($room)'
-           onclick="editRoom(this)">EDIT</a>
+       <button class="edit-room-btn" 
+        data-room='@json($room)'>
+    <i class="bi bi-pencil-square"></i> Edit
+</button>
         <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
             @csrf
             @method('DELETE')
@@ -764,6 +793,90 @@ tbody tr:hover {
         </tbody>
     </table>
 </div>
+<!-- Edit Room Modal -->
+<div id="editRoomModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Edit Room</h2>
+        <form id="editRoomForm" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            <input type="hidden" name="room_id" id="modalRoomId">
+
+            <div class="form-group">
+                <label>Room Number:</label>
+                <select name="room_number" id="modalRoomNumber" required></select>
+            </div>
+
+            <div class="form-group">
+                <label>Room Floor:</label>
+                <select name="room_floor" id="modalRoomFloor" required>
+                    <option value="Ground Floor">Ground Floor</option>
+                    <option value="First Floor">First Floor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Gender:</label>
+                <select name="gender" id="modalRoomGender" required>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Bedspace:</label>
+                <select name="bedspace" id="modalRoomBedspace" required>
+                    <option value="4">4</option>
+                    <option value="6">6</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Status:</label>
+                <select name="status" id="modalRoomStatus" required>
+                    <option value="available">Available</option>
+                    <option value="occupied">Occupied</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Rent Fee:</label>
+                <select name="rent_fee" id="modalRoomRent" required>
+                    <option value="1500">₱1,500.00</option>
+                    <option value="1600">₱1,600.00</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea name="description" id="modalRoomDesc" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Pick Image:</label>
+                <input type="file" name="image">
+                <div id="currentImage"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Inclusions (comma separated):</label>
+                <input type="text" name="inclusions" id="modalRoomInclusions">
+            </div>
+
+            <div class="form-group">
+                <label>Gallery (multiple images):</label>
+                <input type="file" name="gallery[]" multiple>
+                <div id="currentGallery" style="display:flex;gap:10px;"></div>
+            </div>
+
+            <button type="submit" class="btn-save">Update Room</button>
+        </form>
+    </div>
+</div>
+
 
 <style>
     .available-room {
@@ -907,6 +1020,49 @@ function editRoom(el) {
     const imgTag = currentImgDiv.querySelector('img');
     imgTag.src = room.image ? `/storage/${room.image}` : '';
 }
+const modal = document.getElementById('editRoomModal');
+const closeBtn = modal.querySelector('.close');
+const form = document.getElementById('editRoomForm');
+
+document.querySelectorAll('.edit-room-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const room = JSON.parse(btn.dataset.room);
+
+        form.action = `/admin/rooms/${room.id}`; // dynamically set form action
+        document.getElementById('modalRoomId').value = room.id;
+
+        // Fill selects
+        const roomNumberSelect = document.getElementById('modalRoomNumber');
+        roomNumberSelect.innerHTML = '';
+        for(let i=1;i<=6;i++){
+            roomNumberSelect.innerHTML += `<option value="${i}" ${room.room_number == i ? 'selected':''}>${i}</option>`;
+        }
+
+        document.getElementById('modalRoomFloor').value = room.room_floor;
+        document.getElementById('modalRoomGender').value = room.gender;
+        document.getElementById('modalRoomBedspace').value = room.bedspace;
+        document.getElementById('modalRoomStatus').value = room.status;
+        document.getElementById('modalRoomRent').value = room.rent_fee;
+        document.getElementById('modalRoomDesc').value = room.description;
+        document.getElementById('modalRoomInclusions').value = (room.inclusions || []).join(', ');
+
+        // Current Image
+        const currentImage = document.getElementById('currentImage');
+        currentImage.innerHTML = room.image ? `<img src="/storage/${room.image}" style="width:100px;border-radius:8px;">` : '';
+
+        // Current Gallery
+        const currentGallery = document.getElementById('currentGallery');
+        currentGallery.innerHTML = '';
+        (room.gallery || []).forEach(img => {
+            currentGallery.innerHTML += `<img src="/storage/${img}" style="width:80px;border-radius:6px;">`;
+        });
+
+        modal.style.display = 'flex';
+    });
+});
+
+closeBtn.addEventListener('click', () => modal.style.display = 'none');
+window.addEventListener('click', (e) => { if(e.target === modal) modal.style.display = 'none'; });
 </script>
 </body>
 </html>

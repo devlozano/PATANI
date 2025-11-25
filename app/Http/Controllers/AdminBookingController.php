@@ -14,6 +14,9 @@ class AdminBookingController extends Controller
 
         return view('admin.booking', compact('pending', 'all'));
     }
+public function user() {
+    return $this->belongsTo(User::class);
+}
 
     public function approve($id)
 {
@@ -22,7 +25,10 @@ class AdminBookingController extends Controller
 
     // Approve this booking
     $booking->status = 'Approved';
+    $booking->due_date = now()->addMonth(); // next month
     $booking->save();
+
+    $user->notify(new PaymentDue($booking));
 
     // Automatically cancel other bookings for the same student
     Booking::where('user_id', $booking->user_id)

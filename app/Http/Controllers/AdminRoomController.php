@@ -96,6 +96,6 @@ public function store(Request $request)
 
     $room->save();
 
-    return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
+    return redirect()->route('admin.rooms.store')->with('success', 'Room added successfully.');
 }
 }

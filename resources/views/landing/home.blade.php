@@ -68,7 +68,7 @@
     text-shadow:0 2px 8px rgba(0,0,0,0.6);
   }
 
-  .hero h1 { font-family: 'Montserrat', sans-serif; font-size:58px; font-weight:700; margin-bottom:10px; line-height:1.2; }
+  .hero h1 { text-align:left; font-family: 'Montserrat', sans-serif; font-size:58px; font-weight:800; margin-bottom:10px; line-height:1; }
   .hero p {
     font-size: 20px;
     margin-bottom: 30px;
@@ -519,6 +519,33 @@
     </div>
   </div>
 </div>
+<!-- TRANSIENT ROOMS -->
+<section id="transientRooms">
+  <h2>Transient Rooms</h2>
+  <div class="rooms" id="transientRoomsContainer">
+    <!-- Dynamic transient room cards will be injected here -->
+  </div>
+</section>
+
+<!-- TRANSIENT ROOM MODAL -->
+<div id="transientRoomModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 id="transientModalTitle">Room Title</h2>
+    <p id="transientModalPrice">₱200/Day</p>
+    <p id="transientModalDesc">Full description of the transient room...</p>
+
+    <h4>Inclusions:</h4>
+    <ul id="transientModalInclusions"></ul>
+
+    <h4>Gallery</h4>
+    <div id="transientModalGallery" class="modal-gallery"></div>
+
+    <div class="modal-actions">
+      <button class="reserve-btn">Reserve Now</button>
+    </div>
+  </div>
+</div>
 
 <!-- ABOUT SECTION -->
 <section id="about" style="padding: 60px 20px; background: #fffff0;">
@@ -529,7 +556,7 @@
 
     <!-- Image -->
     <div style="flex:1; min-width:300px; display:flex; align-items:center;">
-      <img src="/images/yell 1.png" 
+      <img src="/images/received_1367814431592858.jpeg" 
            alt="About Patani Trinidad" 
            style="width:100%; height:100%; object-fit:cover; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
     </div>
@@ -654,12 +681,12 @@
 
 <script>
 const roomsData = [
-  {id:1,title:"Room 1 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
-  {id:2,title:"Room 2 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
-  {id:3,title:"Room 3 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
-  {id:4,title:"Room 4 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"],unavailable:true},
-  {id:5,title:"Room 5 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
-  {id:6,title:"Room 6 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]}
+  {id:1,title:"Room 1 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:2,title:"Room 2 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:3,title:"Room 3 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:4,title:"Room 4 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"],unavailable:true},
+  {id:5,title:"Room 5 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
+  {id:6,title:"Room 6 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]}
 ];
 
 const roomsContainer = document.getElementById('roomsContainer');
@@ -801,6 +828,89 @@ document.querySelectorAll('nav a').forEach(link=>{
 
 // Header color on scroll
 window.addEventListener('scroll',()=>{document.querySelector('header').classList.toggle('scrolled',window.scrollY>80);});
+</script>
+<script>
+const transientRoomsData = [
+  {id:1,title:"Transient Room 1",price:"₱200/Day",desc:"Comfortable short-stay room.",inclusions:["WiFi","Fan","Bathroom","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:2,title:"Transient Room 2",price:"₱200/Day",desc:"Spacious room ideal for travelers.",inclusions:["WiFi","Fan","Bathroom","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:3,title:"Transient Room 3",price:"₱200/Day",desc:"Affordable and cozy room.",inclusions:["WiFi","Fan","Bathroom","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]}
+];
+
+const transientContainer = document.getElementById('transientRoomsContainer');
+const transientModal = document.getElementById('transientRoomModal');
+const transientTitle = document.getElementById('transientModalTitle');
+const transientPrice = document.getElementById('transientModalPrice');
+const transientDesc = document.getElementById('transientModalDesc');
+const transientInclusions = document.getElementById('transientModalInclusions');
+const transientGallery = document.getElementById('transientModalGallery');
+const transientClose = transientModal.querySelector('.close');
+
+// Render transient rooms
+transientRoomsData.forEach(room => {
+  const card = document.createElement('div');
+  card.className = 'room-card';
+  card.innerHTML = `
+    <img src="${room.images[0]}" alt="${room.title}">
+    <div class="content">
+      <h3>${room.title}</h3>
+      <p>${room.price}</p>
+      <p>${room.desc}</p>
+      <div class="amenities">
+        ${room.inclusions.map(i=>`<div class="amenity-tag">${i}</div>`).join('')}
+      </div>
+      <button class="open-transient-modal" data-room="${room.id}">Available</button>
+    </div>
+  `;
+  transientContainer.appendChild(card);
+});
+
+// Modal logic
+document.querySelectorAll('.open-transient-modal').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const room = transientRoomsData.find(r => r.id == btn.dataset.room);
+    transientTitle.textContent = room.title;
+    transientPrice.textContent = room.price;
+    transientDesc.textContent = room.desc;
+
+    transientInclusions.innerHTML = '';
+    room.inclusions.forEach(i => {
+      const li = document.createElement('li');
+      li.textContent = i;
+      transientInclusions.appendChild(li);
+    });
+
+    transientGallery.innerHTML = '';
+    room.images.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = room.title;
+      img.addEventListener('click', () => openTransientZoom(src));
+      transientGallery.appendChild(img);
+    });
+
+    transientModal.style.display = 'flex';
+  });
+});
+
+transientClose.addEventListener('click', () => transientModal.style.display='none');
+window.addEventListener('click', e => { if(e.target==transientModal) transientModal.style.display='none'; });
+
+// Image zoom for transient rooms
+const transientZoomOverlay = document.createElement('div');
+transientZoomOverlay.classList.add('img-zoom-overlay');
+const transientZoomImg = document.createElement('img');
+transientZoomOverlay.appendChild(transientZoomImg);
+document.body.appendChild(transientZoomOverlay);
+function openTransientZoom(src){
+  transientZoomImg.src = src;
+  transientZoomOverlay.style.display='flex';
+}
+transientZoomOverlay.addEventListener('click',()=>transientZoomOverlay.style.display='none');
+
+// Reserve button
+transientModal.querySelector('.reserve-btn').addEventListener('click', () => {
+  window.location.href = '/login'; // or open another modal
+});
 </script>
 </body>
 </html>
