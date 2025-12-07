@@ -391,7 +391,7 @@ table tbody tr:hover {
 
     // Get approved bookings with their room and payments
     $bookings = $student->bookings()
-        ->where('status', 'approved')
+        ->where('status', 'Approved')
         ->with(['room', 'payments'])
         ->get();
 @endphp
@@ -410,12 +410,14 @@ table tbody tr:hover {
             <form action="{{ route('payment.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="room_id" value="{{ $room->id }}">
-                <input type="hidden" name="bookings" value="{{ $bookings }}">
+                <input type="hidden" name="booking_id" value="{{ $booking->id }}">
                 <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
 
-                <button type="button" class="pay-btn" onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}', {{ $booking->id }})">
-                    Pay Now
-                </button>
+<button type="button" class="pay-btn"
+    onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}', {{ $booking->id }})">
+    Pay Now
+</button>
+
             </form>
         </div>
     @endif
@@ -435,7 +437,7 @@ table tbody tr:hover {
         <form id="paymentForm" method="POST" action="{{ route('payment.store') }}">
             @csrf
             <input type="hidden" name="room_id" id="modalRoomId">
-            <input type="hidden" name="bookings" value="{{ $bookings}}">
+            <input type="hidden" name="booking_id" id="modalBookingId">
             <input type="hidden" name="amount" id="modalAmount">
 
             <div class="form-group">
@@ -459,10 +461,23 @@ table tbody tr:hover {
                 </select>
             </div>
 
-            <button type="submit" class="submit-btn">Pay</button>
+            <!-- Optional Policies / Reminders -->
+            <div class="optional-policies" style="margin-top: 20px; font-size: 0.9rem; color: #555;">
+                <h4>Optional Policies & Reminders:</h4>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li>Double-check your payment amount before submitting.</li>
+                    <li>Keep your receipt or proof of payment for reference.</li>
+                    <li>Payments are pending approval by management.</li>
+                    <li>If paying via bank transfer or GCash, ensure the correct account details.</li>
+                    <li>Contact management for any payment issues or clarifications.</li>
+                </ul>
+            </div>
+
+            <button type="submit" class="submit-btn" style="margin-top: 15px;">Pay</button>
         </form>
     </div>
 </div>
+
 
 
             <!-- ✅ Payment Records Table -->
@@ -537,17 +552,20 @@ table tbody tr:hover {
         });
     </script>
     <script>
-function openPaymentModal(roomId, rentFee) {
+function openPaymentModal(roomId, rentFee, bookingId) {
     const modal = document.getElementById('paymentModal');
     const roomInfo = document.getElementById('roomInfo');
     const modalRoomId = document.getElementById('modalRoomId');
+    const modalBookingId = document.getElementById('modalBookingId');
     const modalAmount = document.getElementById('modalAmount');
 
     modal.style.display = 'flex';
     roomInfo.textContent = `Room ID: ${roomId} - Amount: ₱${parseFloat(rentFee).toFixed(2)}`;
     modalRoomId.value = roomId;
+    modalBookingId.value = bookingId;
     modalAmount.value = rentFee;
 }
+
 
 
     function closePaymentModal() {
@@ -562,6 +580,35 @@ function openPaymentModal(roomId, rentFee) {
             closePaymentModal();
         }
     });
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('{{ route("payment.store") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closePaymentModal();
+            location.reload(); // or update the UI dynamically
+        } else {
+            alert('Payment failed: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error('AJAX error:', err);
+        alert('Payment failed due to server error.');
+    });
+});
+
     </script>
 
 </body>

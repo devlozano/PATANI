@@ -22,122 +22,95 @@ use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\LandingController;
 
-// 🏠 Redirect homepage to login page
-Route::get('/', function () {
-    return redirect()->route('login');
+// 🏠 LANDING PAGE
+Route::get('/', [LandingController::class, 'index'])->name('landing.home');
+Route::get('/home', function () {
+    return redirect()->route('landing.home');
 });
 
+// 🔐 AUTH ROUTES (Guest only)
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-// 🔐 AUTH ROUTES
-Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+    Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
+});
 
-Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
-Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
-
-
+// 🛡️ AUTHENTICATED ROUTES (Shared by Student & Admin)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/student/dashboard', [DashboardController::class, 'index'])
-        ->name('dash');
+
+    // 🚪 LOGOUT
+    Route::post('/logout', function (Request $request) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/login');
+    })->name('logout');
+
+    // 👤 PROFILE ROUTES
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.uploadAvatar');
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.removeAvatar');
+
+    // 💬 CHAT ROUTES (AJAX)
+    // These must be accessible by both Admin and Student
+    Route::get('/chat/messages/{userId}', [AdminDashboardController::class, 'getMessages'])->name('chat.get');
+    Route::post('/chat/send', [AdminDashboardController::class, 'sendMessage'])->name('chat.send');
 });
 
-// 👤 PROFILE ROUTES
-Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
-Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
+// 🎓 STUDENT ROUTES
+// Removed 'student' middleware, keeping only 'auth'
+Route::prefix('student')->middleware(['auth'])->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dash');
 
-// 💳 PAYMENT ROUTES (student-side)
-Route::get('/payment', [PaymentController::class, 'index'])->name('payment');
-Route::post('/payment', [PaymentController::class, 'store'])->name('payment.store');
-
-
-// 🚪 LOGOUT
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/login');
-})->name('logout');
-
-
-Route::prefix('student')->group(function () {
-
-
+    // Booking
     Route::get('/booking', [StudentBookingController::class, 'index'])->name('student.booking');
     Route::post('/booking', [StudentBookingController::class, 'store'])->name('student.booking.store');
 
-    Route::get('/payment', [PaymentController::class, 'index'])->name('student.payment');
-
-    // Student Payment Routes
-Route::prefix('student')->middleware(['auth', 'student'])->group(function () {
+    // Payment
     Route::get('/payment', [PaymentController::class, 'index'])->name('student.payment');
     Route::post('/payment/store', [PaymentController::class, 'store'])->name('payment.store');
-});
 
-
+    // Room Info
     Route::get('/room', [BookingController::class, 'index'])->name('student.room');
 });
 
 
-/// 🧑‍💼 ADMIN ROUTES
-Route::prefix('admin')->name('admin.')->group(function () {
+// 🧑‍💼 ADMIN ROUTES
+// Keeps 'admin' middleware to protect these routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Booking
+    // 📢 ANNOUNCEMENTS
+    Route::post('/announcement/post', [AdminDashboardController::class, 'postAnnouncement'])->name('post.announcement');
+
+    // Booking Management
     Route::get('/booking', [AdminBookingController::class, 'index'])->name('booking');
+    Route::post('/booking/{id}/approve', [AdminBookingController::class, 'approve'])->name('booking.approve');
+    Route::post('/booking/{id}/reject', [AdminBookingController::class, 'reject'])->name('booking.reject');
+    Route::post('/bookings/{id}/checkout', [AdminBookingController::class, 'checkout'])->name('booking.checkout');
 
-    // Payments page (index)
+    // Payment Management
     Route::get('/payment', [AdminPaymentController::class, 'index'])->name('payment');
-
     Route::post('/payments/{id}/approve', [AdminPaymentController::class, 'approve'])->name('payment.approve');
-
-
-    // Reject a payment
     Route::post('/payment/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payment.reject');
 
-    // Reports page
-    Route::get('/report', [AdminReportController::class, 'index'])->name('report');
-});
-Route::prefix('admin')->name('admin.rooms.')->group(function () {
-    Route::get('/rooms', [AdminRoomController::class, 'index'])->name('index'); // Room list
-    Route::get('/rooms/create', [AdminRoomController::class, 'create'])->name('create'); // Add room
-    Route::post('/rooms', [AdminRoomController::class, 'store'])->name('store'); // Store room
-    Route::get('/rooms/{id}/edit', [AdminRoomController::class, 'edit'])->name('edit'); // Edit room
-    Route::put('/rooms/{id}', [AdminRoomController::class, 'update'])->name('update'); // Update room
-    Route::delete('/rooms/{id}', [AdminRoomController::class, 'destroy'])->name('destroy'); // Delete room
-});
-
-// ✅ Approve booking route
-Route::post('/booking{id}/approve', [AdminBookingController::class, 'approve'])->name('admin.booking.approve');
-
-// ✅ Reject booking route
-Route::post('/booking/{id}/reject', [AdminBookingController::class, 'reject'])->name('admin.booking.reject');
-
-    // Report
-    Route::get('/report', [AdminReportController::class, 'index'])->name('report');
-
-    // Rooms CRUD
+    // Room Management
     Route::resource('rooms', AdminRoomController::class);
 
-Route::post('/admin/bookings/{id}/checkout', [AdminBookingController::class, 'checkout'])
-    ->name('admin.booking.checkout')
-    ->middleware('auth');
+    // Reports
+    Route::get('/report', [AdminReportController::class, 'index'])->name('report');
+});
 
-
+// Test Route (Optional)
 Route::get('/test-session', function () {
     session(['test' => 'hello']);
     return session('test');
 });
-
-// main landing page route
-Route::get('/', [LandingController::class, 'index'])->name('landing.home');
-
-// redirect /home to landing
-Route::get('/home', function () {
-    return redirect()->route('landing.home');
-});
-Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.uploadAvatar');
-Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.removeAvatar');

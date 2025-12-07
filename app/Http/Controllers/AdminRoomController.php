@@ -10,9 +10,18 @@ class AdminRoomController extends Controller
     // Show all rooms
     public function index()
     {
-        $rooms = Room::all();
-        return view('admin.room', compact('rooms'));
-    }
+$rooms = Room::all()->map(function($room) {
+        // Decode inclusions & gallery safely
+        $inclusions = is_array($room->inclusions) 
+    ? $room->inclusions 
+    : json_decode($room->inclusions ?? '[]', true);
+        $room->inclusions = $inclusions;
+        $room->gallery = json_decode($room->gallery ?? '[]', true);
+        return $room;
+    });
+
+    return view('admin.room', compact('rooms'));
+}
 
     public function edit($id)
     {
@@ -52,47 +61,53 @@ class AdminRoomController extends Controller
     return redirect()->route('admin.rooms.index')->with('success', 'Room deleted successfully.');
 }
 
-
 public function store(Request $request)
 {
-   $request->validate([
-    'room_number' => 'required',
-    'room_floor' => 'required',
-    'gender' => 'required',
-    'bedspace' => 'required|integer',
-    'status' => 'required',
-    'rent_fee' => 'required|numeric',
-    'description' => 'required',
-    'inclusions' => 'nullable|string', // change to string
-    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-    'gallery.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-]);
-
+    $request->validate([
+        'room_number' => 'required',
+        'room_floor'  => 'required',
+        'gender'      => 'required',
+        'bedspace'    => 'required|integer',
+        'status'      => 'required',
+        'rent_fee'    => 'required|numeric',
+        'description' => 'required',
+        'inclusions'  => 'nullable|string',
+        'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        'gallery.*'   => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+    ]);
 
     $room = new Room();
     $room->room_number = $request->room_number;
-    $room->room_floor = $request->room_floor;
-    $room->gender = $request->gender;
-    $room->bedspace = $request->bedspace;
-    $room->status = $request->status;
-    $room->rent_fee = $request->rent_fee;
+    $room->room_floor  = $request->room_floor;
+    $room->gender      = $request->gender;
+    $room->bedspace    = $request->bedspace;
+    $room->status      = $request->status;
+    $room->rent_fee    = $request->rent_fee;
     $room->description = $request->description;
-    $room->inclusions = json_encode($request->inclusions);
 
+    // Convert inclusions string to array
+    $inclusions = array_filter(array_map('trim', explode(',', $request->inclusions ?? '')));
+    $room->inclusions = json_encode($inclusions, JSON_UNESCAPED_UNICODE);
+
+    // Main image
     if ($request->hasFile('image')) {
         $room->image = $request->file('image')->store('rooms', 'public');
     }
 
+    // Gallery images
+    $galleryPaths = [];
     if ($request->hasFile('gallery')) {
-        $galleryPaths = [];
         foreach ($request->file('gallery') as $file) {
             $galleryPaths[] = $file->store('rooms/gallery', 'public');
         }
-        $room->gallery = json_encode($galleryPaths);
+        if (!empty($galleryPaths)) {
+            $room->gallery = json_encode($galleryPaths, JSON_UNESCAPED_UNICODE);
+        }
     }
 
     $room->save();
 
     return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
 }
+
 }

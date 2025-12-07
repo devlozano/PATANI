@@ -27,9 +27,7 @@ public function user() {
     $booking->status = 'Approved';
     $booking->due_date = now()->addMonth(); // next month
     $booking->save();
-
-    $user->notify(new PaymentDue($booking));
-
+    
     // Automatically cancel other bookings for the same student
     Booking::where('user_id', $booking->user_id)
         ->where('id', '!=', $booking->id)  // Exclude the approved booking

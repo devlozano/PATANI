@@ -594,10 +594,13 @@ tbody tr:hover {
 
 <!-- Add/Edit Room -->
 <div class="section" id="addRoomSection">
-    <div class="section-title">Add New Room</div>
+    <div class="section-title">{{ isset($room) ? 'Edit Room' : 'Add New Room' }}</div>
 
-    <form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ isset($room) ? route('admin.rooms.update', $room->id) : route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
+        @if(isset($room))
+            @method('PUT')
+        @endif
 
         <div class="form-grid">
             <div class="form-group">
@@ -605,7 +608,7 @@ tbody tr:hover {
                 <select name="room_number" required>
                     <option value="">Select</option>
                     @for($i = 1; $i <= 6; $i++)
-                        <option value="{{ $i }}">{{ $i }}</option>
+                        <option value="{{ $i }}" {{ (isset($room) && $room->room_number == $i) ? 'selected' : '' }}>{{ $i }}</option>
                     @endfor
                 </select>
             </div>
@@ -614,8 +617,8 @@ tbody tr:hover {
                 <label>Room Floor:</label>
                 <select name="room_floor" required>
                     <option value="">Select</option>
-                    <option value="Ground Floor">Ground Floor</option>
-                    <option value="First Floor">First Floor</option>
+                    <option value="Ground Floor" {{ (isset($room) && $room->room_floor == 'Ground Floor') ? 'selected' : '' }}>Ground Floor</option>
+                    <option value="First Floor" {{ (isset($room) && $room->room_floor == 'First Floor') ? 'selected' : '' }}>First Floor</option>
                 </select>
             </div>
 
@@ -623,8 +626,8 @@ tbody tr:hover {
                 <label>Gender:</label>
                 <select name="gender" required>
                     <option value="">Select</option>
-                    <option value="Female">Female</option>
-                    <option value="Male">Male</option>
+                    <option value="Female" {{ (isset($room) && $room->gender == 'Female') ? 'selected' : '' }}>Female</option>
+                    <option value="Male" {{ (isset($room) && $room->gender == 'Male') ? 'selected' : '' }}>Male</option>
                 </select>
             </div>
 
@@ -632,17 +635,17 @@ tbody tr:hover {
                 <label>Bedspace:</label>
                 <select name="bedspace" required>
                     <option value="">Select</option>
-                    <option value="4">4</option>
-                    <option value="6">6</option>
-                    <option value="8">8</option>
+                    <option value="4" {{ (isset($room) && $room->bedspace == 4) ? 'selected' : '' }}>4</option>
+                    <option value="6" {{ (isset($room) && $room->bedspace == 6) ? 'selected' : '' }}>6</option>
+                    <option value="8" {{ (isset($room) && $room->bedspace == 8) ? 'selected' : '' }}>8</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label>Status:</label>
                 <select name="status" required>
-                    <option value="available">Available</option>
-                    <option value="occupied">Occupied</option>
+                    <option value="available" {{ (isset($room) && $room->status == 'available') ? 'selected' : '' }}>Available</option>
+                    <option value="occupied" {{ (isset($room) && $room->status == 'occupied') ? 'selected' : '' }}>Occupied</option>
                 </select>
             </div>
 
@@ -650,17 +653,17 @@ tbody tr:hover {
                 <label>Rent Fee:</label>
                 <select name="rent_fee" required>
                     <option value="">Select</option>
-                    <option value="1500">₱1,500.00</option>
-                    <option value="1600">₱1,600.00</option>
+                    <option value="1600" {{ (isset($room) && $room->rent_fee == 1600) ? 'selected' : '' }}>₱1,600.00</option>
                 </select>
             </div>
         </div>
 
         <div class="form-group form-full">
             <label>Description:</label>
-            <textarea name="description" placeholder="Room details..." required></textarea>
+            <textarea name="description" placeholder="Room details..." required>{{ old('description', $room->description ?? '') }}</textarea>
         </div>
 
+        <!-- Main Image -->
         <div class="form-group form-full">
             <label>Room Image:</label>
             <div class="file-input-wrapper">
@@ -676,32 +679,32 @@ tbody tr:hover {
                 </div>
             @endif
         </div>
-<!-- Inclusions -->
-<div class="form-group form-full">
-    <label>Room Inclusions (separate by comma):</label>
-    <input type="text" name="inclusions" placeholder="WiFi, Electric Fan, Cabinet"
-        value="{{ old('inclusions', isset($room) ? implode(', ', json_decode($room->inclusions ?? '[]')) : '') }}">
-</div>
 
-<!-- Gallery Upload -->
-<div class="form-group form-full">
-    <label>Room Gallery (You can upload multiple images):</label>
-    <input type="file" name="gallery" accept="image/*" multiple>
-
-    @if(isset($room) && $room->gallery)
-        <div style="margin-top: 12px;">
-            <p>Current Gallery:</p>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                @foreach(json_decode($room->gallery, true) as $img)
-                    <img src="{{ asset('storage/' . $img) }}" style="width:100px; border-radius:8px;">
-                @endforeach
-            </div>
+        <!-- Inclusions -->
+        <div class="form-group form-full">
+            <label>Room Inclusions (separate by comma):</label>
+            <input type="text" name="inclusions" placeholder="WiFi, Electric Fan, Cabinet"
+                value="{{ old('inclusions', isset($room) ? implode(', ', json_decode($room->inclusions ?? '[]')) : '') }}">
         </div>
-    @endif
-</div>
 
+        <!-- Gallery Upload -->
+        <div class="form-group form-full">
+            <label>Room Gallery (You can upload multiple images):</label>
+            <input type="file" name="gallery[]" accept="image/*" multiple>
 
-        <button type="submit" class="book-btn">Add Room</button>
+            @if(isset($room) && $room->gallery)
+                <div style="margin-top: 12px;">
+                    <p>Current Gallery:</p>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        @foreach(json_decode($room->gallery, true) as $img)
+                            <img src="{{ asset('storage/' . $img) }}" style="width:100px; border-radius:8px;">
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <button type="submit" class="btn-save">{{ isset($room) ? 'Update Room' : 'Add Room' }}</button>
     </form>
 </div>
 
@@ -801,12 +804,15 @@ tbody tr:hover {
         <form id="editRoomForm" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
-
             <input type="hidden" name="room_id" id="modalRoomId">
 
             <div class="form-group">
                 <label>Room Number:</label>
-                <select name="room_number" id="modalRoomNumber" required></select>
+                <select name="room_number" id="modalRoomNumber" required>
+                    @for($i = 1; $i <= 6; $i++)
+                        <option value="{{ $i }}">{{ $i }}</option>
+                    @endfor
+                </select>
             </div>
 
             <div class="form-group">
@@ -845,7 +851,6 @@ tbody tr:hover {
             <div class="form-group">
                 <label>Rent Fee:</label>
                 <select name="rent_fee" id="modalRoomRent" required>
-                    <option value="1500">₱1,500.00</option>
                     <option value="1600">₱1,600.00</option>
                 </select>
             </div>
@@ -855,21 +860,24 @@ tbody tr:hover {
                 <textarea name="description" id="modalRoomDesc" required></textarea>
             </div>
 
+            <!-- Main Image -->
             <div class="form-group">
                 <label>Pick Image:</label>
-                <input type="file" name="image">
-                <div id="currentImage"></div>
+                <input type="file" name="image" id="modalRoomImage">
+                <div id="currentImage" style="margin-top:10px; display:flex; gap:10px;"></div>
             </div>
 
+            <!-- Inclusions -->
             <div class="form-group">
                 <label>Inclusions (comma separated):</label>
                 <input type="text" name="inclusions" id="modalRoomInclusions">
             </div>
 
+            <!-- Gallery -->
             <div class="form-group">
                 <label>Gallery (multiple images):</label>
-                <input type="file" name="gallery[]" multiple>
-                <div id="currentGallery" style="display:flex;gap:10px;"></div>
+                <input type="file" name="gallery[]" id="modalRoomGallery" multiple>
+                <div id="currentGallery" style="display:flex; gap:10px; margin-top:10px;"></div>
             </div>
 
             <button type="submit" class="btn-save">Update Room</button>
@@ -908,6 +916,76 @@ tbody tr:hover {
     const listBtn = document.getElementById('showRoomList');
     const addSection = document.getElementById('addRoomSection');
     const listSection = document.getElementById('roomListSection');
+     const editRoomModal = document.getElementById('editRoomModal');
+    const closeModalBtn = editRoomModal.querySelector('.close');
+    const editForm = document.getElementById('editRoomForm');
+        // File browse button functionality
+    const browseBtn = document.getElementById('browseButton');
+    const roomImageInput = document.getElementById('roomImage');
+    const fileNameSpan = document.getElementById('fileName');
+
+    browseBtn.addEventListener('click', () => roomImageInput.click());
+    roomImageInput.addEventListener('change', () => {
+        fileNameSpan.textContent = roomImageInput.files.length ? roomImageInput.files[0].name : 'No file selected';
+    });
+
+    closeModalBtn.addEventListener('click', () => editRoomModal.style.display = 'none');
+    window.addEventListener('click', e => { if(e.target === editRoomModal) editRoomModal.style.display = 'none'; });
+
+    function openEditRoomModal(room) {
+        editRoomModal.style.display = 'flex';
+        document.getElementById('modalRoomId').value = room.id;
+
+        // Fill selects and inputs
+        document.getElementById('modalRoomNumber').value = room.room_number || '';
+        document.getElementById('modalRoomFloor').value = room.room_floor || '';
+        document.getElementById('modalRoomGender').value = room.gender || '';
+        document.getElementById('modalRoomBedspace').value = room.bedspace || '';
+        document.getElementById('modalRoomStatus').value = room.status || '';
+        document.getElementById('modalRoomRent').value = room.rent_fee || '';
+        document.getElementById('modalRoomDesc').value = room.description || '';
+        document.getElementById('modalRoomInclusions').value = (room.inclusions || []).join(', ');
+
+        // Current main image
+        const currentImageDiv = document.getElementById('currentImage');
+        currentImageDiv.innerHTML = '';
+        if(room.image) {
+            const img = document.createElement('img');
+            img.src = `/storage/${room.image}`;
+            img.style.width = '100px';
+            img.style.borderRadius = '8px';
+            currentImageDiv.appendChild(img);
+        }
+
+        // Current gallery images
+        const currentGalleryDiv = document.getElementById('currentGallery');
+        currentGalleryDiv.innerHTML = '';
+        (room.gallery || []).forEach(imgPath => {
+            const img = document.createElement('img');
+            img.src = `/storage/${imgPath}`;
+            img.style.width = '80px';
+            img.style.borderRadius = '6px';
+            currentGalleryDiv.appendChild(img);
+        });
+
+        // Update form action
+        editForm.action = `/admin/rooms/${room.id}`;
+        if(!editForm.querySelector('input[name="_method"]')) {
+            const method = document.createElement('input');
+            method.type = 'hidden';
+            method.name = '_method';
+            method.value = 'PUT';
+            editForm.appendChild(method);
+        }
+    }
+
+    // Example usage: on edit button click
+    document.querySelectorAll('.edit-room-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const room = JSON.parse(btn.dataset.room);
+            openEditRoomModal(room);
+        });
+    });
 
     addBtn.addEventListener('click', () => {
         addBtn.classList.add('active');

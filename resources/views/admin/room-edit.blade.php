@@ -72,7 +72,6 @@
                         <label>Rent Fee:</label>
                         <select name="rent_fee" required>
                             <option value="">Select</option>
-                            <option value="1500" {{ $room->rent_fee == 1500 ? 'selected' : '' }}>₱1,500.00</option>
                             <option value="1600" {{ $room->rent_fee == 1600 ? 'selected' : '' }}>₱1,600.00</option>
                         </select>
                     </div>

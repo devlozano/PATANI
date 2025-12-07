@@ -9,11 +9,18 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    // Show room booking page
+    // Show all rooms for booking (student view)
     public function booking()
     {
-        $rooms = Room::all(); // all rooms
-        return view('booking', compact('rooms'));
+        $rooms = Room::all(); // fetch all rooms
+        $user = Auth::user();
+
+        // Check if user already has an active booking
+        $hasActiveBooking = Booking::where('user_id', $user->id)
+            ->whereIn('status', ['Approved', 'Paid'])
+            ->exists();
+
+        return view('booking', compact('rooms', 'hasActiveBooking'));
     }
 
     // Admin: Show all bookings
@@ -28,51 +35,71 @@ class BookingController extends Controller
         return view('admin.booking', compact('pending', 'all'));
     }
 
-    // Handle booking a room
-  public function store(Request $request)
-{
-    $request->validate([
-        'room_id' => 'required|exists:rooms,id'
-    ]);
+    // Store a new booking (student booking a room)
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'room_id' => 'required|exists:rooms,id'
+        ]);
 
-    $room = Room::findOrFail($request->room_id);
-    $user = Auth::user();
+        $room = Room::findOrFail($validated['room_id']);
+        $user = Auth::user();
 
-    // 🔥 Gender check
-    if ($room->gender !== 'Mixed' && $room->gender !== $user->gender) {
-        return back()->with('error', 'This room is for ' . $room->gender . ' only.');
+        // Gender check: prevent male/female mismatch
+        if ($room->gender !== 'Mixed' && $room->gender !== $user->gender) {
+            return back()->with('error', 'This room is for ' . $room->gender . ' only.');
+        }
+
+        // Availability check
+        if (!$room->available) {
+            return back()->with('error', 'This room is not available.');
+        }
+
+        // Prevent multiple active bookings
+        $hasActiveBooking = Booking::where('user_id', $user->id)
+            ->whereIn('status', ['Approved', 'Paid'])
+            ->exists();
+
+        if ($hasActiveBooking) {
+            return back()->with('error', 'You already have an active booking.');
+        }
+
+        // Create booking
+        Booking::create([
+            'user_id' => $user->id,
+            'room_id' => $room->id,
+            'booking_date' => now(),
+            'status' => 'Pending',
+        ]);
+
+        // Optional: mark room as unavailable
+        $room->update(['available' => false]);
+
+            // Approve this booking
+    $booking->status = 'Approved';
+    $booking->due_date = now()->addMonth(); // next month
+    $booking->save();
+
+    $user->notify(new PaymentDue($booking));
+
+        return redirect()->route('booking')->with('success', 'Room booked successfully!');
     }
-
-    // 🔥 Availability check
-    if (!$room->available) {
-        return back()->with('error', 'This room is not available.');
-    }
-
-    // ✔ Create booking
-    Booking::create([
-        'user_id' => $user->id,
-        'room_id' => $room->id,
-        'booking_date' => now(),
-        'status' => 'Pending',
-    ]);
-
-    // ✔ Optional: mark room unavailable after booking
-    $room->update(['available' => false]);
-
-    return redirect()->route('booking')->with('success', 'Room booked successfully!');
-}
 
     // Show student booking page with rooms and user's bookings
     public function create()
     {
         $rooms = Room::all();
 
-        // ✅ Eager load room for user's bookings
         $bookings = Booking::where('user_id', Auth::id())
             ->with('room')
             ->latest()
             ->get();
 
-        return view('student.booking', compact('rooms', 'bookings'));
+        // Check if the student has an active booking
+        $hasActiveBooking = Booking::where('user_id', Auth::id())
+            ->whereIn('status', ['Approved', 'Paid'])
+            ->exists();
+
+        return view('student.booking', compact('rooms', 'bookings', 'hasActiveBooking'));
     }
 }
