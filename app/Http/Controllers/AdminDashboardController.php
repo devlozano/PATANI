@@ -16,8 +16,9 @@ class AdminDashboardController extends Controller
     public function index()
     {
         // Stats
-        // Count users where is_admin is 0 (Students)
-        $totalStudents = User::where('is_admin', 0)->count(); 
+        // Count users where role is NOT admin (assuming 'role' column, or is_admin)
+        // Adjust 'role' vs 'is_admin' based on your specific database structure
+        $totalStudents = User::where('role', '!=', 'admin')->count(); 
         $totalRooms = Room::count();
         $pendingBookings = Booking::where('status', 'Pending')->count();
         $pendingPayments = Payment::where('status', 'Pending')->count();
@@ -37,6 +38,7 @@ class AdminDashboardController extends Controller
     }
 
     // --- ANNOUNCEMENTS ---
+
     public function postAnnouncement(Request $request)
     {
         $request->validate([
@@ -52,7 +54,35 @@ class AdminDashboardController extends Controller
         return redirect()->back()->with('success', 'Announcement posted successfully!');
     }
 
+    // ✅ NEW: Update Announcement
+    public function updateAnnouncement(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'message' => 'required|string'
+        ]);
+
+        $announcement = Announcement::findOrFail($id);
+        
+        $announcement->update([
+            'title' => $request->title,
+            'message' => $request->message
+        ]);
+
+        return redirect()->back()->with('success', 'Announcement updated successfully!');
+    }
+
+    // ✅ NEW: Delete Announcement
+    public function destroyAnnouncement($id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $announcement->delete();
+
+        return redirect()->back()->with('success', 'Announcement deleted successfully!');
+    }
+
     // --- CHAT LOGIC ---
+    
     public function getMessages($userId)
     {
         $myId = Auth::id();

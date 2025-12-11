@@ -69,8 +69,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Announcements
+    // ✅ Announcements Routes (Updated)
     Route::post('/announcement/post', [AdminDashboardController::class, 'postAnnouncement'])->name('post.announcement');
+    Route::put('/announcement/{id}', [AdminDashboardController::class, 'updateAnnouncement'])->name('announcement.update');
+    Route::delete('/announcement/{id}', [AdminDashboardController::class, 'destroyAnnouncement'])->name('announcement.destroy');
 
     // Booking
     Route::get('/booking', [AdminBookingController::class, 'index'])->name('booking');
@@ -83,14 +85,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/payments/{id}/approve', [AdminPaymentController::class, 'approve'])->name('payment.approve');
     Route::post('/payment/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payment.reject');
 
-    // ✅ Room Management
-    // This makes all RESTful routes for rooms available:
-    // GET /admin/rooms -> index
-    // GET /admin/rooms/create -> create
-    // POST /admin/rooms -> store
-    // GET /admin/rooms/{room}/edit -> edit
-    // PUT/PATCH /admin/rooms/{room} -> update
-    // DELETE /admin/rooms/{room} -> destroy
+    // Room Management
     Route::resource('rooms', AdminRoomController::class);
 
     // Reports

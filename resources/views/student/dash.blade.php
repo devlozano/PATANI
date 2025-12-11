@@ -209,6 +209,10 @@
                         @if(in_array($bookings->status, ['Approved', 'Occupied','Paid']))
                             <div class="room-details">
                                 <p><strong>Room Number:</strong> {{ $bookings->room->room_number }}</p>
+                                
+                                {{-- ✅ ADDED: Display Booked Bed Number --}}
+                                <p><strong>Bed Number:</strong> <span style="color: #e67e22; font-weight: 700;">#{{ $bookings->bed_number ?? 'N/A' }}</span></p>
+                                
                                 <p><strong>Status:</strong> {{ ucfirst($bookings->status) }}</p>
                             </div>
                         @else

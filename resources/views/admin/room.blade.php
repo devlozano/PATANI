@@ -665,10 +665,10 @@
                             <th>ROOM NO.</th>
                             <th>ROOM FLOOR</th>
                             <th>BEDSPACE</th>
+                            <th>BED NO.</th>
                             <th>OCCUPANCY</th>
                             <th>AVAILABLE</th>
                             <th>STUDENTS</th>
-                            <th>RENT FEE</th>
                             <th>STATUS</th>
                             <th>ACTIONS</th>
                         </tr>

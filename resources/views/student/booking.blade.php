@@ -38,8 +38,12 @@
         .section-title { font-size: 22px; font-weight: 600; margin-bottom: 25px; }
         .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .room-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 0; overflow: hidden; }
-        .room-image { width: 100%; height: 180px; object-fit: cover; background: linear-gradient(135deg, #FFD36E 0%, #FFA726 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; }
-        .room-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+        
+        /* Room Image Styling */
+        .room-image { width: 100%; height: 180px; object-fit: cover; background: linear-gradient(135deg, #FFD36E 0%, #FFA726 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; position: relative; overflow: hidden; cursor: zoom-in; }
+        .room-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; transition: opacity 0.3s ease, transform 0.3s ease; }
+        .room-image:hover img { transform: scale(1.05); }
+
         .room-details { padding: 20px; }
         .room-name { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
         .room-price { font-size: 18px; font-weight: 700; color: #ff8800; margin-bottom: 10px; }
@@ -48,10 +52,64 @@
         .bedspace-status div { background:#e9ecef; border-radius:6px; overflow:hidden; height:8px; margin-top:4px; }
         .amenities { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
         .amenity-tag { background: #fff8e1; border: 1px solid #f8c70b; border-radius: 15px; padding: 5px 12px; font-size: 11px; display: flex; align-items: center; gap: 5px; }
-        .status-cancelled { background: #FF8800; color: white; }
-        .status-rejected { background: #f44336; color: white; }
-        .status-pending { background: #ff9800; color: white; }
-        .status-approved { background: #4caf50; color: white; }
+        
+        /* Gallery Styles */
+        .gallery-container {
+            display: flex;
+            gap: 8px;
+            padding: 10px 15px;
+            overflow-x: auto;
+            background: #fdfdfd;
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: #ff9800 #f0f0f0;
+        }
+        .gallery-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .gallery-thumb:hover, .gallery-thumb.active {
+            border-color: #ff9800;
+            transform: scale(1.05);
+        }
+
+        /* ZOOM OVERLAY CSS */
+        .img-zoom-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .img-zoom-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.9); } to { transform: scale(1); } }
+
+        /* --- MY BOOKINGS LIST STYLES --- */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fffbe6; font-weight: 600; color: #333; }
         
         .book-btn { width: 100%; background-color: #ff9800; border: none; color: white; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px; }
         .book-btn:hover { background-color: #f57c00; }
@@ -59,10 +117,7 @@
         
         /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; padding: 10px; }
-        
-        /* Updated modal-content max-width to accommodate image better */
         .modal-content { background: #fff; border-radius: 14px; padding: 25px 30px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.25); animation: slideUp 0.3s ease; display: flex; flex-direction: column; gap: 10px; }
-        
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-content .close { position: absolute; top: 12px; right: 16px; font-size: 22px; color: #666; cursor: pointer; transition: 0.2s ease; }
         .modal-content .close:hover { color: #ff3b30; transform: rotate(90deg); }
@@ -74,72 +129,23 @@
         .policy-list li { font-size: 0.9rem; color: #444; margin-bottom: 6px; line-height: 1.5; }
         .policy-list h3 { font-size: 1.1rem; color: #1e1e1e; margin-top: 10px; margin-bottom: 8px; border-bottom: 2px solid #FF9800; display: inline-block; }
 
-        /* ===== INTERACTIVE BED LAYOUT STYLES ===== */
-        .bed-selector-container {
-            position: relative;
-            width: 100%;
-            margin: 15px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #eee;
-            min-height: 200px; /* Added min-height so it doesn't collapse while loading */
-            background: #f9f9f9; /* Placeholder color */
-        }
-
-        .bed-layout-img {
-            width: 100%;
-            display: block;
-        }
-
-        .bed-marker {
-            position: absolute;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-            transition: transform 0.2s, background-color 0.2s;
-            border: 2px solid white;
-            z-index: 10;
-        }
-
+        /* BED LAYOUT STYLES */
+        .bed-selector-container { position: relative; width: 100%; margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #eee; min-height: 200px; background: #f9f9f9; }
+        .bed-layout-img { width: 100%; display: block; }
+        .bed-marker { position: absolute; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; border: 2px solid white; z-index: 10; }
         .bed-marker:hover { transform: scale(1.1); }
-
-        /* Status Colors */
         .bed-marker.available { background-color: #28a745; color: white; }
         .bed-marker.occupied { background-color: #dc3545; color: white; cursor: not-allowed; opacity: 0.8; }
         .bed-marker.selected { background-color: #ff9800; color: white; transform: scale(1.3); border-color: #fff; box-shadow: 0 0 15px rgba(255, 152, 0, 0.6); z-index: 15; }
 
-/* ===== UPDATED COORDINATES FOR 8 BEDS (4 BUNK BEDS) ===== */
-        /* LEFT WALL FRONT BUNK */
-        .bed-1 { top: 70%; left: 14%; }  /* Bottom */
-        .bed-2 { top: 38%; left: 14%; }  /* Top */
-        /* LEFT WALL BACK BUNK */
-        .bed-3 { top: 61%; left: 34%; } /* Bottom */
-        .bed-4 { top: 38%; left: 34%; } /* Top */
-        /* RIGHT WALL BACK BUNK */
-        .bed-5 { top: 62%; left: 64%; } /* Bottom */
-        .bed-6 { top: 38%; left: 64%; } /* Top */
-        /* RIGHT WALL FRONT BUNK */
-        .bed-7 { top: 64%; left: 86%; } /* Bottom */
-        .bed-8 { top: 38%; left: 86%; } /* Top */
+        /* Bed Coordinates */
+        .bed-1 { top: 70%; left: 14%; } .bed-2 { top: 38%; left: 14%; }
+        .bed-3 { top: 61%; left: 34%; } .bed-4 { top: 38%; left: 34%; }
+        .bed-5 { top: 62%; left: 64%; } .bed-6 { top: 38%; left: 64%; }
+        .bed-7 { top: 64%; left: 86%; } .bed-8 { top: 38%; left: 86%; }
 
+        .selection-info { text-align: center; font-size: 14px; margin-top: 5px; font-weight: 500; height: 20px; color: #ff8800; }
 
-        .selection-info {
-            text-align: center;
-            font-size: 14px;
-            margin-top: 5px;
-            font-weight: 500;
-            height: 20px;
-            color: #ff8800;
-        }
-
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -189,7 +195,14 @@
 
         <h1>Bookings</h1>
 
-        {{-- ✅ Available Rooms --}}
+        @if(session('error'))
+            <div style="background-color:#ffe6e6; color:#b30000; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #ffcccc; display:flex; align-items:center; gap:10px;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ session('error') }}
+            </div>
+        @endif
+
+        {{-- Available Rooms --}}
         <div class="section">
             <div class="section-title">Available Rooms</div>
 
@@ -205,34 +218,56 @@
                         $approvedBookings = $room->bookings()->where('status', 'approved')->count();
                         $availableBeds = max($room->bedspace - $approvedBookings, 0);
                         $isFull = $availableBeds <= 0;
-                        $canBook = !$hasActiveBooking && !$isFull && $room->status === 'available';
+                        
+                        $userGender = strtolower(Auth::user()->gender);
+                        $roomGender = strtolower($room->gender);
+                        $isGenderCompatible = ($roomGender === 'mixed' || $roomGender === $userGender);
+
+                        $canBook = !$hasActiveBooking && !$isFull && $room->status === 'available' && $isGenderCompatible;
+                        
                         $inclusions = is_array($room->inclusions) ? $room->inclusions : json_decode($room->inclusions ?? '[]', true);
                         $galleryArray = json_decode($room->gallery ?? '[]', true);
+                        $allPhotos = [];
+                        if($room->image) $allPhotos[] = asset('storage/' . $room->image);
                         $gallery = collect($galleryArray)->filter(fn($g) => $g)->map(fn($g) => asset('storage/' . $g))->values()->all();
+                        $allPhotos = array_merge($allPhotos, $gallery);
                     @endphp
 
                     <div class="room-card">
                         <div class="room-image">
-                            @if($room->image)
-                                <img src="{{ asset('storage/' . $room->image) }}" alt="Room {{ $room->room_number }}">
-                            @else
-                                🏢
-                            @endif
+                            {{-- Main Image with Zoom --}}
+                            <img src="{{ $allPhotos[0] ?? '' }}" 
+                                 alt="Room {{ $room->room_number }}" 
+                                 id="main-img-{{ $room->id }}"
+                                 onclick="openZoom(this.src)">
                         </div>
+
+                        {{-- GALLERY STRIP --}}
+                        @if(count($allPhotos) > 1)
+                            <div class="gallery-container">
+                                @foreach($allPhotos as $index => $photo)
+                                    <img src="{{ $photo }}" 
+                                         class="gallery-thumb" 
+                                         onclick="changeRoomImage({{ $room->id }}, '{{ $photo }}');">
+                                @endforeach
+                            </div>
+                        @endif
 
                         <div class="room-details">
                             <div class="room-name">
-                                Room {{ $room->room_number }} - {{ $room->room_floor }} ({{ $room->gender }})
+                                Room {{ $room->room_number }} - {{ $room->room_floor }} 
+                                <span style="font-size: 12px; color: {{ $roomGender == 'female' ? '#e91e63' : ($roomGender == 'male' ? '#2196f3' : '#9c27b0') }}; border: 1px solid currentColor; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">
+                                    {{ ucfirst($room->gender) }} Only
+                                </span>
                             </div>
                             <div class="room-price">₱{{ number_format($room->rent_fee, 2) }}/Month</div>
                             <div class="room-desc">{{ Str::limit($room->description, 60) }}</div>
 
                             @if(!empty($inclusions))
                                 <div class="amenities">
-                                    @foreach(array_slice($inclusions, 0, 3) as $inc)
+                                    @foreach($inclusions as $inc)
                                         <div class="amenity-tag"> {{ $inc }}</div>
                                     @endforeach
-                                    @if(count($inclusions) > 3) <span style="font-size:11px; color:#666;">+more</span> @endif
                                 </div>
                             @endif
 
@@ -251,7 +286,6 @@
                                 </div>
                             </div>
 
-                            {{-- Book Button --}}
                             <button type="button"
                                 class="book-btn {{ $canBook ? 'open-modal' : 'unavailable' }}"
                                 {{ $canBook ? '' : 'disabled' }}
@@ -262,9 +296,17 @@
                                 data-room-inclusions='@json($inclusions)'
                                 data-occupied-count="{{ $approvedBookings }}"
                                 data-total-beds="{{ $room->bedspace }}"
-                                {{-- ✅ ADDED GENDER DATA HERE --}}
                                 data-room-gender="{{ $room->gender }}">
-                                {{ $canBook ? 'SELECT BED' : ($isFull ? 'Full' : 'Unavailable') }}
+                                
+                                @if(!$isGenderCompatible)
+                                    {{ ucfirst($room->gender) }}s Only
+                                @elseif($hasActiveBooking)
+                                    Already Booked
+                                @elseif($isFull)
+                                    Full
+                                @else
+                                    SELECT BED
+                                @endif
                             </button>
                         </div>
                     </div>
@@ -272,7 +314,7 @@
             </div>
         </div>
 
-        {{-- POLICY MODAL --}}
+        {{-- POLICY MODAL (Full Content Restored) --}}
         <div id="policyModal" class="modal" style="display:none;">
             <div class="modal-content policy-list">
                 <span class="close" onclick="closePolicyModal()">&times;</span>
@@ -280,33 +322,34 @@
 
                 <h3>General Conduct</h3>
                 <ul>
-                    <li>Respect and maintain courteous behavior toward other residents and staff.</li>
-                    <li>Keep your room and common areas clean; dispose of trash properly.</li>
-                    <li>Report any damages to your room or property immediately to management.</li>
-                    <li>Guests are allowed only in designated areas; overnight stays require prior approval.</li>
-                    <li>Smoking, alcohol, and illegal substances are strictly prohibited inside the premises.</li>
-                    <li>Quiet hours are from 10:00 PM to 6:00 AM to avoid disturbances.</li>
-                    <li>No gambling, illegal activities, or tampering with safety equipment.</li>
-                    <li>Lock doors and windows when leaving; keep your belongings secured.</li>
+                    <li><strong>Gender Policy:</strong> Only tenants of the same gender are allowed per room. Mixed gender occupancy is not permitted.</li>
+                    <li><strong>Respect:</strong> Treat fellow residents and staff with courtesy and consideration at all times.</li>
+                    <li><strong>Cleanliness:</strong> Maintain cleanliness in your room and shared spaces. Dispose of trash in designated bins.</li>
+                    <li><strong>Damage Reporting:</strong> Immediately inform management of any damage or maintenance issues in your room or common areas.</li>
+                    <li><strong>Guests:</strong> Visitors are allowed only in common areas. Overnight guests require prior written approval from management.</li>
+                    <li><strong>Prohibited Items:</strong> Smoking, alcohol, and illegal substances are strictly forbidden anywhere on the property.</li>
+                    <li><strong>Quiet Hours:</strong> Observe quiet hours from 10:00 PM to 6:00 AM. Avoid loud noises and disturbances.</li>
+                    <li><strong>Safety:</strong> No gambling, illegal activities, or tampering with fire safety equipment is allowed.</li>
+                    <li><strong>Security:</strong> Always lock doors and windows when leaving your room. Secure your personal belongings.</li>
                 </ul>
 
                 <h3>Payment Policies</h3>
                 <ul>
-                    <li>No advance payment is required before move-in.</li>
-                    <li>Rent must be paid <strong>3 days before your due date</strong> every month.</li>
-                    <li>If payment is late, a <strong>1% penalty</strong> will be added to the monthly rent.</li>
-                    <li>Example Penalty:
+                    <li><strong>Advance Payment:</strong> No advance payment is required before move-in.</li>
+                    <li><strong>Due Date:</strong> Rent is due <strong>3 days before your monthly due date</strong>. Please pay on time to avoid penalties.</li>
+                    <li><strong>Late Payment:</strong> A <strong>1% penalty</strong> will be added to your monthly rent for late payments.</li>
+                    <li><strong>Example:</strong>
                         <ul style="margin-top:5px; margin-left:10px; list-style-type:circle;">
-                            <li>Room (₱1600 + 1% = ₱1616)</li>
+                            <li>Room (₱1600 + 1% penalty = ₱1616)</li>
                         </ul>
                     </li>
-                    <li>Payments are non-refundable unless approved by management.</li>
+                    <li><strong>Refunds:</strong> Payments are non-refundable unless approved by management for special circumstances.</li>
                 </ul>
 
                 <h3>Violations & Penalties</h3>
                 <ul>
-                    <li>Repeated violations may result in warnings, fines, or eviction.</li>
-                    <li>Any damage to property must be paid by the responsible resident.</li>
+                    <li>Repeated violations of house rules may result in written warnings, fines, or eviction.</li>
+                    <li>Residents are financially responsible for any damage they cause to property or facilities.</li>
                 </ul>
 
                 <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
@@ -329,9 +372,7 @@
 
                 <h4 style="margin-top:10px;">Select your Bed:</h4>
                 <div class="bed-selector-container">
-                    {{-- ✅ UPDATED IMAGE TAG: Removed hardcoded src, added ID --}}
                     <img src="" alt="Room Layout" class="bed-layout-img" id="modalRoomImage">
-                    
                     <div id="bedMarkersContainer"></div>
                 </div>
                 <div class="selection-info" id="selectionInfo">Click a green circle to select your bed</div>
@@ -341,7 +382,6 @@
                         @csrf
                         <input type="hidden" name="room_id" id="modalRoomId">
                         <input type="hidden" name="bed_number" id="modalBedNumber">
-                        
                         <button type="submit" class="reserve-btn" id="confirmBookingBtn" disabled>
                             Confirm Booking
                         </button>
@@ -350,27 +390,55 @@
             </div>
         </div>
 
-        {{-- My Bookings --}}
+        {{-- My Bookings (List UI) --}}
         <div class="section">
             <div class="section-title"><i class="bi bi-calendar-check"></i> My Bookings</div>
-            @forelse($bookings as $booking)
-                <div class="my-booking-card">
-                    <div class="booking-info">
-                        <h3>{{ $booking->room->name ?? 'Room' }} - Bed {{ $booking->bed_number ?? 'Any' }}</h3>
-                        <div class="booking-date">Booked: {{ $booking->created_at->format('M d, Y') }}</div>
-                        <span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span>
-                    </div>
-                </div>
-            @empty
+            @if($bookings->count())
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                <tr style="background:#fffbe6;">
+                    <th style="padding:10px; text-align:left;">Booking #</th>
+                    <th style="padding:10px; text-align:left;">Room</th>
+                    <th style="padding:10px; text-align:left;">Bed</th>
+                    <th style="padding:10px; text-align:left;">Status</th>
+                    <th style="padding:10px; text-align:left;">Date Booked</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($bookings as $booking)
+                    <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px;">{{ $booking->id }}</td>
+                    <td style="padding:10px;">{{ $booking->room->name ?? 'Room' }}</td>
+                    <td style="padding:10px;">#{{ $booking->bed_number ?? 'N/A' }}</td>
+                    <td style="padding:10px;">
+                        <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;
+                        background: {{ strtolower($booking->status) === 'approved' ? '#e6ffec' : (strtolower($booking->status) === 'pending' ? '#fff4e0' : '#ffe6e6') }};
+                        color: {{ strtolower($booking->status) === 'approved' ? '#28a745' : (strtolower($booking->status) === 'pending' ? '#ff9800' : '#dc3545') }};">
+                        {{ ucfirst($booking->status) }}
+                        </span>
+                    </td>
+                    <td style="padding:10px;">{{ $booking->created_at->format('M d, Y') }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+            @else
+            <div style="text-align: center; padding: 20px; color: #888;">
+                <i class="bi bi-journal-x" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
                 <p>No bookings found.</p>
-            @endforelse
+            </div>
+            @endif
         </div>
+    </div>
+
+    {{-- ZOOM MODAL CONTAINER --}}
+    <div id="imageZoomModal" class="img-zoom-overlay">
+        <img id="zoomedImage" src="" alt="Zoomed View">
     </div>
 
     {{-- SCRIPTS --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Elements
             const roomModal = document.getElementById('roomModal');
             const policyModal = document.getElementById('policyModal');
             const modalTitle = document.getElementById('modalTitle');
@@ -382,12 +450,10 @@
             const confirmBookingBtn = document.getElementById('confirmBookingBtn');
             const acceptPoliciesBtn = document.getElementById('acceptPoliciesBtn');
             const acceptPoliciesCheckbox = document.getElementById('acceptPolicies');
-            // ✅ NEW ELEMENT:
             const modalRoomImage = document.getElementById('modalRoomImage');
             
             let pendingRoomData = null;
 
-            // 1. CLICK "SELECT BED" -> OPEN POLICY FIRST
             document.querySelectorAll('.open-modal').forEach(btn => {
                 btn.addEventListener('click', () => {
                     pendingRoomData = {
@@ -396,7 +462,6 @@
                         price: btn.dataset.roomPrice,
                         occupied: parseInt(btn.dataset.occupiedCount),
                         total: parseInt(btn.dataset.totalBeds),
-                        // ✅ GET GENDER DATA HERE
                         gender: btn.dataset.roomGender 
                     };
                     openPolicyModal();
@@ -418,7 +483,6 @@
                 if(pendingRoomData) openRoomModal(pendingRoomData);
             });
 
-            // 2. OPEN ROOM MODAL AND GENERATE BEDS
             function openRoomModal(data) {
                 modalTitle.textContent = data.title;
                 modalPrice.textContent = data.price;
@@ -429,25 +493,19 @@
                 selectionInfo.textContent = "Click a green circle to select your bed";
                 selectionInfo.style.color = "#ff8800";
 
-                // ✅ DYNAMIC IMAGE LOGIC
-                // Make sure you have 'male-room.jpg' and 'female-room.jpg' in your public/images folder
                 if (data.gender && data.gender.toLowerCase() === 'male') {
                     modalRoomImage.src = "/images/fem.png";
                 } else {
-                    // Default to female or mixed image
                     modalRoomImage.src = "/images/room.png";
                 }
 
-                // Clear markers
                 bedMarkersContainer.innerHTML = '';
 
-                // Generate Markers (8 beds)
                 for (let i = 1; i <= 8; i++) {
                     const bedBtn = document.createElement('div');
                     bedBtn.classList.add('bed-marker', 'bed-' + i);
                     bedBtn.textContent = i;
 
-                    // Simple logic: If Bed Number <= Occupied Count, it is taken.
                     if (i <= data.occupied) {
                         bedBtn.classList.add('occupied');
                         bedBtn.title = "Occupied";
@@ -456,18 +514,14 @@
                         bedBtn.title = "Available";
                         bedBtn.addEventListener('click', () => selectBed(i, bedBtn));
                     }
-
                     bedMarkersContainer.appendChild(bedBtn);
                 }
-
                 roomModal.style.display = 'flex';
             }
 
-            // 3. HANDLE BED SELECTION
             function selectBed(bedNum, btnElement) {
                 document.querySelectorAll('.bed-marker').forEach(b => b.classList.remove('selected'));
                 btnElement.classList.add('selected');
-
                 modalBedNumber.value = bedNum;
                 confirmBookingBtn.disabled = false;
                 confirmBookingBtn.textContent = "Book Bed " + bedNum;
@@ -475,7 +529,6 @@
                 selectionInfo.style.color = "#28a745";
             }
 
-            // Close Modals
             document.querySelectorAll('.close').forEach(c => {
                 c.addEventListener('click', () => {
                     roomModal.style.display = 'none';
@@ -483,12 +536,35 @@
                 });
             });
 
-            // Sidebar Toggle
             window.toggleSidebar = function() {
                 document.getElementById('sidebar').classList.toggle('collapsed');
                 document.getElementById('content').classList.toggle('expanded');
             };
+
+            const zoomOverlay = document.getElementById('imageZoomModal');
+            const zoomImg = document.getElementById('zoomedImage');
+
+            window.openZoom = function(src) {
+                zoomImg.src = src;
+                zoomOverlay.style.display = 'flex';
+            }
+
+            zoomOverlay.addEventListener('click', () => {
+                zoomOverlay.style.display = 'none';
+            });
         });
+
+        function changeRoomImage(roomId, imageUrl) {
+            const mainImg = document.getElementById('main-img-' + roomId);
+            if(mainImg) {
+                mainImg.style.opacity = 0; 
+                setTimeout(() => {
+                    mainImg.src = imageUrl;
+                    mainImg.style.opacity = 1;
+                    mainImg.onclick = function() { window.openZoom(imageUrl); };
+                }, 200);
+            }
+        }
     </script>
 </body>
 </html>

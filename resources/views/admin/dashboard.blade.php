@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}"> <title>Patani Trinidad - Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
         /* [EXISTING CSS REMAINS THE SAME] */
@@ -53,21 +54,40 @@
         .section-card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 30px; }
         .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 25px; font-size: 20px; font-weight: 600; }
         .section-header i { font-size: 28px; color: #ff9800; }
+        
+        /* Table Styles */
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border: 1px solid #ddd; }
         th { background: #f5f5f5; font-weight: 600; font-size: 14px; color: #333; }
         td { font-size: 15px; }
+        
         .status-badge { padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block; }
         .status-approved { background: #4CAF50; color: white; }
         .status-rejected { background: #FF4444; color: white; }
         .status-checkout { background: #757575; color: white; }
+        .status-pending { background: #ff9800; color: white; }
+
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #444; }
         .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; }
         .btn-submit { background: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .btn-submit:hover { background: #f57c00; }
 
-        /* Full Page Chat CSS */
+        /* Actions */
+        .action-btn-group { display: flex; gap: 8px; }
+        .btn-action { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: white; font-size: 14px; }
+        .btn-edit { background: #3498db; }
+        .btn-edit:hover { background: #2980b9; }
+        .btn-delete { background: #e74c3c; }
+        .btn-delete:hover { background: #c0392b; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 500px; max-width: 90%; position: relative; animation: slideUp 0.3s; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; }
+        @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+
+        /* Full Page Chat CSS (Kept from previous) */
         .chat-widget-btn { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: #ff9800; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; transition: all 0.3s; font-size: 30px; }
         .chat-widget-btn:hover { transform: scale(1.1); background: #f57c00; }
         .full-screen-chat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: row; }
@@ -193,7 +213,7 @@
             </div>
             
             <div class="dashboard-grid">
-                <div class="card" style="grid-column: 1 / -1;">
+                <div class="card">
                     <div class="card-header">
                         <i class="fas fa-bullhorn"></i>
                         <span>Post Announcement</span>
@@ -210,6 +230,50 @@
                         </div>
                         <button type="submit" class="btn-submit">Post Update</button>
                     </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-list-alt"></i>
+                        <span>Manage Announcements</span>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(\App\Models\Announcement::latest()->take(5)->get() as $announcement)
+                                <tr>
+                                    <td>{{ Str::limit($announcement->title, 20) }}</td>
+                                    <td>{{ $announcement->created_at->format('M d') }}</td>
+                                    <td>
+                                        <div class="action-btn-group">
+                                            <button class="btn-action btn-edit" onclick="openEditModal({{ $announcement->id }}, '{{ $announcement->title }}', '{{ $announcement->message }}')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            
+                                            <form action="{{ route('admin.announcement.destroy', $announcement->id) }}" method="POST" class="delete-form" style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-action btn-delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                                @if(\App\Models\Announcement::count() == 0)
+                                    <tr><td colspan="3" style="text-align:center;">No announcements.</td></tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -246,13 +310,32 @@
         </div>
     </div>
 
+    <div id="editAnnouncementModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h3 style="margin-bottom: 20px; color: #1e1e1e;">Edit Announcement</h3>
+            <form id="editAnnouncementForm" method="POST" action="">
+                @csrf
+                @method('PUT')
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" id="editTitle" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea name="message" id="editMessage" class="form-control" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-submit" style="width:100%;">Update Announcement</button>
+            </form>
+        </div>
+    </div>
+
     <div class="chat-widget-btn" onclick="openFullChat()">
         <i class="fas fa-comments"></i>
     </div>
 
     <div class="full-screen-chat" id="fullScreenChat">
-        
-        <div class="chat-sidebar-list" id="chatSidebarList">
+       <div class="chat-sidebar-list" id="chatSidebarList">
             <div class="chat-sidebar-header">
                 <h2>Inbox</h2>
                 <i class="fas fa-times close-chat-btn" onclick="closeFullChat()" style="font-size: 20px;"></i> 
@@ -311,12 +394,12 @@
     </div>
 
     <script>
+        // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
         const menuToggle = document.getElementById('menuToggle');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        // Sidebar Toggle
         menuToggle.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
                 sidebar.classList.toggle('open');
@@ -334,7 +417,56 @@
             }
         });
 
-        // --- FULL SCREEN CHAT LOGIC ---
+        function confirmLogout() {
+            if (confirm("Are you sure you want to log out?")) {
+                document.getElementById('logoutForm').submit();
+            }
+        }
+
+        // ✅ EDIT ANNOUNCEMENT LOGIC
+        function openEditModal(id, title, message) {
+            const modal = document.getElementById('editAnnouncementModal');
+            const form = document.getElementById('editAnnouncementForm');
+            const titleInput = document.getElementById('editTitle');
+            const messageInput = document.getElementById('editMessage');
+
+            // Set Action URL dynamically (assuming generic route structure)
+            // Note: You need to ensure your route in web.php is named 'admin.announcement.update'
+            form.action = `/admin/announcement/${id}`; 
+
+            titleInput.value = title;
+            messageInput.value = message;
+            modal.style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editAnnouncementModal').style.display = 'none';
+        }
+
+        // ✅ DELETE ANNOUNCEMENT CONFIRMATION
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); 
+                    Swal.fire({
+                        title: 'Delete Announcement?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E53935',
+                        cancelButtonColor: '#666',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+
+        // [Chat Scripts remain the same as previous response]
         const fullScreenChat = document.getElementById('fullScreenChat');
         const chatSidebarList = document.getElementById('chatSidebarList');
         const chatMainArea = document.getElementById('chatMainArea');
@@ -349,32 +481,27 @@
         function closeFullChat() {
             fullScreenChat.classList.remove('active');
             document.body.style.overflow = 'auto'; 
-            if(pollingInterval) clearInterval(pollingInterval); // Stop polling when closed
+            if(pollingInterval) clearInterval(pollingInterval); 
         }
 
-        // 1. Load User Chat
         function loadChat(userId, userName) {
             currentChatUserId = userId;
             
-            // Update Header
             document.getElementById('chatUserName').innerText = userName;
             document.getElementById('chatUserStatus').innerText = 'Viewing History';
             document.getElementById('chatAvatarInitials').innerText = userName.charAt(0).toUpperCase();
 
-            // Highlight List Item
             const items = document.querySelectorAll('.user-item');
             items.forEach(item => item.classList.remove('active'));
             event.currentTarget.classList.add('active');
 
-            // Mobile view toggle
             if (window.innerWidth <= 768) {
                 chatSidebarList.classList.add('mobile-hidden');
                 chatMainArea.classList.add('mobile-active');
             }
 
-            fetchMessages(); // Fetch immediately
+            fetchMessages(); 
             
-            // Restart Polling
             if(pollingInterval) clearInterval(pollingInterval);
             pollingInterval = setInterval(fetchMessages, 3000);
         }
@@ -385,7 +512,6 @@
             if(pollingInterval) clearInterval(pollingInterval);
         }
 
-        // 2. Fetch Messages
         function fetchMessages() {
             if(!currentChatUserId) return;
 
@@ -410,13 +536,11 @@
             });
         }
 
-        // 3. Send Message
         function sendAdminMessage() {
             const input = document.getElementById('adminChatInput');
             const message = input.value;
             if(!message.trim() || !currentChatUserId) return;
 
-            // Optimistic Update
             const chatContainer = document.getElementById('chatMessages');
             const div = document.createElement('div');
             div.className = `message-bubble outgoing`;
@@ -439,7 +563,6 @@
             .then(() => console.log('Sent'));
         }
 
-        // Enter key support
         document.getElementById('adminChatInput').addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -447,7 +570,6 @@
             }
         });
 
-        // Search Filter
         function filterUsers() {
             const input = document.getElementById('userSearch');
             const filter = input.value.toUpperCase();
@@ -462,12 +584,6 @@
                 } else {
                     items[i].style.display = "none";
                 }
-            }
-        }
-
-        function confirmLogout() {
-            if (confirm("Are you sure you want to log out?")) {
-                document.getElementById('logoutForm').submit();
             }
         }
     </script>

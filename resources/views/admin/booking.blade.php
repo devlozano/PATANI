@@ -10,6 +10,7 @@
     <title>Manage Bookings - Patani Trinidad</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
         * {
@@ -261,7 +262,7 @@
             background-color: #E53935; /* bright red */
             color: white;
             border: none;
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: 500;
@@ -270,6 +271,7 @@
 
         .btn-checkout:hover {
             background-color: #C62828;
+            transform: scale(1.05);
         }
 
         .status-badge {
@@ -292,6 +294,16 @@
 
         .status-checkout {
             background: #757575;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        .status-cancelled {
+            background: #999;
             color: white;
         }
 
@@ -368,14 +380,14 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
 
         <div class="profile">
-            <img src="/images/Screenshot 2025-10-28 033031.png" alt="User Photo">
-    <h2>{{ Auth::user()->name }}</h2>
-    <p>{{ Auth::user()->contact }}</p>
+            {{-- Placeholder image or Auth image --}}
+            <img src="{{ Auth::user()->avatar ? asset('storage/avatars/'.Auth::user()->avatar) : asset('images/Screenshot 2025-10-28 033031.png') }}" alt="User Photo">
+            <h2>{{ Auth::user()->name }}</h2>
+            <p>{{ Auth::user()->contact }}</p>
         </div>
 
         <nav class="menu">
@@ -403,7 +415,6 @@
 
     </aside>
 
-    <!-- Main Content -->
     <div class="content" id="content">
         <div class="top-bar">
             <button class="menu-toggle" id="menuToggle">
@@ -417,200 +428,172 @@
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </form>
-
         </div>
 
         <div class="main-content">
             <h1>Manage Bookings</h1>
 
-          <!-- ✅ Pending Bookings Section -->
-<div class="booking-section" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:25px;">
-    <h2 class="section-title" style="font-size:22px; font-weight:600; margin-bottom:18px; color:#333; display:flex; align-items:center; gap:8px;">
-        <i class="fas fa-hourglass-half" style="color:#f0a500;"></i> Pending Bookings
-    </h2>
+          <div class="booking-section" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:25px;">
+                <h2 class="section-title" style="font-size:22px; font-weight:600; margin-bottom:18px; color:#333; display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-hourglass-half" style="color:#f0a500;"></i> Pending Bookings
+                </h2>
 
-    <table style="width:100%; border-collapse:collapse; text-align:left;">
-        <thead>
-            <tr style="background:#f9fafb; color:#555;">
-                <th style="padding:12px; border-bottom:2px solid #eee;">BOOKING ID</th>
-                <th style="padding:12px; border-bottom:2px solid #eee;">STUDENT</th>
-                <th style="padding:12px; border-bottom:2px solid #eee;">ROOM</th>
-                <th style="padding:12px; border-bottom:2px solid #eee;">DATE</th>
-                <th style="padding:12px; border-bottom:2px solid #eee;">ACTIONS</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($pending as $booking)
-                <tr style="transition: all 0.2s ease-in-out;">
-                    <td style="padding:12px; border-bottom:1px solid #eee;">#{{ $booking->id }}</td>
-                    <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->user->name }}</td>
-                    <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->room->room_number ?? 'N/A' }}</td>
-                    <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->created_at->format('F d, Y') }}</td>
-                    <td style="padding:12px; border-bottom:1px solid #eee;">
-                        <div class="action-buttons" style="display:flex; gap:8px;">
-                            <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                <button type="submit" class="btn-approve">Approve</button>
-                            </form>
-                            <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                <button type="submit" class="btn-reject">Reject</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" style="text-align:center; padding:20px; color:#777;">No pending bookings.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                <table style="width:100%; border-collapse:collapse; text-align:left;">
+                    <thead>
+                        <tr style="background:#f9fafb; color:#555;">
+                            <th style="padding:12px; border-bottom:2px solid #eee;">BOOKING ID</th>
+                            <th style="padding:12px; border-bottom:2px solid #eee;">STUDENT</th>
+                            <th style="padding:12px; border-bottom:2px solid #eee;">ROOM</th>
+                            {{-- ✅ ADDED BED COLUMN HEADER --}}
+                            <th style="padding:12px; border-bottom:2px solid #eee;">BED</th>
+                            <th style="padding:12px; border-bottom:2px solid #eee;">DATE</th>
+                            <th style="padding:12px; border-bottom:2px solid #eee;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($pending as $booking)
+                            <tr style="transition: all 0.2s ease-in-out;">
+                                <td style="padding:12px; border-bottom:1px solid #eee;">#{{ $booking->id }}</td>
+                                <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->user->name }}</td>
+                                <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->room->room_number ?? 'N/A' }}</td>
+                                
+                                {{-- ✅ ADDED BED COLUMN DATA --}}
+                                <td style="padding:12px; border-bottom:1px solid #eee;">
+                                    <span style="font-weight:600; color:#e67e22;">#{{ $booking->bed_number ?? 'N/A' }}</span>
+                                </td>
 
-<!-- ✅ Inline Styles for Buttons -->
-<style>
-.btn-approve {
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.3s ease;
-}
-.btn-approve:hover {
-    background-color: #45a049;
-    transform: scale(1.05);
-}
+                                <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->created_at->format('F d, Y') }}</td>
+                                <td style="padding:12px; border-bottom:1px solid #eee;">
+                                    <div class="action-buttons" style="display:flex; gap:8px;">
+                                        <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-approve">Approve</button>
+                                        </form>
+                                        
+                                        <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" class="reject-form" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-reject">Reject</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="text-align:center; padding:20px; color:#777;">No pending bookings.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
-.btn-reject {
-    background-color: #e74c3c;
-    color: white;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.3s ease;
-}
-.btn-reject:hover {
-    background-color: #c0392b;
-    transform: scale(1.05);
-}
+            <style>
+            .btn-approve {
+                background-color: #4CAF50;
+                color: white;
+                padding: 8px 14px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: 0.3s ease;
+            }
+            .btn-approve:hover {
+                background-color: #45a049;
+                transform: scale(1.05);
+            }
 
-.booking-section table tr:hover {
-    background-color: #fdf7e6;
-}
-</style>
+            .btn-reject {
+                background-color: #e74c3c;
+                color: white;
+                padding: 8px 14px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: 0.3s ease;
+            }
+            .btn-reject:hover {
+                background-color: #c0392b;
+                transform: scale(1.05);
+            }
+            </style>
 
+            <div class="filter-container" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
+                <div>
+                    <label for="adminBookingStatusFilter">Filter by Status:</label>
+                    <select id="adminBookingStatusFilter" data-target="adminBookingsTable" style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
+                        <option value="All">All</option>
+                        <option value="approved">Approved</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="checkout">Checkout</option>
+                    </select>
+                </div>
 
-           <!-- Filter Section for Admin Booking -->
-<div class="filter-container" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
-    <!-- Status Filter -->
-    <div>
-        <label for="adminBookingStatusFilter">Filter by Status:</label>
-        <select id="adminBookingStatusFilter" data-target="adminBookingsTable">
-            <option value="All">All</option>
-            <option value="approved">Approved</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="checkout">Checkout</option>
-        </select>
-    </div>
+                <div>
+                    <label for="adminBookingSearchFilter">Search:</label>
+                    <input type="text" id="adminBookingSearchFilter" placeholder="Search by student, room, ID..." data-target="adminBookingsTable" style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
+                </div>
+            </div>
 
-    <!-- Search Filter -->
-    <div>
-        <label for="adminBookingSearchFilter">Search:</label>
-        <input type="text" id="adminBookingSearchFilter" placeholder="Search by student, room, ID..." data-target="adminBookingsTable" style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
-    </div>
-</div>
+            <div class="booking-section">
+                <h2 class="section-title">All Bookings</h2>
+                <table id="adminBookingsTable">
+                    <thead>
+                        <tr>
+                            <th>BOOKING ID</th>
+                            <th>STUDENT</th>
+                            <th>ROOM</th>
+                            {{-- ✅ ADDED BED COLUMN HEADER --}}
+                            <th>BED</th>
+                            <th>DATE</th>
+                            <th>STATUS</th>
+                            <th>CHECKOUT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($all as $booking)
+                        <tr>
+                            <td>{{ $booking->id }}</td>
+                            <td>{{ $booking->user->name }}</td>
+                            <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
+                            
+                            {{-- ✅ ADDED BED COLUMN DATA --}}
+                            <td>
+                                <span style="font-weight:600; color:#e67e22;">#{{ $booking->bed_number ?? 'N/A' }}</span>
+                            </td>
 
-<!-- Admin Bookings Table -->
-<div class="booking-section">
-    <h2 class="section-title">All Bookings</h2>
-    <table id="adminBookingsTable">
-        <thead>
-            <tr>
-                <th>BOOKING ID</th>
-                <th>STUDENT</th>
-                <th>ROOM</th>
-                <th>DATE</th>
-                <th>STATUS</th>
-                <th>CHECKOUT</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($all as $booking)
-            <tr>
-                <td>{{ $booking->id }}</td>
-                <td>{{ $booking->user->name }}</td>
-                <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
-                <td>{{ $booking->created_at->format('F d, Y') }}</td>
-<td class="status-cell">
-    <span class="status-badge 
-    {{ $booking->status == 'Approved' ? 'status-approve' : 
-       ($booking->status == 'Cancelled' ? 'status-cancelled' : 
-       ($booking->status == 'CheckedOut' ? 'status-checkout' : 'status-pending')) }}">
-    {{ ucfirst($booking->status) }}
-</span>
+                            <td>{{ $booking->created_at->format('F d, Y') }}</td>
+                            <td class="status-cell">
+                                <span class="status-badge 
+                                {{ strtolower($booking->status) == 'approved' ? 'status-approve' : 
+                                   (strtolower($booking->status) == 'cancelled' ? 'status-cancelled' : 
+                                   (strtolower($booking->status) == 'checkout' ? 'status-checkout' : 'status-pending')) }}">
+                                {{ ucfirst($booking->status) }}
+                                </span>
+                            </td>
 
-</td>
+                            <td>
+                                {{-- CHECKOUT BUTTON WITH SWEETALERT --}}
+                                @if (in_array(strtolower($booking->status), ['approved', 'paid']))
+                                    <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" class="checkout-form" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-checkout">
+                                            <i class="fas fa-sign-out-alt"></i> Checkout
+                                        </button>
+                                    </form>
+                                @endif
+                            </td>
 
-<td>
-    @if (in_array($booking->status, ['Approved', 'paid']))
-        <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" class="checkout-form" style="display:inline;">
-            @csrf
-            <button type="submit" class="btn btn-checkout">Checkout</button>
-        </form>
-    @endif
-</td>
-
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-
-<!-- JavaScript Filter for Admin Bookings -->
-<script>
-const bookingStatusFilter = document.getElementById('adminBookingStatusFilter');
-const bookingSearchFilter = document.getElementById('adminBookingSearchFilter');
-const bookingRows = document.querySelectorAll('#adminBookingsTable tbody tr');
-
-function filterBookings() {
-    const statusValue = bookingStatusFilter.value.toLowerCase();
-    const searchValue = bookingSearchFilter.value.toLowerCase();
-
-    bookingRows.forEach(row => {
-        const statusText = row.querySelector('.status-cell')?.innerText.trim().toLowerCase() || '';
-        const rowText = row.innerText.toLowerCase();
-
-        // Fix: match exact statuses like "rejected", "approved", "checkout"
-        const statusMatch = statusValue === "all" || statusText === statusValue;
-        const searchMatch = rowText.includes(searchValue);
-
-        row.style.display = (statusMatch && searchMatch) ? '' : 'none';
-    });
-}
-
-// Event Listeners
-bookingStatusFilter.addEventListener('change', filterBookings);
-bookingSearchFilter.addEventListener('input', filterBookings);
-
-// Checkout Confirmation
-document.querySelectorAll('.checkout-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        const confirmed = confirm('Are you sure you want to checkout this student?');
-        if(!confirmed) e.preventDefault();
-    });
-});
-</script>
-
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
+        // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
         const menuToggle = document.getElementById('menuToggle');
@@ -624,7 +607,7 @@ document.querySelectorAll('.checkout-form').forEach(form => {
             }
         });
 
-        // Close sidebar on mobile when clicking outside
+        // Close sidebar on mobile
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768) {
                 if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
@@ -633,19 +616,89 @@ document.querySelectorAll('.checkout-form').forEach(form => {
             }
         });
 
-        // Handle window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
                 sidebar.classList.remove('open');
             }
         });
-    </script>
-    <script>
-    function confirmLogout() {
-        if (confirm("Are you sure you want to log out?")) {
-            document.getElementById('logoutForm').submit();
+
+        // Logout Confirmation
+        function confirmLogout() {
+            if (confirm("Are you sure you want to log out?")) {
+                document.getElementById('logoutForm').submit();
+            }
         }
-    }
+
+        // Filtering Logic
+        const bookingStatusFilter = document.getElementById('adminBookingStatusFilter');
+        const bookingSearchFilter = document.getElementById('adminBookingSearchFilter');
+        const bookingRows = document.querySelectorAll('#adminBookingsTable tbody tr');
+
+        function filterBookings() {
+            const statusValue = bookingStatusFilter.value.toLowerCase();
+            const searchValue = bookingSearchFilter.value.toLowerCase();
+
+            bookingRows.forEach(row => {
+                const statusText = row.querySelector('.status-cell')?.innerText.trim().toLowerCase() || '';
+                const rowText = row.innerText.toLowerCase();
+
+                const statusMatch = statusValue === "all" || statusText.includes(statusValue);
+                const searchMatch = rowText.includes(searchValue);
+
+                row.style.display = (statusMatch && searchMatch) ? '' : 'none';
+            });
+        }
+
+        bookingStatusFilter.addEventListener('change', filterBookings);
+        bookingSearchFilter.addEventListener('input', filterBookings);
+
+        // SWEETALERT CONFIGURATION
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // 1. REJECT CONFIRMATION
+            const rejectForms = document.querySelectorAll('.reject-form');
+            rejectForms.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); 
+                    Swal.fire({
+                        title: 'Reject Booking?',
+                        text: "Are you sure you want to reject this booking request?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E53935',
+                        cancelButtonColor: '#666',
+                        confirmButtonText: 'Yes, Reject it'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // 2. CHECKOUT CONFIRMATION
+            const checkoutForms = document.querySelectorAll('.checkout-form');
+            checkoutForms.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); 
+                    Swal.fire({
+                        title: 'Checkout Tenant?',
+                        text: "Are you sure you want to checkout this student? This will free up the bed space.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E53935',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, Checkout',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit(); 
+                        }
+                    });
+                });
+            });
+
+        });
     </script>
 </body>
 </html>

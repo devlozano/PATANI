@@ -99,5 +99,4 @@ public function getAvatarUrlAttribute()
     $name = urlencode($this->name ?? 'User');
     return "https://ui-avatars.com/api/?name={$name}&background=random&color=fff";
 }
-
 }
