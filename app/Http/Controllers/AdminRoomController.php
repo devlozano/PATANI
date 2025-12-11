@@ -63,51 +63,48 @@ $rooms = Room::all()->map(function($room) {
 
 public function store(Request $request)
 {
-    $request->validate([
-        'room_number' => 'required',
-        'room_floor'  => 'required',
-        'gender'      => 'required',
+    $data = $request->validate([
+        'room_number' => 'required|integer',
+        'room_floor'  => 'required|string',
+        'gender'      => 'required|string',
         'bedspace'    => 'required|integer',
-        'status'      => 'required',
+        'status'      => 'required|string',
         'rent_fee'    => 'required|numeric',
-        'description' => 'required',
+        'description' => 'required|string',
         'inclusions'  => 'nullable|string',
-        'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-        'gallery.*'   => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+        'gallery.*'   => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
     ]);
 
     $room = new Room();
-    $room->room_number = $request->room_number;
-    $room->room_floor  = $request->room_floor;
-    $room->gender      = $request->gender;
-    $room->bedspace    = $request->bedspace;
-    $room->status      = $request->status;
-    $room->rent_fee    = $request->rent_fee;
-    $room->description = $request->description;
+    $room->room_number = $data['room_number'];
+    $room->room_floor  = $data['room_floor'];
+    $room->gender      = $data['gender'];
+    $room->bedspace    = $data['bedspace'];
+    $room->status      = $data['status'];
+    $room->rent_fee    = $data['rent_fee'];
+    $room->description = $data['description'];
 
-    // Convert inclusions string to array
+    // Inclusions
     $inclusions = array_filter(array_map('trim', explode(',', $request->inclusions ?? '')));
-    $room->inclusions = json_encode($inclusions, JSON_UNESCAPED_UNICODE);
+    $room->inclusions = json_encode($inclusions);
 
     // Main image
     if ($request->hasFile('image')) {
         $room->image = $request->file('image')->store('rooms', 'public');
     }
 
-    // Gallery images
+    // Gallery
     $galleryPaths = [];
     if ($request->hasFile('gallery')) {
         foreach ($request->file('gallery') as $file) {
             $galleryPaths[] = $file->store('rooms/gallery', 'public');
         }
-        if (!empty($galleryPaths)) {
-            $room->gallery = json_encode($galleryPaths, JSON_UNESCAPED_UNICODE);
-        }
     }
+    $room->gallery = json_encode($galleryPaths);
 
     $room->save();
 
     return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
 }
-
 }

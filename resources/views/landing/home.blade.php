@@ -654,12 +654,12 @@
 
 <script>
 const roomsData = [
-  {id:1,title:"Room 1 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
-  {id:2,title:"Room 2 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
-  {id:3,title:"Room 3 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/ucla.jpg","/images/kitchen.jpg","/images/toilet.jpg"]},
-  {id:4,title:"Room 4 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"],unavailable:true},
-  {id:5,title:"Room 5 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
-  {id:6,title:"Room 6 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/bed.jpg","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]}
+  {id:1,title:"Room 1 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/room.png","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:2,title:"Room 2 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/room.png","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:3,title:"Room 3 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/room.png","/images/kitchen.jpg","/images/toilet.jpg"]},
+  {id:4,title:"Room 4 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/fem.png","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
+  {id:5,title:"Room 5 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/fem.png","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
+  {id:6,title:"Room 6 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/fem.png","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]}
 ];
 
 const roomsContainer = document.getElementById('roomsContainer');
@@ -683,7 +683,7 @@ roomsData.forEach(room=>{
     <p>${room.desc}</p>
     
     <div class="info">
-      <span>4-6 People</span>
+      <span>8 People</span>
       <span>Urdaneta City</span>
     </div>
 

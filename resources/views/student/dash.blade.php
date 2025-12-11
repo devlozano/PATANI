@@ -328,7 +328,7 @@
 
         // --- AJAX CHAT LOGIC ---
         const chatBody = document.getElementById('chatBody');
-        const adminId = 3; // ⚠️ CHECK DATABASE: Ensure your Admin's ID is actually 1
+        const adminId = 2; // ⚠️ CHECK DATABASE: Ensure your Admin's ID is actually 1
         const userId = {{ Auth::id() }}; // Current Student ID
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 

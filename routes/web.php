@@ -24,23 +24,19 @@ use App\Http\Controllers\LandingController;
 
 // 🏠 LANDING PAGE
 Route::get('/', [LandingController::class, 'index'])->name('landing.home');
-Route::get('/home', function () {
-    return redirect()->route('landing.home');
-});
+Route::get('/home', fn() => redirect()->route('landing.home'));
 
-// 🔐 AUTH ROUTES (Guest only)
+// 🔐 AUTH ROUTES
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
-
     Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 });
 
-// 🛡️ AUTHENTICATED ROUTES (Shared by Student & Admin)
+// 🛡️ AUTHENTICATED ROUTES
 Route::middleware(['auth'])->group(function () {
 
-    // 🚪 LOGOUT
     Route::post('/logout', function (Request $request) {
         Auth::logout();
         $request->session()->invalidate();
@@ -48,69 +44,55 @@ Route::middleware(['auth'])->group(function () {
         return redirect('/login');
     })->name('logout');
 
-    // 👤 PROFILE ROUTES
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.uploadAvatar');
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.removeAvatar');
 
-    // 💬 CHAT ROUTES (AJAX)
-    // These must be accessible by both Admin and Student
+    // Chat
     Route::get('/chat/messages/{userId}', [AdminDashboardController::class, 'getMessages'])->name('chat.get');
     Route::post('/chat/send', [AdminDashboardController::class, 'sendMessage'])->name('chat.send');
 });
 
-
 // 🎓 STUDENT ROUTES
-// Removed 'student' middleware, keeping only 'auth'
 Route::prefix('student')->middleware(['auth'])->group(function () {
-    
-    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dash');
-
-    // Booking
     Route::get('/booking', [StudentBookingController::class, 'index'])->name('student.booking');
     Route::post('/booking', [StudentBookingController::class, 'store'])->name('student.booking.store');
-
-    // Payment
     Route::get('/payment', [PaymentController::class, 'index'])->name('student.payment');
     Route::post('/payment/store', [PaymentController::class, 'store'])->name('payment.store');
-
-    // Room Info
     Route::get('/room', [BookingController::class, 'index'])->name('student.room');
 });
 
-
 // 🧑‍💼 ADMIN ROUTES
-// Keeps 'admin' middleware to protect these routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
 
-    // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // 📢 ANNOUNCEMENTS
+    // Announcements
     Route::post('/announcement/post', [AdminDashboardController::class, 'postAnnouncement'])->name('post.announcement');
 
-    // Booking Management
+    // Booking
     Route::get('/booking', [AdminBookingController::class, 'index'])->name('booking');
     Route::post('/booking/{id}/approve', [AdminBookingController::class, 'approve'])->name('booking.approve');
     Route::post('/booking/{id}/reject', [AdminBookingController::class, 'reject'])->name('booking.reject');
     Route::post('/bookings/{id}/checkout', [AdminBookingController::class, 'checkout'])->name('booking.checkout');
 
-    // Payment Management
+    // Payment
     Route::get('/payment', [AdminPaymentController::class, 'index'])->name('payment');
     Route::post('/payments/{id}/approve', [AdminPaymentController::class, 'approve'])->name('payment.approve');
     Route::post('/payment/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payment.reject');
 
-    // Room Management
+    // ✅ Room Management
+    // This makes all RESTful routes for rooms available:
+    // GET /admin/rooms -> index
+    // GET /admin/rooms/create -> create
+    // POST /admin/rooms -> store
+    // GET /admin/rooms/{room}/edit -> edit
+    // PUT/PATCH /admin/rooms/{room} -> update
+    // DELETE /admin/rooms/{room} -> destroy
     Route::resource('rooms', AdminRoomController::class);
 
     // Reports
     Route::get('/report', [AdminReportController::class, 'index'])->name('report');
-});
-
-// Test Route (Optional)
-Route::get('/test-session', function () {
-    session(['test' => 'hello']);
-    return session('test');
 });
