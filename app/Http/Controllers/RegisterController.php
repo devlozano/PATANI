@@ -19,11 +19,11 @@ class RegisterController extends Controller
     {
         // ✅ Validate input
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\.\,\-]+$/'],
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'gender' => 'required|string|max:10',
-            'contact' => 'required|string|max:20',
+            'password' => 'required|string|min:6|confirmed', // 'confirmed' checks password_confirmation field automatically
+            'gender' => 'required|string|in:Male,Female,Other',
+            'contact' => ['required', 'string', 'max:20', 'regex:/^[0-9\-\+\s]+$/'],
             'address' => 'required|string|max:255',
         ]);
 
@@ -35,9 +35,10 @@ class RegisterController extends Controller
             'gender' => $validated['gender'],
             'contact' => $validated['contact'],
             'address' => $validated['address'],
+            'role' => 'student', // Default role if needed
         ]);
 
-        // ✅ Redirect to dashboard or home
-        return redirect()->route('login')->with('success', 'Account created successfully!');
+        // ✅ Redirect to login with success message
+        return redirect()->route('login')->with('success', 'Account created successfully! Please login.');
     }
 }

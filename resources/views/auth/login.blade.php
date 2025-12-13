@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patani Trinidad | Login</title>
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
+    {{-- Font Awesome --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
     * {
         box-sizing: border-box;
@@ -63,26 +65,28 @@
         margin-bottom: 25px;
         font-weight: 700;
     }
-#backHomeBtn {
-  background: transparent;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-  color: #0A142F;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-}
+    #backHomeBtn {
+        background: transparent;
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 14px;
+        color: #0A142F;
+        cursor: pointer;
+        transition: border-color 0.2s, color 0.2s;
+        border: 1px solid transparent; /* Added to prevent layout shift on hover */
+    }
 
-#backHomeBtn:hover {
-  color: #FFF200;
-}
+    #backHomeBtn:hover {
+        color: #FFF200;
+        border-color: #FFF200; /* Added visual cue */
+    }
     p.subtitle {
         color: #666;
         margin-bottom: 5px;
         font-size: 0.9rem;
     }
     label {
-        font: "Poppins";
+        font-family: "Poppins", sans-serif; /* Fixed font property */
         display: block;
         font-size: 0.9rem;
         margin-bottom: 5px;
@@ -102,20 +106,6 @@
         border-color: #ffa000;
     }
 
-    .password-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
-    }
-    .password-row a {
-        font-size: 0.85rem;
-        color: #007bff;
-        text-decoration: none;
-    }
-    .password-row a:hover {
-        text-decoration: underline;
-    }
     button {
         width: 100%;
         background-color: #ff8800;
@@ -150,56 +140,53 @@
         font-size: 0.85rem;
         margin-top: -10px;
         margin-bottom: 10px;
+        text-align: left;
     }
     .alert {
         padding: 12px;
         margin-bottom: 15px;
         border-radius: 8px;
+        border: 1px solid transparent;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    .alert-danger {
         background-color: #f8d7da;
         color: #721c24;
-        border: 1px solid #f5c6cb;
+        border-color: #f5c6cb;
     }
-     .password-input-container {
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+
+    /* Password Input Styling */
+    .password-input-container {
         position: relative;
-        display: flex; /* To align input and icon */
-        align-items: center;
-        margin-bottom: 15px; /* Add consistent spacing */
-    }
-
-    /* Style for the password input itself to ensure it doesn't overlap */
-    .password-input-container input[type="password"] {
-        width: 100%; /* Inherit width */
-        padding-right: 35px; /* Space for the icon (adjust if needed) */
-        box-sizing: border-box; /* Ensure padding is included in width */
-        /* Other input styles from your global styles should apply */
-    }
-
-    /* Styling for the eye icon */
-    .password-toggle-icon {
-        position: absolute;
-        top: -10%; /* Center vertically */
-        right: 10px; /* Position the icon on the right */
-        cursor: pointer;
-        color: #FCCC4B; /* Default color for the eye icon */
-        font-size: 1.1em; /* Size of the eye icon */
-        z-index: 1; /* Ensure icon is above the input text */
         display: flex;
         align-items: center;
-        height: 100%; /* To vertically center the icon */
+        margin-bottom: 15px;
+    }
+
+    .password-input-container input[type="password"],
+    .password-input-container input[type="text"] {
+        width: 100%;
+        padding-right: 35px; /* Space for icon */
+        margin-bottom: 0; /* Override default margin */
+    }
+
+    .password-toggle-icon {
+        position: absolute;
+        right: 10px;
+        cursor: pointer;
+        color: #aaa; /* Lighter default color */
+        font-size: 1.1em;
+        z-index: 2;
     }
 
     .password-toggle-icon:hover {
-        color: #FF8C00; /* Darker color on hover */
-    }
-
-    /* Ensure general input styles are applied correctly if not globally */
-    input[type="email"] {
-        width: 100%;
-        padding: 10px; /* Assuming your global input padding */
-        margin-bottom: 15px;
-        border: 1px solid #ccc; /* Assuming your global input border */
-        border-radius: 4px; /* Assuming your global input border-radius */
-        box-sizing: border-box;
+        color: #ff8800;
     }
     
     @media (max-width: 900px) {
@@ -234,16 +221,16 @@
             <p class="subtitle">Welcome back</p> 
             <h2>Login to your account</h2>
             
-            @if (session('error'))
-                <div class="alert">{{ session('error') }}</div>
+            {{-- Success Message (e.g. after registration) --}}
+            @if (session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
-            @if ($errors->any())
-                <div class="alert">
-                    {{ $errors->first() }}
-                </div>
+            {{-- General Error Message --}}
+            @if (session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
-            
+
             <form action="{{ route('login') }}" method="POST">
                 @csrf
                 <label for="email">Email</label>
@@ -258,47 +245,45 @@
                 @error('email')
                     <div class="error">{{ $message }}</div>
                 @enderror
- {{-- New wrapper for password input and eye icon --}}
-         <label for="password">Password</label>
-    <div class="password-input-container">
-        <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Enter your password"
-            required
-        >
-        <span class="password-toggle-icon">
-            <i class="fas fa-eye" id="togglePassword"></i> {{-- Font Awesome icon --}}
-        </span>
-    </div>
+
+                <label for="password">Password</label>
+                <div class="password-input-container">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <i class="fas fa-eye password-toggle-icon" id="togglePassword"></i>
+                </div>
                 @error('password')
                     <div class="error">{{ $message }}</div>
                 @enderror
 
                 <button type="submit">Login</button>
             </form>
-            {{-- Link to Font Awesome CSS (if you haven't already) --}}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+            
             <p class="signup-text">Don't Have An Account? <a href="{{ route('register') }}" class="signup">Sign Up</a></p>
         </div>
     </div>
+
     <script>
-      document.getElementById('backHomeBtn').addEventListener('click', function() {
-    window.location.href = "{{ url('/') }}"; // Redirects to homepage
-  });
-    const passwordInput = document.getElementById('password');
-    const togglePasswordIcon = document.getElementById('togglePassword');
+        document.getElementById('backHomeBtn').addEventListener('click', function() {
+            window.location.href = "{{ url('/') }}"; 
+        });
 
-    togglePasswordIcon.addEventListener('click', function() {
-        // Toggle the type attribute of the password input
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
+        // Password Visibility Toggle
+        const passwordInput = document.getElementById('password');
+        const togglePasswordIcon = document.getElementById('togglePassword');
 
-        // Toggle the icon class
-        this.classList.toggle('fa-eye');
-        this.classList.toggle('fa-eye-slash');
-    });
-</script>
+        togglePasswordIcon.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
 </body>
 </html>
