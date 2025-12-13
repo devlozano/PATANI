@@ -188,16 +188,17 @@
                     </div>
                 </div>
 
+                {{-- ✅ UPDATED MY ROOM CARD LOGIC --}}
                 <div class="card">
                     <div class="card-header">
-                        @if($bookings && $bookings->room)
-                            <i class="bi {{ in_array($bookings->status, ['Approved', 'Occupied', 'Paid']) ? 'bi-door-open' : 'bi-door-closed' }}"></i>
+                        @if($currentBooking && $currentBooking->room)
+                            <i class="bi {{ in_array($currentBooking->status, ['Approved', 'Occupied', 'Paid']) ? 'bi-door-open' : 'bi-door-closed' }}"></i>
                             <span>
                                 My Room
-                                @if(in_array($bookings->status, ['Approved', 'Occupied', 'Paid']))
-                                    : {{ $bookings->room->room_number }}
+                                @if(in_array($currentBooking->status, ['Approved', 'Occupied', 'Paid']))
+                                    : {{ $currentBooking->room->room_number }}
                                 @else
-                                    ({{ ucfirst($bookings->status) }})
+                                    ({{ ucfirst($currentBooking->status) }})
                                 @endif
                             </span>
                         @else
@@ -205,20 +206,19 @@
                             <span>My Room</span>
                         @endif
                     </div>
-                    @if($bookings)
-                        @if(in_array($bookings->status, ['Approved', 'Occupied','Paid']))
+                    @if($currentBooking)
+                        @if(in_array($currentBooking->status, ['Approved', 'Occupied','Paid']))
                             <div class="room-details">
-                                <p><strong>Room Number:</strong> {{ $bookings->room->room_number }}</p>
+                                <p><strong>Room Number:</strong> {{ $currentBooking->room->room_number }}</p>
                                 
-                                {{-- ✅ ADDED: Display Booked Bed Number --}}
-                                <p><strong>Bed Number:</strong> <span style="color: #e67e22; font-weight: 700;">#{{ $bookings->bed_number ?? 'N/A' }}</span></p>
+                                <p><strong>Bed Number:</strong> <span style="color: #e67e22; font-weight: 700;">#{{ $currentBooking->bed_number ?? 'N/A' }}</span></p>
                                 
-                                <p><strong>Status:</strong> {{ ucfirst($bookings->status) }}</p>
+                                <p><strong>Status:</strong> {{ ucfirst($currentBooking->status) }}</p>
                             </div>
                         @else
                             <div class="room-empty">
                                 <i class="bi bi-door-closed"></i>
-                                <p>Your room request is <strong>{{ ucfirst($bookings->status) }}</strong>. Please wait for approval.</p>
+                                <p>Your room request is <strong>{{ ucfirst($currentBooking->status) }}</strong>. Please wait for approval.</p>
                                 <a href="{{ route('student.booking') }}">
                                     <button class="book-btn" type="button">BOOK NOW</button>
                                 </a>

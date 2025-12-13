@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Booking;
+use App\Models\Payment; // Ensure Payment model is imported if used
 use Illuminate\Support\Facades\Auth;
 
 class StudentBookingController extends Controller
@@ -31,16 +32,38 @@ class StudentBookingController extends Controller
     {
         $user = Auth::user();
 
-        // Fetch all bookings and rooms for display
-        $bookings = $user->bookings()->with('room')->get();
-        $rooms = Room::all();
+        // Fetch all bookings for the history table (latest first)
+        $bookings = $user->bookings()->with('room')->latest()->get(); 
+        
+        // Fetch all payments (optional, if you use $payments in dash view)
+        $payments = Payment::where('user_id', $user->id)->latest()->get();
 
-        // Check if the student has an approved or paid booking
-        $hasActiveBooking = Booking::where('user_id', $user->id)
-            ->whereIn('status', ['Approved', 'Paid'])
-            ->exists();
+        // Get announcements (optional, if you use $announcements in dash view)
+        $announcements = \App\Models\Announcement::latest()->take(5)->get();
 
-        return view('student.dash', compact('bookings', 'rooms', 'hasActiveBooking'));
+        // ✅ FIX: Get the single "Active" booking for the "My Room" card
+        // Priority order: Approved/Occupied/Paid > Pending > Rejected/Cancelled
+        $currentBooking = $user->bookings()
+            ->whereIn('status', ['Approved', 'Occupied', 'Paid'])
+            ->with('room')
+            ->latest()
+            ->first();
+
+        // If no active booking, check for a pending one
+        if (!$currentBooking) {
+            $currentBooking = $user->bookings()
+                ->where('status', 'Pending')
+                ->with('room')
+                ->latest()
+                ->first();
+        }
+
+        // If still no booking, just get the very last one (likely cancelled/rejected)
+        if (!$currentBooking) {
+            $currentBooking = $user->bookings()->with('room')->latest()->first();
+        }
+
+        return view('student.dash', compact('bookings', 'payments', 'announcements', 'currentBooking'));
     }
 
     public function store(Request $request)
@@ -63,20 +86,18 @@ class StudentBookingController extends Controller
         ]);
 
         // 3. ✅ GENDER RESTRICTION LOGIC
-        // Fetch the room details
         $room = Room::findOrFail($request->room_id);
 
-        // Normalize string case (e.g., "Male" vs "male") to ensure accurate comparison
+        // Normalize string case
         $userGender = strtolower($user->gender); 
         $roomGender = strtolower($room->gender);
 
         // Check restriction:
-        // If room is NOT 'mixed' AND room gender does NOT match user gender
         if ($roomGender !== 'mixed' && $roomGender !== $userGender) {
             return redirect()->back()->with('error', 'You cannot book this room. It is designated for ' . ucfirst($roomGender) . 's only.');
         }
 
-        // 4. Create Booking if checks pass
+        // 4. Create Booking
         Booking::create([
             'user_id'    => $user->id,
             'room_id'    => $request->room_id,
