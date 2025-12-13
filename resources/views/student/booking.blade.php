@@ -408,7 +408,7 @@
                 @foreach($bookings as $booking)
                     <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:10px;">{{ $booking->id }}</td>
-                    <td style="padding:10px;">{{ $booking->room->name ?? 'Room' }}</td>
+                    <td style="padding:10px;">{{ $booking->room->room_number ?? 'Room' }}</td>
                     <td style="padding:10px;">#{{ $booking->bed_number ?? 'N/A' }}</td>
                     <td style="padding:10px;">
                         <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;

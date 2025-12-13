@@ -679,7 +679,7 @@ roomsData.forEach(room=>{
   <img src="${room.images[0]}" alt="${room.title}">
   <div class="content">
     <h3>${room.title}</h3>
-    <p>${room.price}</p>
+    <p>${room.price}</p>  
     <p>${room.desc}</p>
     
     <div class="info">

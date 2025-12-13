@@ -7,7 +7,6 @@ use App\Models\Payment;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Booking;
-use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -22,47 +21,47 @@ class PaymentController extends Controller
     {
         $student = auth()->user();
 
-        // 1. Validate fields (Removed booking_id from DB check)
+        // 1. Validate fields
         $validated = $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            // 'booking_id' is optional in validation since we don't save it to payments table
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required|string',
         ]);
 
-        // 2. Verify the student actually has an approved booking for this room
-        // This ensures they can't pay for a room they haven't booked, even without booking_id in payments table
-        $hasApprovedBooking = Booking::where('room_id', $validated['room_id'])
+        // 2. Find the CURRENT Active Booking (The latest approved one)
+        $currentBooking = Booking::where('room_id', $validated['room_id'])
             ->where('user_id', $student->id)
             ->where('status', 'Approved') 
-            ->exists();
+            ->latest() // Important: Get the most recent approval
+            ->first();
 
-        if (!$hasApprovedBooking) {
+        if (!$currentBooking) {
             return response()->json([
                 'success' => false,
                 'message' => 'No approved booking found for this room.'
             ], 404);
         }
 
-        // 3. Prevent duplicate PENDING payments for the same room
-        // (We check User + Room + Status=Pending)
-        $existingPendingPayment = Payment::where('user_id', $student->id)
+        // 3. Prevent duplicate payments ONLY for THIS SPECIFIC BOOKING instance
+        // We check if a payment exists that is NEWER than the booking.
+        $existingPayment = Payment::where('user_id', $student->id)
             ->where('room_id', $validated['room_id'])
-            ->where('status', 'Pending')
+            ->whereIn('status', ['Pending', 'Approved']) 
+            ->where('created_at', '>=', $currentBooking->created_at) // ✅ FIX: Check Date
             ->first();
 
-        if ($existingPendingPayment) {
+        if ($existingPayment) {
+            $msg = $existingPayment->status == 'Approved' ? 'already paid' : 'pending approval';
             return response()->json([
                 'success' => false,
-                'message' => 'You already have a pending payment for this room.'
+                'message' => "You have $msg for this current booking."
             ], 409);
         }
 
-        // 4. Save payment (WITHOUT booking_id)
+        // 4. Save payment
         $payment = Payment::create([
             'user_id' => $student->id,
             'room_id' => $validated['room_id'],
-            // 'booking_id' => $booking->id,  <-- REMOVED THIS LINE
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'status' => 'Pending', 

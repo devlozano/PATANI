@@ -144,6 +144,7 @@
                             $hasPaid = \App\Models\Payment::where('user_id', $student->id)
                                 ->where('room_id', $room->id)
                                 ->whereIn('status', ['Approved', 'Pending'])
+                                ->where('created_at', '>=', $booking->created_at) // ✅ FIX: Only look for payments made AFTER booking
                                 ->exists();
                         }
                     @endphp
@@ -211,10 +212,13 @@
                         </div>
 
                         <div class="optional-policies" style="margin-top: 20px; font-size: 0.85rem; color: #555; text-align:left;">
-                            <h4 style="font-size:0.9rem;">Reminders:</h4>
+                            <h4 style="font-size:0.9rem; color:#d32f2f;">Important Payment Policies:</h4>
                             <ul style="padding-left: 20px; margin-top: 5px;">
-                                <li>Double-check amount before submitting.</li>
-                                <li>Payments are pending approval.</li>
+                                <li><strong>No Refunds:</strong> Payments made are strictly non-refundable unless approved by admin.</li>
+                                <li><strong>Proof of Payment:</strong> Please take a screenshot of your transaction for GCash/Bank Transfer. You may be asked to present it.</li>
+                                <li><strong>Exact Amount:</strong> Ensure you pay the exact amount displayed.</li>
+                                <li><strong>Late Penalties:</strong> Late payments will incur a 1% monthly penalty fee. Please pay at least 3 days before the due date.</li>
+                                <li>Payments are pending until Admin approval.</li>
                             </ul>
                         </div>
 
