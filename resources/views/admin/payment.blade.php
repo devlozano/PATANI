@@ -191,6 +191,13 @@ tbody tr:hover { background: #f9f9f9; }
 .status-rejected { background: #FF4444; color: white; }
 .status-pending { background: #fff3cd; color: #856404; }
 
+/* Filter Styles */
+.filter-container { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-group label { font-size: 14px; font-weight: 500; color: #555; }
+.filter-control { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; font-family: inherit; width: 220px; }
+.filter-control:focus { outline: none; border-color: #ff9800; }
+
 /* Modal */
 .reject-modal {
     position: fixed;
@@ -224,6 +231,17 @@ tbody tr:hover { background: #f9f9f9; }
     margin-top: 10px;
     margin-bottom: 15px;
 }
+.submit-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+}
+.submit-btn:hover { background-color: #c0392b; }
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -244,6 +262,8 @@ tbody tr:hover { background: #f9f9f9; }
     .payment-section { padding: 20px; overflow-x: auto; }
     table { min-width: 600px; }
     .section-title { font-size: 20px; }
+    .filter-container { flex-direction: column; align-items: stretch; }
+    .filter-control { width: 100%; }
 }
 @media (max-width: 480px) {
     .top-bar { padding: 12px 15px; gap: 10px; }
@@ -257,14 +277,13 @@ tbody tr:hover { background: #f9f9f9; }
 </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-<div class="sidebar-header">Patani Trinidad</div>
-<div class="profile">
-    <img src="/images/Screenshot 2025-10-28 033031.png" alt="Admin Photo">
-    <h2>{{ Auth::user()->name }}</h2>
-    <p>{{ Auth::user()->contact }}</p>
-</div>
+        <div class="sidebar-header">Patani Trinidad</div>
+        <div class="profile">
+            <img src="/images/Screenshot 2025-10-28 033031.png" alt="Admin Photo">
+            <h2>{{ Auth::user()->name }}</h2>
+            <p>{{ Auth::user()->contact }}</p>
+        </div>
         <nav class="menu">
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="fas fa-home"></i><span>Dashboard</span>
@@ -276,8 +295,7 @@ tbody tr:hover { background: #f9f9f9; }
                 <i class="fas fa-credit-card"></i><span>Payments</span>
             </a>
             <a href="{{ route('admin.rooms.index') }}" class="{{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}">
-                <i class="fas fa-door-open"></i>
-                <span>Rooms</span>
+                <i class="fas fa-door-open"></i><span>Rooms</span>
             </a>
             <a href="{{ route('admin.report') }}" class="{{ request()->routeIs('admin.report') ? 'active' : '' }}">
                 <i class="fas fa-chart-bar"></i><span>Reports</span>
@@ -285,7 +303,6 @@ tbody tr:hover { background: #f9f9f9; }
         </nav>
     </aside>
 
-    <!-- Main Content -->
     <div class="content" id="content">
         <div class="top-bar">
             <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
@@ -301,159 +318,126 @@ tbody tr:hover { background: #f9f9f9; }
         <div class="main-content">
             <h1>Manage Payments</h1>
 
-            <!-- Pending Payments -->
-<div class="payment-section">
-    <h2 class="section-title">Pending Payments</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>PAYMENT ID</th>
-                <th>STUDENT</th>
-                <th>AMOUNT</th>
-                <th>ROOM NUMBER</th>
-                <th>DATE</th>
-                <th>ACTIONS</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($pendingPayments as $payment)
-            <tr>
-                <td>{{ $payment->id }}</td>
-                <td>{{ $payment->user->name ?? 'Unknown' }}</td>
-                <td>₱{{ number_format($payment->amount, 2) }}</td>
-                <td>{{ $payment->room->room_number ?? 'N/A' }}</td>
-                <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('F d, Y') }}</td>
-                <td>
-                    <div class="action-buttons">
-                        <!-- Approve -->
-                        <form action="{{ route('admin.payment.approve', $payment->id) }}" method="POST" style="display:inline;">
-                            @csrf
-                            <button type="submit" class="btn btn-approve">Approve</button>
-                        </form>
+            <div class="payment-section">
+                <h2 class="section-title">Pending Payments</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PAYMENT ID</th>
+                            <th>BOARDERS</th>
+                            <th>AMOUNT</th>
+                            <th>ROOM NUMBER</th>
+                            <th>DATE</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pendingPayments as $payment)
+                        <tr>
+                            <td>#{{ $payment->id }}</td>
+                            <td>{{ $payment->user->name ?? 'Unknown' }}</td>
+                            <td>₱{{ number_format($payment->amount, 2) }}</td>
+                            <td>{{ $payment->room->room_number ?? 'N/A' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('F d, Y') }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <form action="{{ route('admin.payment.approve', $payment->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-approve">Approve</button>
+                                    </form>
 
-                        <!-- Reject Button -->
-                        <button type="button" class="btn btn-reject" onclick="openRejectModal({{ $payment->id }})">
-                            Reject
-                        </button>
+                                    <button type="button" class="btn btn-reject" onclick="openRejectModal({{ $payment->id }})">
+                                        Reject
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" style="text-align:center;">No pending payments.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
-                        <!-- Reject Modal -->
-                        <div id="rejectModal" class="reject-modal" style="display:none;">
-                            <div class="modal-content">
-                                <span class="close" onclick="closeRejectModal()">&times;</span>
-                                <h3>Reject Payment</h3>
-                                <form id="rejectForm" method="POST" action="">
-                                    @csrf
-                                    <label for="reason">Reason for rejection:</label>
-                                    <textarea name="reason" id="reason" rows="4" placeholder="Enter reason..." required></textarea>
-                                    <button type="submit" class="submit-btn">Submit Rejection</button>
-                                </form>
-                            </div>
-                        </div>
+            <div class="payment-section">
+                <h2 class="section-title">All Payments History</h2>
+                
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <label for="statusFilter">Status Filter:</label>
+                        <select id="statusFilter" class="filter-control">
+                            <option value="All">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
                     </div>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="6" style="text-align:center;">No pending payments.</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
 
+                    <div class="filter-group">
+                        <label for="searchFilter">Search Payments:</label>
+                        <input type="text" id="searchFilter" class="filter-control" placeholder="Name, Payment ID, Notes...">
+                    </div>
+                </div>
 
- <!-- Filter Section -->
-<div class="filter-container" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
-    <!-- Status Filter -->
-    <div>
-        <label for="statusFilter">Filter by Status:</label>
-        <select id="statusFilter">
-            <option value="All">All</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-        </select>
+                <table id="paymentsTable">
+                    <thead>
+                        <tr>
+                            <th>PAYMENT ID</th>
+                            <th>BOARDERS</th>
+                            <th>AMOUNT</th>
+                            <th>DATE</th>
+                            <th>STATUS</th>
+                            <th>NOTES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($payments as $payment)
+                        <tr>
+                            <td>#{{ $payment->id }}</td>
+                            <td>{{ $payment->user->name ?? 'Unknown' }}</td>
+                            <td>₱{{ number_format($payment->amount, 2) }}</td>
+                            <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('F d, Y') }}</td>
+                            <td class="status-cell">
+                                @if($payment->status === 'Pending')
+                                    <span class="status-badge status-pending">Pending</span>
+                                @elseif($payment->status === 'Approved')
+                                    <span class="status-badge status-approved">Approved</span>
+                                @elseif($payment->status === 'Rejected')
+                                    <span class="status-badge status-rejected">Rejected</span>
+                                @else
+                                    <span class="status-badge">{{ $payment->status }}</span>
+                                @endif
+                            </td>
+                            <td>{{ $payment->notes ?? '-' }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" style="text-align:center;">No payments history found.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- Search Filter -->
-    <div>
-        <label for="searchFilter">Search:</label>
-        <input type="text" id="searchFilter" placeholder="Search by student, ID, notes..." style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
-    </div>
-</div>
-
-<!-- Payments Table -->
-<table id="paymentsTable">
-    <thead>
-        <tr>
-            <th>PAYMENT ID</th>
-            <th>STUDENT</th>
-            <th>AMOUNT</th>
-            <th>DATE</th>
-            <th>STATUS</th>
-            <th>NOTES</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($payments as $payment)
-        <tr>
-            <td>{{ $payment->id }}</td>
-            <td>{{ $payment->user->name ?? 'Unknown' }}</td>
-            <td>₱{{ number_format($payment->amount, 2) }}</td>
-            <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('F d, Y') }}</td>
-            <td class="status-cell">
-                @if($payment->status === 'Pending')
-                    <span class="status-badge status-pending">Pending</span>
-                @elseif($payment->status === 'Approved')
-                    <span class="status-badge status-approved">Approved</span>
-                @elseif($payment->status === 'Rejected')
-                    <span class="status-badge status-rejected">Rejected</span>
-                @endif
-            </td>
-            <td>{{ $payment->notes ?? '' }}</td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="6" style="text-align:center;">No payments found.</td>
-        </tr>
-        @endforelse
-    </tbody>
-</table>
-
-<!-- JavaScript Filter -->
-<script>
-const statusFilter = document.getElementById('statusFilter');
-const searchFilter = document.getElementById('searchFilter');
-const tableRows = document.querySelectorAll('#paymentsTable tbody tr');
-
-function filterPayments() {
-    const statusValue = statusFilter.value;
-    const searchValue = searchFilter.value.toLowerCase();
-
-    tableRows.forEach(row => {
-        const statusText = row.querySelector('.status-cell')?.innerText.trim() || '';
-        const rowText = row.innerText.toLowerCase();
-
-        const statusMatch = statusValue === "All" || statusText === statusValue;
-        const searchMatch = rowText.includes(searchValue);
-
-        if(statusMatch && searchMatch) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-}
-
-// Event Listeners
-statusFilter.addEventListener('change', filterPayments);
-searchFilter.addEventListener('input', filterPayments);
-</script>
-
+    <div id="rejectModal" class="reject-modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeRejectModal()">&times;</span>
+            <h3>Reject Payment</h3>
+            <form id="rejectForm" method="POST" action="">
+                @csrf
+                <label for="reason">Reason for rejection:</label>
+                <textarea name="reason" id="reason" rows="4" placeholder="Enter reason..." required></textarea>
+                <button type="submit" class="submit-btn">Submit Rejection</button>
+            </form>
         </div>
     </div>
 
     <script>
+        // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
         const menuToggle = document.getElementById('menuToggle');
@@ -471,33 +455,67 @@ searchFilter.addEventListener('input', filterPayments);
                 sidebar.classList.remove('open');
             }
         });
+
+        // Reject Modal Logic
         function openRejectModal(paymentId) {
-    const modal = document.getElementById('rejectModal');
-    const form = document.getElementById('rejectForm');
-    
-    modal.style.display = 'flex';
-    form.action = `/admin/payment/${paymentId}/reject`; // dynamically set action
-}
+            const modal = document.getElementById('rejectModal');
+            const form = document.getElementById('rejectForm');
+            
+            modal.style.display = 'flex';
+            // Ensure you have this route defined: Route::post('/admin/payment/{id}/reject', ...)
+            form.action = `/admin/payment/${paymentId}/reject`; 
+        }
 
-function closeRejectModal() {
-    const modal = document.getElementById('rejectModal');
-    modal.style.display = 'none';
-}
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+        }
 
-// Close modal if clicking outside content
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('rejectModal');
-    if (event.target === modal) {
-        closeRejectModal();
-    }
-});
-
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('rejectModal');
+            if (event.target === modal) {
+                closeRejectModal();
+            }
+        });
 
         function confirmLogout() {
             if(confirm('Are you sure you want to logout?')) {
                 document.getElementById('logoutForm').submit();
             }
         }
+
+        // ✅ FILTER LOGIC
+        const statusFilter = document.getElementById('statusFilter');
+        const searchFilter = document.getElementById('searchFilter');
+        const tableRows = document.querySelectorAll('#paymentsTable tbody tr');
+
+        function filterPayments() {
+            const statusValue = statusFilter.value; // e.g., "Approved" or "All"
+            const searchValue = searchFilter.value.toLowerCase();
+
+            tableRows.forEach(row => {
+                // Get Status text from the status-cell
+                const statusCell = row.querySelector('.status-cell');
+                const statusText = statusCell ? statusCell.innerText.trim() : '';
+                
+                // Get all row text for searching
+                const rowText = row.innerText.toLowerCase();
+
+                // Check Matches
+                const statusMatch = (statusValue === "All") || (statusText === statusValue);
+                const searchMatch = rowText.includes(searchValue);
+
+                // Show/Hide
+                if(statusMatch && searchMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Event Listeners
+        statusFilter.addEventListener('change', filterPayments);
+        searchFilter.addEventListener('keyup', filterPayments); // keyup for instant typing search
     </script>
 </body>
 </html>

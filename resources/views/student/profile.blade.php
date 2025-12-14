@@ -200,10 +200,12 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Name:</label>
-                            {{-- Added 'required' and old() value to persist data --}}
+                            {{-- ✅ FIXED: Added regex pattern for frontend validation --}}
                             <input type="text" name="name" 
                                    value="{{ old('name', Auth::user()->name) }}" 
                                    class="@error('name') input-error @enderror" 
+                                   pattern="^[a-zA-Z\s\.\,\-]+$"
+                                   title="Name should only contain letters, spaces, dots, or hyphens (No emojis or numbers)"
                                    required>
                             @error('name')
                                 <span class="error-text">{{ $message }}</span>

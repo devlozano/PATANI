@@ -122,6 +122,12 @@
         .send-btn:hover { background: #f57c00; transform: scale(1.05); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* ✅ CUSTOM SWEETALERT ICON STYLES */
+        .swal2-icon.swal2-custom-icon {
+            border: none !important;
+            font-size: 30px;
+        }
+
         @media (max-width: 768px) {
             .sidebar { width: 300px; transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -185,7 +191,7 @@
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
                     <div class="stat-info">
-                        <h3>TOTAL STUDENTS</h3>
+                        <h3>TOTAL BOARDERS</h3>
                         <p>{{ \App\Models\User::where('role','!=','admin')->count() }}</p>
                     </div>
                 </div>
@@ -285,7 +291,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>STUDENT</th>
+                            <th>BOARDERS</th>
                             <th>ROOM</th>
                             <th>STATUS</th>
                             <th>DATE</th>
@@ -430,8 +436,7 @@
             const titleInput = document.getElementById('editTitle');
             const messageInput = document.getElementById('editMessage');
 
-            // Set Action URL dynamically (assuming generic route structure)
-            // Note: You need to ensure your route in web.php is named 'admin.announcement.update'
+            // Set Action URL dynamically
             form.action = `/admin/announcement/${id}`; 
 
             titleInput.value = title;
@@ -443,7 +448,7 @@
             document.getElementById('editAnnouncementModal').style.display = 'none';
         }
 
-        // ✅ DELETE ANNOUNCEMENT CONFIRMATION
+        // ✅ DELETE ANNOUNCEMENT CONFIRMATION (Warning Icon)
         document.addEventListener('DOMContentLoaded', function () {
             const deleteForms = document.querySelectorAll('.delete-form');
             deleteForms.forEach(form => {
@@ -464,9 +469,55 @@
                     });
                 });
             });
+
+            // ✅ SWEET ALERT POPUP FOR SUCCESS (Custom Icons based on Action)
+            @if(session('success'))
+                let msg = "{{ session('success') }}";
+                let iconHtml = '';
+                let iconColor = '';
+                let title = 'Success!';
+
+                // Detect action type from message
+                if (msg.toLowerCase().includes('delete')) {
+                    iconHtml = '<i class="fas fa-trash-alt"></i>'; // 🗑️ Trash Icon
+                    iconColor = '#FF4444'; // Red
+                    title = 'Deleted!';
+                } else if (msg.toLowerCase().includes('update') || msg.toLowerCase().includes('edit')) {
+                    iconHtml = '<i class="fas fa-edit"></i>'; // ✏️ Edit Icon
+                    iconColor = '#3498db'; // Blue
+                    title = 'Updated!';
+                } else if (msg.toLowerCase().includes('post') || msg.toLowerCase().includes('create')) {
+                    iconHtml = '<i class="fas fa-bullhorn"></i>'; // 📢 Bullhorn/Post Icon
+                    iconColor = '#ff9800'; // Orange
+                    title = 'Posted!';
+                }
+
+                // If a keyword matched, use custom icon; otherwise default to standard checkmark
+                if(iconHtml) {
+                    Swal.fire({
+                        iconHtml: iconHtml,
+                        iconColor: iconColor,
+                        title: title,
+                        text: msg,
+                        showConfirmButton: false,
+                        timer: 2000,
+                        customClass: {
+                            icon: 'swal2-custom-icon'
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: msg,
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                }
+            @endif
         });
 
-        // [Chat Scripts remain the same as previous response]
+        // [Chat Scripts]
         const fullScreenChat = document.getElementById('fullScreenChat');
         const chatSidebarList = document.getElementById('chatSidebarList');
         const chatMainArea = document.getElementById('chatMainArea');

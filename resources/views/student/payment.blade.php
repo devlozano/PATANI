@@ -113,119 +113,182 @@
         <div class="main-content">
             <h1>My Payments</h1>
 
-            <div class="section">
-                <div class="section-title">Make Payments</div>
+<style>
+    /* Status Alert Styles */
+    .status-alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.95rem;
+        border: 1px solid transparent;
+    }
 
-                @php
-                    $student = auth()->user();
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffeeba;
+    }
 
-                    // ✅ FIXED: Removed 'payments' from with() to stop the SQL error
-                    // We only get bookings and their room.
-                    $bookings = $student->bookings()
-                        ->where('status', 'Approved')
-                        ->with('room') 
-                        ->get();
-                    
-                    // ✅ FETCH PAYMENTS SEPARATELY (Assuming Payment Model exists)
-                    // If $payments is not passed from controller, we fetch it here to avoid errors
-                    $payments = $payments ?? \App\Models\Payment::where('user_id', $student->id)
-                        ->with('room')
-                        ->orderBy('created_at', 'desc')
-                        ->get();
-                @endphp
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
 
-                @forelse($bookings as $booking)
-                    @php
-                        $room = $booking->room;
-                        // ✅ CHECK PAYMENT STATUS MANUALLY (Without booking_id)
-                        // Checks if there is a Pending or Approved payment for this user & room
-                        $hasPaid = false;
-                        if($room) {
-                            $hasPaid = \App\Models\Payment::where('user_id', $student->id)
-                                ->where('room_id', $room->id)
-                                ->whereIn('status', ['Approved', 'Pending'])
-                                ->where('created_at', '>=', $booking->created_at) // ✅ FIX: Only look for payments made AFTER booking
-                                ->exists();
-                        }
-                    @endphp
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+    
+    .status-icon { font-size: 1.2rem; }
+</style>
 
-                    @if($room && !$hasPaid)
-                        <div class="payment-card">
-                            <h3>Room {{ $room->room_number }} - {{ $room->room_floor }}</h3>
-                            <div class="amount">Monthly Rent: ₱{{ number_format($room->rent_fee, 2) }}</div>
+<div class="section">
+    <div class="section-title">Make Payments</div>
 
-                            <form action="{{ route('payment.store') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="room_id" value="{{ $room->id }}">
-                                {{-- We keep booking ID in form for controller reference, even if payment table doesn't use it yet --}}
-                                <input type="hidden" name="booking_id" value="{{ $booking->id }}">
-                                <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
+    @php
+        $student = auth()->user();
 
-                                <button type="button" class="pay-btn"
-                                    onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}', {{ $booking->id }})">
-                                    Pay Now
-                                </button>
-                            </form>
+        // Get approved bookings
+        $bookings = $student->bookings()
+            ->where('status', 'Approved')
+            ->with('room') 
+            ->get();
+    @endphp
+
+    @forelse($bookings as $booking)
+        @php
+            $room = $booking->room;
+            
+            // ✅ UPDATED LOGIC: Get the latest payment record for this room
+            // We fetch the object (first()) instead of just checking exists()
+            // so we can read the status 'Approved', 'Pending', or 'Rejected'.
+            $latestPayment = null;
+            
+            if($room) {
+                $latestPayment = \App\Models\Payment::where('user_id', $student->id)
+                    ->where('room_id', $room->id)
+                    ->where('created_at', '>=', $booking->created_at) // Only payments after booking
+                    ->latest() // Get the most recent attempt
+                    ->first();
+            }
+
+            // Determine if we should hide the pay button (Hide if Pending or Approved)
+            $hidePayButton = $latestPayment && in_array($latestPayment->status, ['Pending', 'Approved']);
+        @endphp
+
+        <div class="payment-card">
+            <h3>Room {{ $room->room_number ?? 'N/A' }} - {{ $room->room_floor ?? '' }}</h3>
+            <div class="amount">Monthly Rent: ₱{{ number_format($room->rent_fee ?? 0, 2) }}</div>
+
+            {{-- ✅ STATUS MESSAGES --}}
+            @if($latestPayment)
+                @if($latestPayment->status == 'Pending')
+                    <div class="status-alert status-pending">
+                        <i class="fas fa-hourglass-half status-icon"></i>
+                        <div>
+                            <strong>Payment Pending:</strong> 
+                            Your payment is currently under review by the admin.
                         </div>
-                    @endif
-                @empty
-                    <p>No approved bookings available for payment.</p>
-                @endforelse
+                    </div>
+                @elseif($latestPayment->status == 'Approved')
+                    <div class="status-alert status-approved">
+                        <i class="fas fa-check-circle status-icon"></i>
+                        <div>
+                            <strong>Payment Accepted:</strong> 
+                            Your payment has been verified. Thank you!
+                        </div>
+                    </div>
+                @elseif($latestPayment->status == 'Rejected')
+                    <div class="status-alert status-rejected">
+                        <i class="fas fa-times-circle status-icon"></i>
+                        <div>
+                            <strong>Payment Rejected:</strong> 
+                            The admin rejected your payment. Please review your details and pay again.
+                        </div>
+                    </div>
+                @endif
+            @endif
+
+            {{-- ✅ PAY BUTTON (Only show if no active payment exists or if last payment was rejected) --}}
+            @if($room && !$hidePayButton)
+                <form action="{{ route('payment.store') }}" method="POST" style="margin-top: 15px;">
+                    @csrf
+                    <input type="hidden" name="room_id" value="{{ $room->id }}">
+                    <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                    <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
+
+                    <button type="button" class="pay-btn"
+                        onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}', {{ $booking->id }})">
+                        {{ $latestPayment && $latestPayment->status == 'Rejected' ? 'Try Paying Again' : 'Pay Now' }}
+                    </button>
+                </form>
+            @endif
+        </div>
+
+    @empty
+        <p>No approved bookings available for payment.</p>
+    @endforelse
+</div>
+
+{{-- MODAL CODE REMAINS THE SAME --}}
+<div id="paymentModal" class="payment-modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closePaymentModal()">&times;</span>
+        <h2>Payment Method</h2>
+        <p id="roomInfo"></p>
+
+        <form id="paymentForm" method="POST" action="{{ route('payment.store') }}">
+            @csrf
+            <input type="hidden" name="room_id" id="modalRoomId">
+            <input type="hidden" name="booking_id" id="modalBookingId">
+            <input type="hidden" name="amount" id="modalAmount">
+
+            <div class="form-group">
+                <label style="display:block; text-align:left; margin-bottom:5px;">Name:</label>
+                <input type="text" name="student_name" value="{{ Auth::user()->name }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
             </div>
 
-            <div id="paymentModal" class="payment-modal" style="display:none;">
-                <div class="modal-content">
-                    <span class="close" onclick="closePaymentModal()">&times;</span>
-                    <h2>Payment Method</h2>
-                    <p id="roomInfo"></p>
-
-                    <form id="paymentForm" method="POST" action="{{ route('payment.store') }}">
-                        @csrf
-                        <input type="hidden" name="room_id" id="modalRoomId">
-                        <input type="hidden" name="booking_id" id="modalBookingId">
-                        <input type="hidden" name="amount" id="modalAmount">
-
-                        <div class="form-group">
-                            <label style="display:block; text-align:left; margin-bottom:5px;">Name:</label>
-                            <input type="text" name="student_name" value="{{ Auth::user()->name }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
-                        </div>
-
-                        <div class="form-group" style="margin-top:10px;">
-                            <label style="display:block; text-align:left; margin-bottom:5px;">Email:</label>
-                            <input type="email" name="student_email" value="{{ Auth::user()->email }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
-                        </div>
-
-                        <div class="form-group" style="margin-top:10px;">
-                            <label style="display:block; text-align:left; margin-bottom:5px;">Select Payment Method:</label>
-                            <select name="payment_method" id="paymentMethodSelect" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
-                                <option value="" disabled selected>-- Choose --</option>
-                                <option value="cash">Cash</option>
-                                <option value="gcash">GCash</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="credit_card">Credit Card</option>
-                            </select>
-                        </div>
-
-                        <div id="accountInfoBox" class="account-info-box">
-                            <h5 id="accountTitle">Account Details</h5>
-                            <p id="accountDetails"></p>
-                        </div>
-
-                        <div class="optional-policies" style="margin-top: 20px; font-size: 0.85rem; color: #555; text-align:left;">
-                            <h4 style="font-size:0.9rem; color:#d32f2f;">Important Payment Policies:</h4>
-                            <ul style="padding-left: 20px; margin-top: 5px;">
-                                <li><strong>No Refunds:</strong> Payments made are strictly non-refundable unless approved by admin.</li>
-                                <li><strong>Proof of Payment:</strong> Please take a screenshot of your transaction for GCash/Bank Transfer. You may be asked to present it.</li>
-                                <li><strong>Exact Amount:</strong> Ensure you pay the exact amount displayed.</li>
-                                <li><strong>Late Penalties:</strong> Late payments will incur a 1% monthly penalty fee. Please pay at least 3 days before the due date.</li>
-                                <li>Payments are pending until Admin approval.</li>
-                            </ul>
-                        </div>
-
-                        <button type="submit" class="pay-btn submit-btn" style="margin-top: 20px;">Confirm Payment</button>
-                    </form>
-                </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label style="display:block; text-align:left; margin-bottom:5px;">Email:</label>
+                <input type="email" name="student_email" value="{{ Auth::user()->email }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
             </div>
+
+            <div class="form-group" style="margin-top:10px;">
+                <label style="display:block; text-align:left; margin-bottom:5px;">Select Payment Method:</label>
+                <select name="payment_method" id="paymentMethodSelect" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                    <option value="" disabled selected>-- Choose --</option>
+                    <option value="cash">Cash</option>
+                    <option value="gcash">GCash</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="credit_card">Credit Card</option>
+                </select>
+            </div>
+
+            <div id="accountInfoBox" class="account-info-box">
+                <h5 id="accountTitle">Account Details</h5>
+                <p id="accountDetails"></p>
+            </div>
+
+            <div class="optional-policies" style="margin-top: 20px; font-size: 0.85rem; color: #555; text-align:left;">
+                <h4 style="font-size:0.9rem; color:#d32f2f;">Important Payment Policies:</h4>
+                <ul style="padding-left: 20px; margin-top: 5px;">
+                    <li><strong>No Refunds:</strong> Payments made are strictly non-refundable unless approved by admin.</li>
+                    <li><strong>Proof of Payment:</strong> Please take a screenshot of your transaction for GCash/Bank Transfer. You may be asked to present it.</li>
+                    <li><strong>Exact Amount:</strong> Ensure you pay the exact amount displayed.</li>
+                    <li><strong>Late Penalties:</strong> Late payments will incur a 1% monthly penalty fee. Please pay at least 3 days before the due date.</li>
+                    <li>Payments are pending until Admin approval.</li>
+                </ul>
+            </div>
+
+            <button type="submit" class="pay-btn submit-btn" style="margin-top: 20px;">Confirm Payment</button>
+        </form>
+    </div>
+</div>
 
             <div class="section">
                 <div class="section-title">All Payments</div>
@@ -234,7 +297,7 @@
                         <thead>
                             <tr>
                                 <th>PAYMENT ID</th>
-                                <th>STUDENT</th>
+                                <th>NAME</th>
                                 <th>AMOUNT</th>
                                 <th>ROOM NUMBER</th>
                                 <th>DATE</th>

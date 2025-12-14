@@ -1,5 +1,33 @@
 @php
     $hasActiveBooking = $hasActiveBooking ?? false;
+
+    // ✅ FIXED: Using '.' for string concatenation
+    $roomsData = $rooms->map(function($room) {
+        $inclusions = is_array($room->inclusions) ? $room->inclusions : json_decode($room->inclusions ?? '[]', true);
+        $galleryArray = json_decode($room->gallery ?? '[]', true);
+        $allPhotos = [];
+        if($room->image) $allPhotos[] = asset('storage/' . $room->image);
+        $gallery = collect($galleryArray)->filter(fn($g) => $g)->map(fn($g) => asset('storage/' . $g))->values()->all();
+        $allPhotos = array_merge($allPhotos, $gallery);
+        
+        $approvedBookings = $room->bookings()->where('status', 'approved')->count();
+        $availableBeds = max($room->bedspace - $approvedBookings, 0);
+        $isFull = $availableBeds <= 0;
+
+        return [
+            'id' => $room->id,
+            'title' => "Room " . $room->room_number . " - " . $room->room_floor, 
+            'price' => "₱" . number_format($room->rent_fee, 2) . "/Month",
+            'desc' => $room->description,
+            'inclusions' => $inclusions,
+            'images' => $allPhotos,
+            'gender' => $room->gender,
+            'bedspace' => $room->bedspace,
+            'occupied' => $approvedBookings,
+            'isFull' => $isFull,
+            'availableBeds' => $availableBeds
+        ];
+    });
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -37,43 +65,42 @@
         .section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
         .section-title { font-size: 22px; font-weight: 600; margin-bottom: 25px; }
         .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .room-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 0; overflow: hidden; }
+        .room-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 0; overflow: hidden; display: flex; flex-direction: column; background: #fff; }
         
         /* Room Image Styling */
         .room-image { width: 100%; height: 180px; object-fit: cover; background: linear-gradient(135deg, #FFD36E 0%, #FFA726 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; position: relative; overflow: hidden; cursor: zoom-in; }
         .room-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; transition: opacity 0.3s ease, transform 0.3s ease; }
         .room-image:hover img { transform: scale(1.05); }
 
-        .room-details { padding: 20px; }
-        .room-name { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
-        .room-price { font-size: 18px; font-weight: 700; color: #ff8800; margin-bottom: 10px; }
-        .room-desc { font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.4; }
-        .bedspace-status small { font-size: 13px; display: flex; justify-content: space-between; }
-        .bedspace-status div { background:#e9ecef; border-radius:6px; overflow:hidden; height:8px; margin-top:4px; }
+        .content-area { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .content-area h3 { font-size: 18px; margin-bottom: 5px; color: #333; }
+        .content-area .price { font-size: 18px; font-weight: 700; color: #ff8800; margin-bottom: 10px; }
+        .content-area .desc { font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.4; flex-grow: 1; }
+
+        .bedspace-status { margin-bottom: 15px; }
+        .bedspace-status small { font-size: 13px; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .bedspace-status div.bar { background:#e9ecef; border-radius:6px; overflow:hidden; height:8px; }
+        .bedspace-status div.fill { height: 100%; transition: width 0.4s ease; }
+
         .amenities { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
         .amenity-tag { background: #fff8e1; border: 1px solid #f8c70b; border-radius: 15px; padding: 5px 12px; font-size: 11px; display: flex; align-items: center; gap: 5px; }
         
-        /* Gallery Styles */
+        /* Gallery Styles - WRAPPED GRID (No Scroll) */
         .gallery-container {
-            display: flex;
-            gap: 8px;
-            padding: 10px 15px;
-            overflow-x: auto;
-            background: #fdfdfd;
-            border-bottom: 1px solid #f0f0f0;
-            white-space: nowrap;
-            scrollbar-width: thin;
-            scrollbar-color: #ff9800 #f0f0f0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* Responsive Grid */
+            gap: 10px;
+            margin-top: 10px;
+            padding: 5px 0;
         }
         .gallery-thumb {
-            width: 60px;
-            height: 60px;
+            width: 100%;
+            height: 70px; /* Fixed height for consistency */
             border-radius: 6px;
             object-fit: cover;
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.2s;
-            flex-shrink: 0;
         }
         .gallery-thumb:hover, .gallery-thumb.active {
             border-color: #ff9800;
@@ -111,19 +138,23 @@
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #fffbe6; font-weight: 600; color: #333; }
         
-        .book-btn { width: 100%; background-color: #ff9800; border: none; color: white; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px; }
+        .book-btn { width: 100%; background-color: #ff9800; border: none; color: white; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px; text-align: center; text-decoration: none; display: block; }
         .book-btn:hover { background-color: #f57c00; }
         .book-btn.unavailable { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
-        
+        .book-btn:disabled { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
+
         /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; padding: 10px; }
         .modal-content { background: #fff; border-radius: 14px; padding: 25px 30px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.25); animation: slideUp 0.3s ease; display: flex; flex-direction: column; gap: 10px; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-content .close { position: absolute; top: 12px; right: 16px; font-size: 22px; color: #666; cursor: pointer; transition: 0.2s ease; }
         .modal-content .close:hover { color: #ff3b30; transform: rotate(90deg); }
-        .reserve-btn { background: linear-gradient(135deg, #ff8c00, #ff6a00); color: #fff; border: none; padding: 8px 35px; font-size: 1rem; font-weight: 600; border-radius: 10px; cursor: pointer; box-shadow: 0 3px 12px rgba(255, 140, 0, 0.35); transition: all 0.3s ease; }
+        .reserve-btn { background: linear-gradient(135deg, #ff8c00, #ff6a00); color: #fff; border: none; padding: 8px 35px; font-size: 1rem; font-weight: 600; border-radius: 10px; cursor: pointer; box-shadow: 0 3px 12px rgba(255, 140, 0, 0.35); transition: all 0.3s ease; width: 100%; margin-top: 15px;}
         .reserve-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
         
+        /* Modal Gallery Header */
+        h4.gallery-title { margin-top: 15px; margin-bottom: 5px; font-size: 16px; color: #333; }
+
         /* Policy Lists */
         .policy-list ul { margin-left: 20px; margin-bottom: 15px; }
         .policy-list li { font-size: 0.9rem; color: #444; margin-bottom: 6px; line-height: 1.5; }
@@ -131,7 +162,7 @@
 
         /* BED LAYOUT STYLES */
         .bed-selector-container { position: relative; width: 100%; margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #eee; min-height: 200px; background: #f9f9f9; }
-        .bed-layout-img { width: 100%; display: block; }
+        .bed-layout-img { width: 100%; display: block; cursor: zoom-in; } 
         .bed-marker { position: absolute; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; border: 2px solid white; z-index: 10; }
         .bed-marker:hover { transform: scale(1.1); }
         .bed-marker.available { background-color: #28a745; color: white; }
@@ -202,124 +233,35 @@
             </div>
         @endif
 
+        {{-- ✅ SUCCESS MESSAGE --}}
+        @if(session('success'))
+            <div style="background-color:#fff3cd; color:#856404; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #ffeeba; display:flex; align-items:center; gap:10px;">
+                <i class="bi bi-check-circle-fill" style="color:#28a745;"></i>
+                {{ session('success') }}
+            </div>
+        @endif
+
         {{-- Available Rooms --}}
         <div class="section">
             <div class="section-title">Available Rooms</div>
 
             @if($hasActiveBooking)
+                {{-- ✅ WARNING BOX FOR ACTIVE BOOKING --}}
                 <div style="background-color:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:12px;">
                     ⚠️ You already have an approved booking.
                 </div>
             @endif
 
-            <div class="rooms-grid">
-                @foreach($rooms as $room)
-                    @php
-                        $approvedBookings = $room->bookings()->where('status', 'approved')->count();
-                        $availableBeds = max($room->bedspace - $approvedBookings, 0);
-                        $isFull = $availableBeds <= 0;
-                        
-                        $userGender = strtolower(Auth::user()->gender);
-                        $roomGender = strtolower($room->gender);
-                        $isGenderCompatible = ($roomGender === 'mixed' || $roomGender === $userGender);
-
-                        $canBook = !$hasActiveBooking && !$isFull && $room->status === 'available' && $isGenderCompatible;
-                        
-                        $inclusions = is_array($room->inclusions) ? $room->inclusions : json_decode($room->inclusions ?? '[]', true);
-                        $galleryArray = json_decode($room->gallery ?? '[]', true);
-                        $allPhotos = [];
-                        if($room->image) $allPhotos[] = asset('storage/' . $room->image);
-                        $gallery = collect($galleryArray)->filter(fn($g) => $g)->map(fn($g) => asset('storage/' . $g))->values()->all();
-                        $allPhotos = array_merge($allPhotos, $gallery);
-                    @endphp
-
-                    <div class="room-card">
-                        <div class="room-image">
-                            {{-- Main Image with Zoom --}}
-                            <img src="{{ $allPhotos[0] ?? '' }}" 
-                                 alt="Room {{ $room->room_number }}" 
-                                 id="main-img-{{ $room->id }}"
-                                 onclick="openZoom(this.src)">
-                        </div>
-
-                        {{-- GALLERY STRIP --}}
-                        @if(count($allPhotos) > 1)
-                            <div class="gallery-container">
-                                @foreach($allPhotos as $index => $photo)
-                                    <img src="{{ $photo }}" 
-                                         class="gallery-thumb" 
-                                         onclick="changeRoomImage({{ $room->id }}, '{{ $photo }}');">
-                                @endforeach
-                            </div>
-                        @endif
-
-                        <div class="room-details">
-                            <div class="room-name">
-                                Room {{ $room->room_number }} - {{ $room->room_floor }} 
-                                <span style="font-size: 12px; color: {{ $roomGender == 'female' ? '#e91e63' : ($roomGender == 'male' ? '#2196f3' : '#9c27b0') }}; border: 1px solid currentColor; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">
-                                    {{ ucfirst($room->gender) }} Only
-                                </span>
-                            </div>
-                            <div class="room-price">₱{{ number_format($room->rent_fee, 2) }}/Month</div>
-                            <div class="room-desc">{{ Str::limit($room->description, 60) }}</div>
-
-                            @if(!empty($inclusions))
-                                <div class="amenities">
-                                    @foreach($inclusions as $inc)
-                                        <div class="amenity-tag"> {{ $inc }}</div>
-                                    @endforeach
-                                </div>
-                            @endif
-
-                            <div class="bedspace-status">
-                                <small>
-                                    🛏️ {{ $room->bedspace }} beds — 
-                                    <span style="color:{{ $isFull ? '#b30000' : '#007b00' }}">
-                                        {{ $availableBeds }} available
-                                    </span>
-                                </small>
-                                <div>
-                                    <div style="width: {{ ($approvedBookings / $room->bedspace) * 100 }}%;
-                                        background: {{ $isFull ? '#dc3545' : (($approvedBookings / $room->bedspace) >= 0.5 ? '#ffc107' : '#28a745') }};
-                                        height: 100%; transition: width 0.4s ease;">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button type="button"
-                                class="book-btn {{ $canBook ? 'open-modal' : 'unavailable' }}"
-                                {{ $canBook ? '' : 'disabled' }}
-                                data-room-id="{{ $room->id }}"
-                                data-room-title="Room {{ $room->room_number }}"
-                                data-room-price="₱{{ number_format($room->rent_fee, 2) }}/Month"
-                                data-room-desc="{{ $room->description }}"
-                                data-room-inclusions='@json($inclusions)'
-                                data-occupied-count="{{ $approvedBookings }}"
-                                data-total-beds="{{ $room->bedspace }}"
-                                data-room-gender="{{ $room->gender }}">
-                                
-                                @if(!$isGenderCompatible)
-                                    {{ ucfirst($room->gender) }}s Only
-                                @elseif($hasActiveBooking)
-                                    Already Booked
-                                @elseif($isFull)
-                                    Full
-                                @else
-                                    SELECT BED
-                                @endif
-                            </button>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="rooms-grid" id="roomsContainer">
+                {{-- Room cards injected via JS --}}
             </div>
         </div>
 
-        {{-- POLICY MODAL (Full Content Restored) --}}
+        {{-- POLICY MODAL --}}
         <div id="policyModal" class="modal" style="display:none;">
             <div class="modal-content policy-list">
                 <span class="close" onclick="closePolicyModal()">&times;</span>
                 <h2 style="text-align:center; margin-bottom:15px;">Boarding House Policies</h2>
-
                 <h3>General Conduct</h3>
                 <ul>
                     <li><strong>Gender Policy:</strong> Only tenants of the same gender are allowed per room. Mixed gender occupancy is not permitted.</li>
@@ -351,13 +293,11 @@
                     <li>Repeated violations of house rules may result in written warnings, fines, or eviction.</li>
                     <li>Residents are financially responsible for any damage they cause to property or facilities.</li>
                 </ul>
-
                 <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
                     <input type="checkbox" id="acceptPolicies">
-                    <label for="acceptPolicies" style="font-weight:600;">I have read and agree to the boarding house policies.</label>
+                    <label for="acceptPolicies" style="font-weight:600;">I have read and agree to the policies.</label>
                 </div>
-
-                <button id="acceptPoliciesBtn" class="reserve-btn" style="margin-top:15px; width:100%;" disabled>
+                <button id="acceptPoliciesBtn" class="reserve-btn" disabled>
                     Proceed to Room Selection
                 </button>
             </div>
@@ -367,15 +307,23 @@
         <div id="roomModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h2 id="modalTitle">Room Details</h2>
+                <h2 id="modalTitle">Room Title</h2>
                 <p id="modalPrice" style="color:#ff8800; font-weight:700;"></p>
+                <p id="modalDesc" style="font-size:14px; color:#666;"></p>
+
+                <h4>Inclusions:</h4>
+                <div id="modalInclusions" class="amenities"></div>
 
                 <h4 style="margin-top:10px;">Select your Bed:</h4>
                 <div class="bed-selector-container">
-                    <img src="" alt="Room Layout" class="bed-layout-img" id="modalRoomImage">
+                    <img src="" alt="Room Layout" class="bed-layout-img" id="modalRoomImage" onclick="openZoom(this.src)">
                     <div id="bedMarkersContainer"></div>
                 </div>
                 <div class="selection-info" id="selectionInfo">Click a green circle to select your bed</div>
+
+                {{-- Gallery in Modal --}}
+                <h4 class="gallery-title">Gallery</h4>
+                <div id="modalGallery" class="gallery-container"></div>
 
                 <div class="modal-actions">
                     <form id="modalBookingForm" method="POST" action="{{ route('student.booking.store') }}">
@@ -390,7 +338,7 @@
             </div>
         </div>
 
-        {{-- My Bookings (List UI) --}}
+        {{-- My Bookings List --}}
         <div class="section">
             <div class="section-title"><i class="bi bi-calendar-check"></i> My Bookings</div>
             @if($bookings->count())
@@ -408,7 +356,7 @@
                 @foreach($bookings as $booking)
                     <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:10px;">{{ $booking->id }}</td>
-                    <td style="padding:10px;">{{ $booking->room->room_number ?? 'Room' }}</td>
+                    <td style="padding:10px;">{{ $booking->room->name ?? 'Room' }}</td>
                     <td style="padding:10px;">#{{ $booking->bed_number ?? 'N/A' }}</td>
                     <td style="padding:10px;">
                         <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;
@@ -424,25 +372,32 @@
             </table>
             @else
             <div style="text-align: center; padding: 20px; color: #888;">
-                <i class="bi bi-journal-x" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
                 <p>No bookings found.</p>
             </div>
             @endif
         </div>
     </div>
 
-    {{-- ZOOM MODAL CONTAINER --}}
+    {{-- ZOOM MODAL --}}
     <div id="imageZoomModal" class="img-zoom-overlay">
         <img id="zoomedImage" src="" alt="Zoomed View">
     </div>
 
     {{-- SCRIPTS --}}
     <script>
+        const roomsData = @json($roomsData);
+        const hasActiveBooking = @json($hasActiveBooking);
+        const userGender = "{{ strtolower(Auth::user()->gender) }}";
+
         document.addEventListener('DOMContentLoaded', () => {
+            const roomsContainer = document.getElementById('roomsContainer');
             const roomModal = document.getElementById('roomModal');
             const policyModal = document.getElementById('policyModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalPrice = document.getElementById('modalPrice');
+            const modalDesc = document.getElementById('modalDesc');
+            const modalInclusions = document.getElementById('modalInclusions');
+            const modalGallery = document.getElementById('modalGallery');
             const modalRoomId = document.getElementById('modalRoomId');
             const modalBedNumber = document.getElementById('modalBedNumber');
             const bedMarkersContainer = document.getElementById('bedMarkersContainer');
@@ -452,20 +407,79 @@
             const acceptPoliciesCheckbox = document.getElementById('acceptPolicies');
             const modalRoomImage = document.getElementById('modalRoomImage');
             
-            let pendingRoomData = null;
+            let selectedRoom = null;
 
-            document.querySelectorAll('.open-modal').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    pendingRoomData = {
-                        id: btn.dataset.roomId,
-                        title: btn.dataset.roomTitle,
-                        price: btn.dataset.roomPrice,
-                        occupied: parseInt(btn.dataset.occupiedCount),
-                        total: parseInt(btn.dataset.totalBeds),
-                        gender: btn.dataset.roomGender 
-                    };
+            // 1. Render Rooms Dynamically
+            roomsData.forEach(room => {
+                const card = document.createElement('div');
+                card.className = 'room-card';
+                
+                // Logic for button status
+                const roomGender = room.gender.toLowerCase();
+                const isGenderCompatible = (roomGender === 'mixed' || roomGender === userGender);
+                
+                let btnText = 'SELECT BED';
+                let btnClass = 'book-btn open-modal';
+                let btnDisabled = '';
+
+                if (!isGenderCompatible) {
+                    btnText = capitalizeFirstLetter(room.gender) + 's Only';
+                    btnClass += ' unavailable';
+                    btnDisabled = 'disabled';
+                } else if (hasActiveBooking) {
+                    btnText = 'Already Booked';
+                    btnClass += ' unavailable';
+                    btnDisabled = 'disabled';
+                } else if (room.isFull) {
+                    btnText = 'Full';
+                    btnClass += ' unavailable';
+                    btnDisabled = 'disabled';
+                }
+
+                // Calculate progress bar width
+                const progressWidth = (room.occupied / room.bedspace) * 100;
+                const progressColor = room.isFull ? '#dc3545' : ((room.occupied / room.bedspace) >= 0.5 ? '#ffc107' : '#28a745');
+
+                card.innerHTML = `
+                    <div class="room-image">
+                        <img src="${room.images[0] || ''}" alt="${room.title}" onclick="openZoom(this.src)">
+                    </div>
+                    <div class="content-area">
+                        <h3>${room.title}</h3>
+                        <div class="price">${room.price}</div>
+                        <div class="desc">${truncateString(room.desc, 60)}</div>
+                        
+                        <div class="amenities">
+                            ${room.inclusions.map(inc => `<div class="amenity-tag">${inc}</div>`).join('')}
+                        </div>
+
+                        <div class="bedspace-status">
+                            <small>
+                                🛏️ ${room.bedspace} beds — 
+                                <span style="color:${room.isFull ? '#b30000' : '#007b00'}">
+                                    ${room.availableBeds} available
+                                </span>
+                            </small>
+                            <div class="bar">
+                                <div class="fill" style="width: ${progressWidth}%; background: ${progressColor};"></div>
+                            </div>
+                        </div>
+
+                        <button class="${btnClass}" ${btnDisabled} data-room-id="${room.id}">
+                            ${btnText}
+                        </button>
+                    </div>
+                `;
+                roomsContainer.appendChild(card);
+            });
+
+            // 2. Modal Open Logic - Using Event Delegation for robustness
+            roomsContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('open-modal')) {
+                    const roomId = e.target.dataset.roomId;
+                    selectedRoom = roomsData.find(r => r.id == roomId);
                     openPolicyModal();
-                });
+                }
             });
 
             function openPolicyModal() {
@@ -480,33 +494,39 @@
 
             acceptPoliciesBtn.addEventListener('click', () => {
                 policyModal.style.display = 'none';
-                if(pendingRoomData) openRoomModal(pendingRoomData);
+                if(selectedRoom) openRoomModal(selectedRoom);
             });
 
-            function openRoomModal(data) {
-                modalTitle.textContent = data.title;
-                modalPrice.textContent = data.price;
-                modalRoomId.value = data.id;
-                modalBedNumber.value = ""; 
+            function openRoomModal(room) {
+                modalTitle.textContent = room.title;
+                modalPrice.textContent = room.price;
+                modalDesc.textContent = room.desc;
+                modalRoomId.value = room.id;
+                modalBedNumber.value = "";
                 confirmBookingBtn.disabled = true;
                 confirmBookingBtn.textContent = "Select a Bed";
                 selectionInfo.textContent = "Click a green circle to select your bed";
                 selectionInfo.style.color = "#ff8800";
 
-                if (data.gender && data.gender.toLowerCase() === 'male') {
-                    modalRoomImage.src = "/images/fem.png";
+                // Inclusions
+                modalInclusions.innerHTML = room.inclusions.map(i => `<div class="amenity-tag">${i}</div>`).join('');
+
+                // Layout Image & Markers
+                let layoutSrc;
+                if (room.gender.toLowerCase() === 'male') {
+                    layoutSrc = "/images/fem.png";
                 } else {
-                    modalRoomImage.src = "/images/room.png";
+                    layoutSrc = "/images/room.png";
                 }
-
+                modalRoomImage.src = layoutSrc;
+                
                 bedMarkersContainer.innerHTML = '';
-
                 for (let i = 1; i <= 8; i++) {
                     const bedBtn = document.createElement('div');
                     bedBtn.classList.add('bed-marker', 'bed-' + i);
                     bedBtn.textContent = i;
 
-                    if (i <= data.occupied) {
+                    if (i <= room.occupied) {
                         bedBtn.classList.add('occupied');
                         bedBtn.title = "Occupied";
                     } else {
@@ -516,6 +536,19 @@
                     }
                     bedMarkersContainer.appendChild(bedBtn);
                 }
+
+                // Gallery Logic
+                modalGallery.innerHTML = '';
+                room.images.forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.className = 'gallery-thumb';
+                    img.onclick = function() {
+                        openZoom(src); 
+                    };
+                    modalGallery.appendChild(img);
+                });
+
                 roomModal.style.display = 'flex';
             }
 
@@ -536,35 +569,32 @@
                 });
             });
 
-            window.toggleSidebar = function() {
-                document.getElementById('sidebar').classList.toggle('collapsed');
-                document.getElementById('content').classList.toggle('expanded');
-            };
-
+            // Zoom Logic
             const zoomOverlay = document.getElementById('imageZoomModal');
             const zoomImg = document.getElementById('zoomedImage');
-
             window.openZoom = function(src) {
                 zoomImg.src = src;
                 zoomOverlay.style.display = 'flex';
             }
-
             zoomOverlay.addEventListener('click', () => {
                 zoomOverlay.style.display = 'none';
             });
-        });
 
-        function changeRoomImage(roomId, imageUrl) {
-            const mainImg = document.getElementById('main-img-' + roomId);
-            if(mainImg) {
-                mainImg.style.opacity = 0; 
-                setTimeout(() => {
-                    mainImg.src = imageUrl;
-                    mainImg.style.opacity = 1;
-                    mainImg.onclick = function() { window.openZoom(imageUrl); };
-                }, 200);
+            // Helper Functions
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
             }
-        }
+            function truncateString(str, num) {
+                if (!str) return '';
+                if (str.length <= num) return str;
+                return str.slice(0, num) + '...';
+            }
+
+            window.toggleSidebar = function() {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+                document.getElementById('content').classList.toggle('expanded');
+            };
+        });
     </script>
 </body>
 </html>
