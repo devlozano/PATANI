@@ -7,6 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+
     <style>
 /* 🌟 GLOBAL RESET */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Poppins", sans-serif; }
@@ -45,7 +48,7 @@ h1 { font-size: 36px; font-weight: 700; margin-bottom: 40px; }
 .report-section { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 40px; }
 .section-title { font-size: 24px; font-weight: 700; margin-bottom: 25px; }
 
-/* 🌟 FILTER BAR STYLES (NEW) */
+/* 🌟 FILTER BAR STYLES */
 .filter-bar {
     display: flex;
     flex-wrap: wrap;
@@ -63,7 +66,7 @@ h1 { font-size: 36px; font-weight: 700; margin-bottom: 40px; }
     flex-direction: column;
     gap: 5px;
     flex: 1;
-    min-width: 200px;
+    min-width: 180px;
 }
 
 .filter-group label {
@@ -88,21 +91,38 @@ h1 { font-size: 36px; font-weight: 700; margin-bottom: 40px; }
     box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
 }
 
+/* 🌟 ACTION BUTTONS */
 .btn-print {
     background: #2196F3;
     color: white;
     border: none;
-    padding: 10px 25px;
+    padding: 10px 20px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    height: 42px; /* Match input height */
+    height: 42px;
     display: flex;
     align-items: center;
     gap: 8px;
     transition: 0.3s;
 }
 .btn-print:hover { background: #1976D2; }
+
+.btn-csv {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+.btn-csv:hover { background: #388E3C; }
 
 .btn-reset {
     background: #757575;
@@ -136,16 +156,21 @@ tbody tr:hover { background: #fafafa; }
 
 /* 🌟 PRINT STYLES */
 @media print {
-    .sidebar, .top-bar, .filter-bar, .section-title { display: none !important; }
-    .content { margin: 0; padding: 0; }
+    @page { size: landscape; margin: 1cm; }
+    body { background: white; -webkit-print-color-adjust: exact; }
+    .sidebar, .top-bar, .filter-bar, .section-title, .logout-btn { display: none !important; }
+    .content { margin: 0; padding: 0; width: 100%; }
     .main-content { padding: 0; }
-    .report-section { box-shadow: none; padding: 0; }
-    h1 { font-size: 24px; margin-bottom: 20px; text-align: center; }
-    h1::before { content: "Patani Trinidad - Payment Report"; }
-    h1 { visibility: hidden; }
-    h1::before { visibility: visible; display: block; }
-    table { width: 100%; border: 1px solid #000; }
-    th, td { border: 1px solid #000; }
+    .report-section { box-shadow: none; padding: 0; border: none; }
+    h1 { font-size: 24px; margin-bottom: 10px; text-align: center; }
+    h1::before { content: "Patani Trinidad Boarding House - Payment Report"; display: block; font-size: 20px; margin-bottom: 5px; color: #333; }
+    h1 { visibility: hidden; height: 50px; }
+    h1::before { visibility: visible; }
+    table { width: 100%; border: 2px solid #000; font-size: 12px; }
+    th { background-color: #ddd !important; border: 1px solid #000; color: black; }
+    td { border: 1px solid #000; }
+    .status-badge { border: 1px solid #000; color: black !important; background: none !important; font-weight: bold; }
+    tr[style*="display: none"] { display: none !important; }
 }
 
 /* 🌟 RESPONSIVE */
@@ -208,12 +233,12 @@ tbody tr:hover { background: #fafafa; }
 
                 <div class="filter-bar">
                     <div class="filter-group">
-                        <label>Search by Student Name</label>
+                        <label>Search by Name</label>
                         <input type="text" id="searchInput" class="filter-input" placeholder="e.g. Juan Dela Cruz">
                     </div>
                     
                     <div class="filter-group">
-                        <label>Filter by Status</label>
+                        <label>Status</label>
                         <select id="statusFilter" class="filter-input">
                             <option value="all">All Statuses</option>
                             <option value="approved">Approved</option>
@@ -232,9 +257,12 @@ tbody tr:hover { background: #fafafa; }
                         <input type="date" id="endDate" class="filter-input">
                     </div>
 
-                    <div class="filter-group" style="flex-direction: row; gap: 10px;">
+                    <div class="filter-group" style="flex-direction: row; gap: 10px; flex-wrap: wrap;">
                         <button class="btn-print" onclick="window.print()">
-                            <i class="fas fa-print"></i> Print
+                            <i class="fas fa-print"></i> PDF
+                        </button>
+                        <button class="btn-csv" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel"></i> Excel
                         </button>
                         <button class="btn-reset" onclick="resetFilters()">
                             Reset
@@ -245,7 +273,7 @@ tbody tr:hover { background: #fafafa; }
                 <table id="reportsTable">
                     <thead>
                         <tr>
-                            <th>STUDENT NAME</th>
+                            <th>NAME</th>
                             <th>AMOUNT</th>
                             <th>PAYMENT DATE</th>
                             <th>STATUS</th>
@@ -307,7 +335,7 @@ tbody tr:hover { background: #fafafa; }
             }
         }
 
-        // ✅ FILTERING LOGIC (Name, Status, Date Range)
+        // ✅ FILTERING LOGIC
         const searchInput = document.getElementById('searchInput');
         const statusFilter = document.getElementById('statusFilter');
         const startDateInput = document.getElementById('startDate');
@@ -320,7 +348,6 @@ tbody tr:hover { background: #fafafa; }
             const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
             const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
 
-            // Reset time part for accurate date comparison
             if(startDate) startDate.setHours(0,0,0,0);
             if(endDate) endDate.setHours(23,59,59,999);
 
@@ -330,20 +357,14 @@ tbody tr:hover { background: #fafafa; }
                 const dateStr = row.querySelector('.payment-date')?.getAttribute('data-date');
                 const rowDate = dateStr ? new Date(dateStr) : null;
 
-                // 1. Name Match
                 const nameMatch = nameText.includes(searchValue);
-
-                // 2. Status Match
                 const statusMatch = (statusValue === 'all') || (statusText === statusValue);
-
-                // 3. Date Range Match
                 let dateMatch = true;
                 if (rowDate) {
                     if (startDate && rowDate < startDate) dateMatch = false;
                     if (endDate && rowDate > endDate) dateMatch = false;
                 }
 
-                // Final Decision
                 if (nameMatch && statusMatch && dateMatch) {
                     row.style.display = '';
                 } else {
@@ -360,11 +381,44 @@ tbody tr:hover { background: #fafafa; }
             filterReports();
         }
 
-        // Attach Listeners
         searchInput.addEventListener('keyup', filterReports);
         statusFilter.addEventListener('change', filterReports);
         startDateInput.addEventListener('change', filterReports);
         endDateInput.addEventListener('change', filterReports);
+
+        // ✅ EXPORT TO EXCEL (FIXED FOR WIDE COLUMNS)
+        function exportToExcel() {
+            // 1. Clone the table to avoid modifying the original
+            const originalTable = document.getElementById('reportsTable');
+            const tableClone = originalTable.cloneNode(true);
+            
+            // 2. Remove hidden rows from the clone
+            const rows = tableClone.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                if (row.style.display === 'none') {
+                    row.remove();
+                }
+            });
+
+            // 3. Convert Table to Worksheet
+            const ws = XLSX.utils.table_to_sheet(tableClone);
+
+            // 4. ✅ SET COLUMN WIDTHS (Fixes ####### issue)
+            const wscols = [
+                {wch: 30}, // Student Name (Width: 30 chars)
+                {wch: 20}, // Amount
+                {wch: 25}, // Payment Date
+                {wch: 15}  // Status
+            ];
+            ws['!cols'] = wscols;
+
+            // 5. Create Workbook and Append Sheet
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Payment Report");
+            
+            // 6. Download file
+            XLSX.writeFile(wb, 'Patani_Payment_Report.xlsx');
+        }
 
     </script>
 </body>
