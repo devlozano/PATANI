@@ -318,6 +318,22 @@ tbody tr:hover { background: #f9f9f9; }
         <div class="main-content">
             <h1>Manage Payments</h1>
 
+            {{-- ✅ SUCCESS MESSAGE BLOCK --}}
+            @if(session('success'))
+            <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                <strong>{{ session('success') }}</strong>
+            </div>
+            @endif
+
+            {{-- ❌ ERROR MESSAGE BLOCK --}}
+            @if(session('error'))
+            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
+                <strong>{{ session('error') }}</strong>
+            </div>
+            @endif
+
             <div class="payment-section">
                 <h2 class="section-title">Pending Payments</h2>
                 <table>
