@@ -152,19 +152,19 @@
         <div class="main-content">
             <h1>Manage Bookings</h1>
 
-            {{-- ✅ SUCCESS MESSAGE (For Approval) --}}
+            {{-- ✅ SUCCESS MESSAGE (Approval/Checkout) --}}
             @if(session('success'))
                 <div style="background-color:#d4edda; color:#155724; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #c3e6cb; display:flex; align-items:center; gap:10px;">
-                    <i class="fas fa-check-circle"></i>
-                    {{ session('success') }}
+                    <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                    <strong>{{ session('success') }}</strong>
                 </div>
             @endif
 
-            {{-- ❌ ERROR/REJECT MESSAGE (Added This!) --}}
+            {{-- ❌ ERROR MESSAGE (Rejection) --}}
             @if(session('error'))
                 <div style="background-color:#f8d7da; color:#721c24; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #f5c6cb; display:flex; align-items:center; gap:10px;">
-                    <i class="fas fa-times-circle"></i>
-                    {{ session('error') }}
+                    <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
+                    <strong>{{ session('error') }}</strong>
                 </div>
             @endif
 

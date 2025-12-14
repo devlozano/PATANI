@@ -1,15 +1,23 @@
 @php
     $hasActiveBooking = $hasActiveBooking ?? false;
 
-    // ✅ FIXED: Using '.' for string concatenation
+    // ✅ FIXED: Data preparation logic
     $roomsData = $rooms->map(function($room) {
-        $inclusions = is_array($room->inclusions) ? $room->inclusions : json_decode($room->inclusions ?? '[]', true);
+        // Decode inclusions safely
+        $inclusions = is_array($room->inclusions) 
+            ? $room->inclusions 
+            : json_decode($room->inclusions ?? '[]', true);
+            
+        // Decode gallery safely
         $galleryArray = json_decode($room->gallery ?? '[]', true);
+        
+        // Merge main image + gallery
         $allPhotos = [];
         if($room->image) $allPhotos[] = asset('storage/' . $room->image);
         $gallery = collect($galleryArray)->filter(fn($g) => $g)->map(fn($g) => asset('storage/' . $g))->values()->all();
         $allPhotos = array_merge($allPhotos, $gallery);
         
+        // Calculate status
         $approvedBookings = $room->bookings()->where('status', 'approved')->count();
         $availableBeds = max($room->bedspace - $approvedBookings, 0);
         $isFull = $availableBeds <= 0;
@@ -226,18 +234,19 @@
 
         <h1>Bookings</h1>
 
+        {{-- ❌ ERROR MESSAGE (RED) --}}
         @if(session('error'))
-            <div style="background-color:#ffe6e6; color:#b30000; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #ffcccc; display:flex; align-items:center; gap:10px;">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                {{ session('error') }}
+            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
+                <i class="bi bi-exclamation-circle-fill" style="font-size: 1.2rem;"></i>
+                <strong>{{ session('error') }}</strong>
             </div>
         @endif
 
-        {{-- ✅ SUCCESS MESSAGE --}}
+        {{-- ✅ SUCCESS MESSAGE (GREEN) --}}
         @if(session('success'))
-            <div style="background-color:#fff3cd; color:#856404; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #ffeeba; display:flex; align-items:center; gap:10px;">
-                <i class="bi bi-check-circle-fill" style="color:#28a745;"></i>
-                {{ session('success') }}
+            <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; display: flex; align-items: center; gap: 10px;">
+                <i class="bi bi-check-circle-fill" style="font-size: 1.2rem;"></i>
+                <strong>{{ session('success') }}</strong>
             </div>
         @endif
 
@@ -246,9 +255,10 @@
             <div class="section-title">Available Rooms</div>
 
             @if($hasActiveBooking)
-                {{-- ✅ WARNING BOX FOR ACTIVE BOOKING --}}
-                <div style="background-color:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:12px;">
-                    ⚠️ You already have an approved booking.
+                {{-- ⚠️ WARNING BOX FOR ACTIVE BOOKING (RED) --}}
+                <div style="background: #f8d7da; color: #721c24; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>Warning: You already have an approved booking. You cannot book another room.</strong>
                 </div>
             @endif
 
@@ -356,7 +366,7 @@
                 @foreach($bookings as $booking)
                     <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:10px;">{{ $booking->id }}</td>
-                    <td style="padding:10px;">{{ $booking->room->name ?? 'Room' }}</td>
+                    <td style="padding:10px;">{{ $booking->room->room_number ?? 'Room' }}</td>
                     <td style="padding:10px;">#{{ $booking->bed_number ?? 'N/A' }}</td>
                     <td style="padding:10px;">
                         <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;

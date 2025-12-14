@@ -114,17 +114,34 @@
         <div class="main-content">
             <h1>Student Profile</h1>
 
-            {{-- ✅ SUCCESS MESSAGE --}}
+            {{-- ✅ SUCCESS MESSAGE (GREEN) --}}
             @if(session('success'))
-                <div style="background-color: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #c3e6cb;">
-                    {{ session('success') }}
+                <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; display: flex; align-items: center; gap: 10px;">
+                    <i class="bi bi-check-circle-fill" style="font-size: 1.2rem;"></i>
+                    <strong>{{ session('success') }}</strong>
                 </div>
             @endif
 
-            {{-- ❌ GENERAL ERROR MESSAGE --}}
+            {{-- ❌ GENERAL ERROR MESSAGE (RED) --}}
+            @if(session('error'))
+                <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
+                    <i class="bi bi-exclamation-circle-fill" style="font-size: 1.2rem;"></i>
+                    <strong>{{ session('error') }}</strong>
+                </div>
+            @endif
+
+            {{-- ❌ VALIDATION ERRORS LIST --}}
             @if($errors->any())
-                <div style="background-color: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #f5c6cb;">
-                    <strong>Whoops!</strong> There were some problems with your input.
+                <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.2rem;"></i>
+                        <strong>Whoops! Something went wrong.</strong>
+                    </div>
+                    <ul style="margin-left: 25px; margin-bottom: 0;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
@@ -200,7 +217,6 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Name:</label>
-                            {{-- ✅ FIXED: Added regex pattern for frontend validation --}}
                             <input type="text" name="name" 
                                    value="{{ old('name', Auth::user()->name) }}" 
                                    class="@error('name') input-error @enderror" 

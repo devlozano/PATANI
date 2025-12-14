@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}"> <title>Patani Trinidad - Admin Dashboard</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}"> 
+    <title>Patani Trinidad - Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -122,12 +123,6 @@
         .send-btn:hover { background: #f57c00; transform: scale(1.05); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* ✅ CUSTOM SWEETALERT ICON STYLES */
-        .swal2-icon.swal2-custom-icon {
-            border: none !important;
-            font-size: 30px;
-        }
-
         @media (max-width: 768px) {
             .sidebar { width: 300px; transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -186,6 +181,22 @@
 
         <div class="main-content">
             <h1>Admin Dashboard</h1>
+
+            {{-- ✅ SUCCESS MESSAGE BLOCK (Added This) --}}
+            @if(session('success'))
+            <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                <strong>{{ session('success') }}</strong>
+            </div>
+            @endif
+
+            {{-- ❌ ERROR MESSAGE BLOCK (Added This) --}}
+            @if(session('error'))
+            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
+                <strong>{{ session('error') }}</strong>
+            </div>
+            @endif
 
             <div class="stat-cards">
                 <div class="stat-card">
@@ -469,52 +480,9 @@
                     });
                 });
             });
-
-            // ✅ SWEET ALERT POPUP FOR SUCCESS (Custom Icons based on Action)
-            @if(session('success'))
-                let msg = "{{ session('success') }}";
-                let iconHtml = '';
-                let iconColor = '';
-                let title = 'Success!';
-
-                // Detect action type from message
-                if (msg.toLowerCase().includes('delete')) {
-                    iconHtml = '<i class="fas fa-trash-alt"></i>'; // 🗑️ Trash Icon
-                    iconColor = '#FF4444'; // Red
-                    title = 'Deleted!';
-                } else if (msg.toLowerCase().includes('update') || msg.toLowerCase().includes('edit')) {
-                    iconHtml = '<i class="fas fa-edit"></i>'; // ✏️ Edit Icon
-                    iconColor = '#3498db'; // Blue
-                    title = 'Updated!';
-                } else if (msg.toLowerCase().includes('post') || msg.toLowerCase().includes('create')) {
-                    iconHtml = '<i class="fas fa-bullhorn"></i>'; // 📢 Bullhorn/Post Icon
-                    iconColor = '#ff9800'; // Orange
-                    title = 'Posted!';
-                }
-
-                // If a keyword matched, use custom icon; otherwise default to standard checkmark
-                if(iconHtml) {
-                    Swal.fire({
-                        iconHtml: iconHtml,
-                        iconColor: iconColor,
-                        title: title,
-                        text: msg,
-                        showConfirmButton: false,
-                        timer: 2000,
-                        customClass: {
-                            icon: 'swal2-custom-icon'
-                        }
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: msg,
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                }
-            @endif
+            
+            // ✅ I REMOVED THE SWEETALERT SUCCESS BLOCK HERE
+            // The success message will now appear in the HTML block added above
         });
 
         // [Chat Scripts]
