@@ -13,7 +13,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\StudentBookingController;
+use App\Http\Controllers\StudentBookingController; // Ensure this is imported
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminPaymentController;
@@ -57,10 +57,18 @@ Route::middleware(['auth'])->group(function () {
 // 🎓 STUDENT ROUTES
 Route::prefix('student')->middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dash');
+    
+    // Booking Routes
     Route::get('/booking', [StudentBookingController::class, 'index'])->name('student.booking');
     Route::post('/booking', [StudentBookingController::class, 'store'])->name('student.booking.store');
+    
+    // ✅ NEW: PDF Contract Route
+    Route::get('/booking/{id}/contract', [StudentBookingController::class, 'generateContract'])->name('student.booking.contract');
+
+    // Payments
     Route::get('/payment', [PaymentController::class, 'index'])->name('student.payment');
     Route::post('/payment/store', [PaymentController::class, 'store'])->name('payment.store');
+    
     Route::get('/room', [BookingController::class, 'index'])->name('student.room');
 });
 
@@ -69,7 +77,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // ✅ Announcements Routes (Updated)
+    // Announcements Routes
     Route::post('/announcement/post', [AdminDashboardController::class, 'postAnnouncement'])->name('post.announcement');
     Route::put('/announcement/{id}', [AdminDashboardController::class, 'updateAnnouncement'])->name('announcement.update');
     Route::delete('/announcement/{id}', [AdminDashboardController::class, 'destroyAnnouncement'])->name('announcement.destroy');

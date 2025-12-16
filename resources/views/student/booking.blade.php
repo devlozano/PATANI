@@ -1,23 +1,19 @@
 @php
     $hasActiveBooking = $hasActiveBooking ?? false;
 
-    // ✅ FIXED: Data preparation logic
+    // ✅ Data preparation logic
     $roomsData = $rooms->map(function($room) {
-        // Decode inclusions safely
         $inclusions = is_array($room->inclusions) 
             ? $room->inclusions 
             : json_decode($room->inclusions ?? '[]', true);
             
-        // Decode gallery safely
         $galleryArray = json_decode($room->gallery ?? '[]', true);
         
-        // Merge main image + gallery
         $allPhotos = [];
         if($room->image) $allPhotos[] = asset('storage/' . $room->image);
         $gallery = collect($galleryArray)->filter(fn($g) => $g)->map(fn($g) => asset('storage/' . $g))->values()->all();
         $allPhotos = array_merge($allPhotos, $gallery);
         
-        // Calculate status
         $approvedBookings = $room->bookings()->where('status', 'approved')->count();
         $availableBeds = max($room->bedspace - $approvedBookings, 0);
         $isFull = $availableBeds <= 0;
@@ -30,7 +26,7 @@
             'inclusions' => $inclusions,
             'images' => $allPhotos,
             'gender' => $room->gender,
-            'bedspace' => $room->bedspace,
+            'bedspace' => $room->bedspace, 
             'occupied' => $approvedBookings,
             'isFull' => $isFull,
             'availableBeds' => $availableBeds
@@ -47,7 +43,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
-        /* --- ORIGINAL CSS STYLES --- */
+        /* --- CORE STYLES --- */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Poppins", sans-serif; }
         body { display: flex; min-height: 100vh; background: #f5f5f5; }
         .sidebar { width: 300px; background: linear-gradient(to bottom, #FFD36E, #FF9800); color: #1e1e1e; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; transition: transform 0.3s ease; }
@@ -75,7 +71,6 @@
         .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .room-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 0; overflow: hidden; display: flex; flex-direction: column; background: #fff; }
         
-        /* Room Image Styling */
         .room-image { width: 100%; height: 180px; object-fit: cover; background: linear-gradient(135deg, #FFD36E 0%, #FFA726 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; position: relative; overflow: hidden; cursor: zoom-in; }
         .room-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; transition: opacity 0.3s ease, transform 0.3s ease; }
         .room-image:hover img { transform: scale(1.05); }
@@ -93,55 +88,15 @@
         .amenities { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
         .amenity-tag { background: #fff8e1; border: 1px solid #f8c70b; border-radius: 15px; padding: 5px 12px; font-size: 11px; display: flex; align-items: center; gap: 5px; }
         
-        /* Gallery Styles - WRAPPED GRID (No Scroll) */
-        .gallery-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* Responsive Grid */
-            gap: 10px;
-            margin-top: 10px;
-            padding: 5px 0;
-        }
-        .gallery-thumb {
-            width: 100%;
-            height: 70px; /* Fixed height for consistency */
-            border-radius: 6px;
-            object-fit: cover;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .gallery-thumb:hover, .gallery-thumb.active {
-            border-color: #ff9800;
-            transform: scale(1.05);
-        }
+        .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 10px; padding: 5px 0; }
+        .gallery-thumb { width: 100%; height: 70px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .gallery-thumb:hover, .gallery-thumb.active { border-color: #ff9800; transform: scale(1.05); }
 
-        /* ZOOM OVERLAY CSS */
-        .img-zoom-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            cursor: zoom-out;
-            animation: fadeIn 0.2s ease-in-out;
-        }
-        .img-zoom-overlay img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            animation: zoomIn 0.3s ease-in-out;
-        }
+        .img-zoom-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 9999; display: none; justify-content: center; align-items: center; cursor: zoom-out; animation: fadeIn 0.2s ease-in-out; }
+        .img-zoom-overlay img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5); animation: zoomIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes zoomIn { from { transform: scale(0.9); } to { transform: scale(1); } }
 
-        /* --- MY BOOKINGS LIST STYLES --- */
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #fffbe6; font-weight: 600; color: #333; }
@@ -151,7 +106,6 @@
         .book-btn.unavailable { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
         .book-btn:disabled { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
 
-        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; padding: 10px; }
         .modal-content { background: #fff; border-radius: 14px; padding: 25px 30px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.25); animation: slideUp 0.3s ease; display: flex; flex-direction: column; gap: 10px; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -160,15 +114,11 @@
         .reserve-btn { background: linear-gradient(135deg, #ff8c00, #ff6a00); color: #fff; border: none; padding: 8px 35px; font-size: 1rem; font-weight: 600; border-radius: 10px; cursor: pointer; box-shadow: 0 3px 12px rgba(255, 140, 0, 0.35); transition: all 0.3s ease; width: 100%; margin-top: 15px;}
         .reserve-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
         
-        /* Modal Gallery Header */
         h4.gallery-title { margin-top: 15px; margin-bottom: 5px; font-size: 16px; color: #333; }
-
-        /* Policy Lists */
         .policy-list ul { margin-left: 20px; margin-bottom: 15px; }
         .policy-list li { font-size: 0.9rem; color: #444; margin-bottom: 6px; line-height: 1.5; }
         .policy-list h3 { font-size: 1.1rem; color: #1e1e1e; margin-top: 10px; margin-bottom: 8px; border-bottom: 2px solid #FF9800; display: inline-block; }
 
-        /* BED LAYOUT STYLES */
         .bed-selector-container { position: relative; width: 100%; margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #eee; min-height: 200px; background: #f9f9f9; }
         .bed-layout-img { width: 100%; display: block; cursor: zoom-in; } 
         .bed-marker { position: absolute; width: 32px; height: 32px; border-radius: 50%; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; border: 2px solid white; z-index: 10; }
@@ -176,14 +126,27 @@
         .bed-marker.available { background-color: #28a745; color: white; }
         .bed-marker.occupied { background-color: #dc3545; color: white; cursor: not-allowed; opacity: 0.8; }
         .bed-marker.selected { background-color: #ff9800; color: white; transform: scale(1.3); border-color: #fff; box-shadow: 0 0 15px rgba(255, 152, 0, 0.6); z-index: 15; }
-
-        /* Bed Coordinates */
-        .bed-1 { top: 70%; left: 14%; } .bed-2 { top: 38%; left: 14%; }
-        .bed-3 { top: 61%; left: 34%; } .bed-4 { top: 38%; left: 34%; }
-        .bed-5 { top: 62%; left: 64%; } .bed-6 { top: 38%; left: 64%; }
-        .bed-7 { top: 64%; left: 86%; } .bed-8 { top: 38%; left: 86%; }
-
         .selection-info { text-align: center; font-size: 14px; margin-top: 5px; font-weight: 500; height: 20px; color: #ff8800; }
+
+        /* --- DEFAULT / 8-PERSON ROOM COORDINATES --- */
+        /* 4 Columns: Left, Center-Left, Center-Right, Right */
+        .bed-1 { top: 65%; left: 12%; } /* Lower Left */
+        .bed-2 { top: 35%; left: 12%; } /* Upper Left */
+        .bed-3 { top: 65%; left: 36%; } /* Lower CL */
+        .bed-4 { top: 35%; left: 36%; } /* Upper CL */
+        .bed-5 { top: 65%; left: 62%; } /* Lower CR */
+        .bed-6 { top: 35%; left: 62%; } /* Upper CR */
+        .bed-7 { top: 65%; left: 86%; } /* Lower Right */
+        .bed-8 { top: 35%; left: 86%; } /* Upper Right */
+
+        /* --- 6-PERSON ROOM OVERRIDES (Using class .layout-6p) --- */
+        /* 3 Columns: Left, Center, Right */
+        .layout-6p .bed-1 { top: 65%; left: 20%; } /* Lower Left */
+        .layout-6p .bed-2 { top: 35%; left: 20%; } /* Upper Left */
+        .layout-6p .bed-3 { top: 65%; left: 50%; } /* Lower Center */
+        .layout-6p .bed-4 { top: 35%; left: 50%; } /* Upper Center */
+        .layout-6p .bed-5 { top: 65%; left: 80%; } /* Lower Right */
+        .layout-6p .bed-6 { top: 35%; left: 80%; } /* Upper Right */
 
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
@@ -234,7 +197,6 @@
 
         <h1>Bookings</h1>
 
-        {{-- ❌ ERROR MESSAGE (RED) --}}
         @if(session('error'))
             <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
                 <i class="bi bi-exclamation-circle-fill" style="font-size: 1.2rem;"></i>
@@ -242,7 +204,6 @@
             </div>
         @endif
 
-        {{-- ✅ SUCCESS MESSAGE (GREEN) --}}
         @if(session('success'))
             <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; display: flex; align-items: center; gap: 10px;">
                 <i class="bi bi-check-circle-fill" style="font-size: 1.2rem;"></i>
@@ -250,28 +211,24 @@
             </div>
         @endif
 
-        {{-- Available Rooms --}}
         <div class="section">
             <div class="section-title">Available Rooms</div>
 
             @if($hasActiveBooking)
-                {{-- ⚠️ WARNING BOX FOR ACTIVE BOOKING (RED) --}}
                 <div style="background: #f8d7da; color: #721c24; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
                     <i class="bi bi-exclamation-triangle-fill"></i>
                     <strong>Warning: You already have an approved booking. You cannot book another room.</strong>
                 </div>
             @endif
 
-            <div class="rooms-grid" id="roomsContainer">
-                {{-- Room cards injected via JS --}}
-            </div>
+            <div class="rooms-grid" id="roomsContainer"></div>
         </div>
 
-        {{-- POLICY MODAL --}}
         <div id="policyModal" class="modal" style="display:none;">
             <div class="modal-content policy-list">
                 <span class="close" onclick="closePolicyModal()">&times;</span>
                 <h2 style="text-align:center; margin-bottom:15px;">Boarding House Policies</h2>
+                
                 <h3>General Conduct</h3>
                 <ul>
                     <li><strong>Gender Policy:</strong> Only tenants of the same gender are allowed per room. Mixed gender occupancy is not permitted.</li>
@@ -303,6 +260,7 @@
                     <li>Repeated violations of house rules may result in written warnings, fines, or eviction.</li>
                     <li>Residents are financially responsible for any damage they cause to property or facilities.</li>
                 </ul>
+                
                 <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
                     <input type="checkbox" id="acceptPolicies">
                     <label for="acceptPolicies" style="font-weight:600;">I have read and agree to the policies.</label>
@@ -313,7 +271,6 @@
             </div>
         </div>
 
-        {{-- ROOM SELECTION MODAL --}}
         <div id="roomModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -325,13 +282,12 @@
                 <div id="modalInclusions" class="amenities"></div>
 
                 <h4 style="margin-top:10px;">Select your Bed:</h4>
-                <div class="bed-selector-container">
+                <div class="bed-selector-container" id="modalBedContainer">
                     <img src="" alt="Room Layout" class="bed-layout-img" id="modalRoomImage" onclick="openZoom(this.src)">
                     <div id="bedMarkersContainer"></div>
                 </div>
                 <div class="selection-info" id="selectionInfo">Click a green circle to select your bed</div>
 
-                {{-- Gallery in Modal --}}
                 <h4 class="gallery-title">Gallery</h4>
                 <div id="modalGallery" class="gallery-container"></div>
 
@@ -340,15 +296,12 @@
                         @csrf
                         <input type="hidden" name="room_id" id="modalRoomId">
                         <input type="hidden" name="bed_number" id="modalBedNumber">
-                        <button type="submit" class="reserve-btn" id="confirmBookingBtn" disabled>
-                            Confirm Booking
-                        </button>
+                        <button type="submit" class="reserve-btn" id="confirmBookingBtn" disabled>Confirm Booking</button>
                     </form>
                 </div>
             </div>
         </div>
 
-        {{-- My Bookings List --}}
         <div class="section">
             <div class="section-title"><i class="bi bi-calendar-check"></i> My Bookings</div>
             @if($bookings->count())
@@ -374,6 +327,22 @@
                         color: {{ strtolower($booking->status) === 'approved' ? '#28a745' : (strtolower($booking->status) === 'pending' ? '#ff9800' : '#dc3545') }};">
                         {{ ucfirst($booking->status) }}
                         </span>
+                        
+                        {{-- ✅ CONTRACT DOWNLOAD LOGIC --}}
+                        @if(strtolower($booking->status) === 'approved')
+                            <div style="margin-top: 5px;">
+                                @if($booking->contract_file)
+                                    <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" style="font-size: 11px; color: #007bff; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                                        <i class="bi bi-file-earmark-pdf-fill"></i> Contract
+                                    </a>
+                                @else
+                                    <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" style="font-size: 11px; color: #007bff; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                                        <i class="bi bi-file-earmark-pdf-fill"></i> Download Contract
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
+
                     </td>
                     <td style="padding:10px;">{{ $booking->created_at->format('M d, Y') }}</td>
                     </tr>
@@ -388,12 +357,10 @@
         </div>
     </div>
 
-    {{-- ZOOM MODAL --}}
     <div id="imageZoomModal" class="img-zoom-overlay">
         <img id="zoomedImage" src="" alt="Zoomed View">
     </div>
 
-    {{-- SCRIPTS --}}
     <script>
         const roomsData = @json($roomsData);
         const hasActiveBooking = @json($hasActiveBooking);
@@ -410,6 +377,7 @@
             const modalGallery = document.getElementById('modalGallery');
             const modalRoomId = document.getElementById('modalRoomId');
             const modalBedNumber = document.getElementById('modalBedNumber');
+            const modalBedContainer = document.getElementById('modalBedContainer'); // The Wrapper Div
             const bedMarkersContainer = document.getElementById('bedMarkersContainer');
             const selectionInfo = document.getElementById('selectionInfo');
             const confirmBookingBtn = document.getElementById('confirmBookingBtn');
@@ -419,12 +387,10 @@
             
             let selectedRoom = null;
 
-            // 1. Render Rooms Dynamically
             roomsData.forEach(room => {
                 const card = document.createElement('div');
                 card.className = 'room-card';
                 
-                // Logic for button status
                 const roomGender = room.gender.toLowerCase();
                 const isGenderCompatible = (roomGender === 'mixed' || roomGender === userGender);
                 
@@ -446,7 +412,6 @@
                     btnDisabled = 'disabled';
                 }
 
-                // Calculate progress bar width
                 const progressWidth = (room.occupied / room.bedspace) * 100;
                 const progressColor = room.isFull ? '#dc3545' : ((room.occupied / room.bedspace) >= 0.5 ? '#ffc107' : '#28a745');
 
@@ -483,7 +448,6 @@
                 roomsContainer.appendChild(card);
             });
 
-            // 2. Modal Open Logic - Using Event Delegation for robustness
             roomsContainer.addEventListener('click', (e) => {
                 if (e.target.classList.contains('open-modal')) {
                     const roomId = e.target.dataset.roomId;
@@ -517,21 +481,32 @@
                 confirmBookingBtn.textContent = "Select a Bed";
                 selectionInfo.textContent = "Click a green circle to select your bed";
                 selectionInfo.style.color = "#ff8800";
-
-                // Inclusions
                 modalInclusions.innerHTML = room.inclusions.map(i => `<div class="amenity-tag">${i}</div>`).join('');
 
-                // Layout Image & Markers
+                // Image Logic
                 let layoutSrc;
-                if (room.gender.toLowerCase() === 'male') {
-                    layoutSrc = "/images/fem.png";
+                if (room.bedspace == 6) {
+                    layoutSrc = "/images/room 6.png"; 
+                } else if (room.gender.toLowerCase() === 'male') {
+                    layoutSrc = "/images/fem.png"; 
                 } else {
-                    layoutSrc = "/images/room.png";
+                    layoutSrc = "/images/room.png"; 
                 }
                 modalRoomImage.src = layoutSrc;
                 
+                // Dynamic Bed Markers & Layout Class Assignment
                 bedMarkersContainer.innerHTML = '';
-                for (let i = 1; i <= 8; i++) {
+                const totalBeds = room.bedspace || 8; 
+
+                // Reset classes and apply correct layout class
+                modalBedContainer.className = 'bed-selector-container';
+                if (totalBeds === 6) {
+                    modalBedContainer.classList.add('layout-6p');
+                } else {
+                    modalBedContainer.classList.add('layout-8p'); // Default
+                }
+
+                for (let i = 1; i <= totalBeds; i++) {
                     const bedBtn = document.createElement('div');
                     bedBtn.classList.add('bed-marker', 'bed-' + i);
                     bedBtn.textContent = i;
@@ -547,15 +522,12 @@
                     bedMarkersContainer.appendChild(bedBtn);
                 }
 
-                // Gallery Logic
                 modalGallery.innerHTML = '';
                 room.images.forEach(src => {
                     const img = document.createElement('img');
                     img.src = src;
                     img.className = 'gallery-thumb';
-                    img.onclick = function() {
-                        openZoom(src); 
-                    };
+                    img.onclick = function() { openZoom(src); };
                     modalGallery.appendChild(img);
                 });
 
@@ -579,7 +551,6 @@
                 });
             });
 
-            // Zoom Logic
             const zoomOverlay = document.getElementById('imageZoomModal');
             const zoomImg = document.getElementById('zoomedImage');
             window.openZoom = function(src) {
@@ -590,7 +561,6 @@
                 zoomOverlay.style.display = 'none';
             });
 
-            // Helper Functions
             function capitalizeFirstLetter(string) {
                 return string.charAt(0).toUpperCase() + string.slice(1);
             }
@@ -604,6 +574,10 @@
                 document.getElementById('sidebar').classList.toggle('collapsed');
                 document.getElementById('content').classList.toggle('expanded');
             };
+            
+            window.closePolicyModal = function() {
+                 policyModal.style.display = 'none';
+            }
         });
     </script>
 </body>

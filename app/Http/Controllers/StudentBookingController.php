@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Booking;
-use App\Models\Payment; // Ensure Payment model is imported if used
+use App\Models\Payment;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf; // ✅ IMPORT PDF FACADE
 
 class StudentBookingController extends Controller
 {
@@ -35,14 +36,13 @@ class StudentBookingController extends Controller
         // Fetch all bookings for the history table (latest first)
         $bookings = $user->bookings()->with('room')->latest()->get(); 
         
-        // Fetch all payments (optional, if you use $payments in dash view)
+        // Fetch all payments
         $payments = Payment::where('user_id', $user->id)->latest()->get();
 
-        // Get announcements (optional, if you use $announcements in dash view)
+        // Get announcements
         $announcements = \App\Models\Announcement::latest()->take(5)->get();
 
-        // ✅ FIX: Get the single "Active" booking for the "My Room" card
-        // Priority order: Approved/Occupied/Paid > Pending > Rejected/Cancelled
+        // Get the single "Active" booking for the "My Room" card
         $currentBooking = $user->bookings()
             ->whereIn('status', ['Approved', 'Occupied', 'Paid'])
             ->with('room')
@@ -58,7 +58,7 @@ class StudentBookingController extends Controller
                 ->first();
         }
 
-        // If still no booking, just get the very last one (likely cancelled/rejected)
+        // If still no booking, just get the very last one
         if (!$currentBooking) {
             $currentBooking = $user->bookings()->with('room')->latest()->first();
         }
@@ -85,7 +85,7 @@ class StudentBookingController extends Controller
             'bed_number' => 'required|string',
         ]);
 
-        // 3. ✅ GENDER RESTRICTION LOGIC
+        // 3. GENDER RESTRICTION LOGIC
         $room = Room::findOrFail($request->room_id);
 
         // Normalize string case
@@ -106,5 +106,26 @@ class StudentBookingController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Booking request sent successfully!');
+    }
+
+    // ✅ NEW METHOD: GENERATE PDF CONTRACT
+    public function generateContract($id)
+    {
+        // 1. Find booking & ensure it belongs to the logged-in student
+        $booking = Booking::where('id', $id)
+            ->where('user_id', Auth::id()) // Security check
+            ->with(['user', 'room'])
+            ->firstOrFail();
+
+        // 2. Ensure status is Approved before allowing download
+        if (strtolower($booking->status) !== 'approved') {
+            return redirect()->back()->with('error', 'Contract is only available for approved bookings.');
+        }
+
+        // 3. Load View and Download
+        // Make sure you created resources/views/pdf/contract.blade.php
+        $pdf = Pdf::loadView('pdf.contract', compact('booking'));
+        
+        return $pdf->download('Patani_Contract_' . $booking->id . '.pdf');
     }
 }
