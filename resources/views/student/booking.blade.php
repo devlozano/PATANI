@@ -123,6 +123,26 @@
         }
         .btn-cancel:hover { background-color: #cc0000; }
 
+        /* Contract Button Style (Blue) */
+.btn-contract {
+    background-color: #0d6efd; /* Bootstrap Primary Blue */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.btn-contract:hover {
+    background-color: #0b5ed7;
+    color: white;
+}
+
         .modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; padding: 10px; }
         .modal-content { background: #fff; border-radius: 14px; padding: 25px 30px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.25); animation: slideUp 0.3s ease; display: flex; flex-direction: column; gap: 10px; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -333,20 +353,16 @@
                     <th style="padding:10px; text-align:left;">Action</th>
                 </tr>
                 </thead>
-                <tbody>
+               <tbody>
 @foreach($bookings as $booking)
     @php
         $status = strtolower($booking->status);
 
-        // WORKAROUND: Since booking_id is NULL, we check if the User has ANY 
-        // approved payment created AFTER this booking was made.
+        // Check for payments
         $isPaymentSettled = \App\Models\Payment::where('user_id', $booking->user_id)
                             ->where('status', 'Approved')
-                            ->where('created_at', '>=', $booking->created_at) // Payment must be new
+                            ->where('created_at', '>=', $booking->created_at)
                             ->exists();
-
-        // LOGIC: Hide button if "Approved" AND "Payment Found"
-        $isFinalized = ($status === 'approved' && $isPaymentSettled) || $status === 'paid';
 
         // Badge Colors
         $badgeBg = '#f2f2f2'; $badgeColor = '#888888'; 
@@ -367,7 +383,7 @@
             <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; background: {{ $badgeBg }}; color: {{ $badgeColor }};">
                 {{ ucfirst($booking->status) }}
             </span>
-             {{-- Visual Indicator --}}
+             {{-- Visual Indicator for Payment --}}
              @if($isPaymentSettled && $status === 'approved')
                 <div style="font-size:10px; color:#28a745; margin-top:2px; font-weight:bold;">
                     <i class="bi bi-check-all"></i> Paid
@@ -376,10 +392,17 @@
         </td>
         <td style="padding:10px;">{{ $booking->created_at->format('M d, Y') }}</td>
         
-        {{-- ACTION COLUMN --}}
+        {{-- ✅ ACTION COLUMN: Shows Contract OR Cancel --}}
         <td style="padding:10px;">
-            {{-- ONLY show Cancel if NOT Finalized --}}
-            @if(!$isFinalized && in_array($status, ['pending', 'approved']))
+            
+            {{-- 1. SHOW CONTRACT: If Approved or Paid --}}
+            @if($status === 'approved' || $status === 'paid')
+                <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" class="btn-contract">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> View Contract
+                </a>
+            
+            {{-- 2. SHOW CANCEL: Only if Pending --}}
+            @elseif($status === 'pending')
                 <form action="{{ route('student.booking.cancel', $booking->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to cancel?');">
                     @csrf
                     @method('POST') 
@@ -387,13 +410,16 @@
                         <i class="bi bi-x-circle-fill"></i> Cancel
                     </button>
                 </form>
-            @elseif($isFinalized)
-                 <span style="color: #ccc; font-size: 11px;">Confirmed</span>
+
+            {{-- 3. LOCKED: If Rejected or Cancelled --}}
+            @else
+                <span style="color: #ccc; font-size: 11px;">-</span>
             @endif
+
         </td>
     </tr>
 @endforeach
-                </tbody>
+</tbody>
             </table>
             @else
             <div style="text-align: center; padding: 20px; color: #888;">
