@@ -216,7 +216,6 @@
                             <label>Bedspace:</label>
                             <select name="bedspace" required>
                                 <option value="">Select</option>
-                                <option value="4" {{ (isset($room) && $room->bedspace == 4) ? 'selected' : '' }}>4</option>
                                 <option value="6" {{ (isset($room) && $room->bedspace == 6) ? 'selected' : '' }}>6</option>
                                 <option value="8" {{ (isset($room) && $room->bedspace == 8) ? 'selected' : '' }}>8</option>
                             </select>
