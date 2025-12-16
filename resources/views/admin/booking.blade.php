@@ -1,9 +1,6 @@
 @php
-    // Ensure collections are initialized to avoid errors if variables are null
     $pending = $pending ?? collect();
     $all = $all ?? collect();
-
-    // ✅ LOGIC: Count pending bookings per user to identify multiple bookings
     $userPendingCounts = $pending->groupBy('user_id')->map->count();
 @endphp
 
@@ -60,13 +57,10 @@
         
         .action-buttons { display: flex; gap: 10px; }
         .btn { padding: 8px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.3s; }
-        
         .btn-approve { background: #4CAF50; color: white; }
         .btn-approve:hover { background: #45a049; transform: scale(1.05); }
-        
         .btn-reject { background: #FF4444; color: white; }
         .btn-reject:hover { background: #CC0000; transform: scale(1.05); }
-        
         .btn-checkout { background-color: #E53935; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: 500; transition: background 0.3s ease; }
         .btn-checkout:hover { background-color: #C62828; transform: scale(1.05); }
         
@@ -76,19 +70,10 @@
         .status-checkout { background: #757575; color: white; }
         .status-pending { background: #ff9800; color: white; }
         .status-cancelled { background: #999; color: white; }
+        .status-overdue { background: #dc3545; color: white; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
 
-        /* ✅ MULTIPLE BOOKING BADGE */
-        .multiple-badge {
-            display: inline-block;
-            background-color: #ffeeba;
-            color: #856404;
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 4px;
-            font-weight: 600;
-            border: 1px solid #ffe8a1;
-        }
+        .multiple-badge { display: inline-block; background-color: #ffeeba; color: #856404; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: 600; border: 1px solid #ffe8a1; }
 
         @media (max-width: 768px) {
             .sidebar { width: 300px; transform: translateX(-100%); }
@@ -114,26 +99,17 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
         <div class="profile">
+            {{-- ✅ RESTORED PROFILE PIC LOGIC --}}
             <img src="{{ Auth::user()->avatar ? asset('storage/avatars/'.Auth::user()->avatar) : asset('images/Screenshot 2025-10-28 033031.png') }}" alt="User Photo">
             <h2>{{ Auth::user()->name }}</h2>
             <p>{{ Auth::user()->contact }}</p>
         </div>
         <nav class="menu">
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-home"></i> <span>Dashboard</span>
-            </a>
-            <a href="{{ route('admin.booking') }}" class="{{ request()->routeIs('admin.booking') ? 'active' : '' }}">
-                <i class="fas fa-calendar-alt"></i> <span>Booking</span>
-            </a>
-            <a href="{{ route('admin.payment') }}" class="{{ request()->routeIs('admin.payment') ? 'active' : '' }}"> 
-                <i class="fas fa-credit-card"></i> <span>Payments</span>
-            </a>
-            <a href="{{ route('admin.rooms.index') }}" class="{{ request()->routeIs('admin.room') ? 'active' : '' }}">
-                <i class="fas fa-door-open"></i> <span>Rooms</span>
-            </a>
-            <a href="{{ route('admin.report') }}" class="{{ request()->routeIs('admin.report') ? 'active' : '' }}">
-                <i class="fas fa-chart-bar"></i> <span>Reports</span>
-            </a>
+            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-home"></i> <span>Dashboard</span></a>
+            <a href="{{ route('admin.booking') }}" class="{{ request()->routeIs('admin.booking') ? 'active' : '' }}"><i class="fas fa-calendar-alt"></i> <span>Booking</span></a>
+            <a href="{{ route('admin.payment') }}" class="{{ request()->routeIs('admin.payment') ? 'active' : '' }}"><i class="fas fa-credit-card"></i> <span>Payments</span></a>
+            <a href="{{ route('admin.rooms.index') }}" class="{{ request()->routeIs('admin.room') ? 'active' : '' }}"><i class="fas fa-door-open"></i> <span>Rooms</span></a>
+            <a href="{{ route('admin.report') }}" class="{{ request()->routeIs('admin.report') ? 'active' : '' }}"><i class="fas fa-chart-bar"></i> <span>Reports</span></a>
         </nav>
     </aside>
 
@@ -143,36 +119,30 @@
             <div class="logo">Patani Trinidad</div>
             <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display:inline;">
                 @csrf
-                <button type="button" class="logout-btn" onclick="confirmLogout()">
-                    <span>Logout</span> <i class="fas fa-sign-out-alt"></i>
-                </button>
+                <button type="button" class="logout-btn" onclick="confirmLogout()"><span>Logout</span> <i class="fas fa-sign-out-alt"></i></button>
             </form>
         </div>
 
         <div class="main-content">
             <h1>Manage Bookings</h1>
 
-            {{-- ✅ SUCCESS MESSAGE (Approval/Checkout) --}}
             @if(session('success'))
                 <div style="background-color:#d4edda; color:#155724; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #c3e6cb; display:flex; align-items:center; gap:10px;">
-                    <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
-                    <strong>{{ session('success') }}</strong>
+                    <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i> <strong>{{ session('success') }}</strong>
                 </div>
             @endif
 
-            {{-- ❌ ERROR MESSAGE (Rejection) --}}
             @if(session('error'))
                 <div style="background-color:#f8d7da; color:#721c24; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #f5c6cb; display:flex; align-items:center; gap:10px;">
-                    <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
-                    <strong>{{ session('error') }}</strong>
+                    <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i> <strong>{{ session('error') }}</strong>
                 </div>
             @endif
 
+            {{-- PENDING BOOKINGS --}}
             <div class="booking-section">
                 <h2 class="section-title" style="font-size:22px; font-weight:600; margin-bottom:18px; color:#333; display:flex; align-items:center; gap:8px;">
                     <i class="fas fa-hourglass-half" style="color:#f0a500;"></i> Pending Bookings
                 </h2>
-
                 <table style="width:100%; border-collapse:collapse; text-align:left;">
                     <thead>
                         <tr style="background:#f9fafb; color:#555;">
@@ -186,68 +156,51 @@
                     </thead>
                     <tbody>
                         @forelse ($pending as $booking)
-                            @php
-                                $userCount = $userPendingCounts[$booking->user_id] ?? 0;
-                            @endphp
-
+                            @php $userCount = $userPendingCounts[$booking->user_id] ?? 0; @endphp
                             <tr style="transition: all 0.2s ease-in-out;">
                                 <td style="padding:12px; border-bottom:1px solid #eee;">#{{ $booking->id }}</td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">
                                     {{ $booking->user->name }}
-                                    
                                     @if($userCount > 1)
-                                        <br>
-                                        <span class="multiple-badge">
-                                            <i class="fas fa-exclamation-circle"></i> {{ $userCount }} Pending Requests
-                                        </span>
+                                        <br><span class="multiple-badge"><i class="fas fa-exclamation-circle"></i> {{ $userCount }} Pending Requests</span>
                                     @endif
                                 </td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->room->room_number ?? 'N/A' }}</td>
-                                <td style="padding:12px; border-bottom:1px solid #eee;">
-                                    <span style="font-weight:600; color:#e67e22;">#{{ $booking->bed_number ?? 'N/A' }}</span>
-                                </td>
+                                <td style="padding:12px; border-bottom:1px solid #eee;"><span style="font-weight:600; color:#e67e22;">#{{ $booking->bed_number ?? 'N/A' }}</span></td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->created_at->format('F d, Y') }}</td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">
                                     <div class="action-buttons" style="display:flex; gap:8px;">
-                                        <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-approve">Approve</button>
-                                        </form>
-                                        
-                                        <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" class="reject-form" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-reject" data-count="{{ $userCount }}">Reject</button>
-                                        </form>
+                                        <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">@csrf<button type="submit" class="btn btn-approve">Approve</button></form>
+                                        <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" class="reject-form" style="display:inline;">@csrf<button type="submit" class="btn btn-reject" data-count="{{ $userCount }}">Reject</button></form>
                                     </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="6" style="text-align:center; padding:20px; color:#777;">No pending bookings.</td>
-                            </tr>
+                            <tr><td colspan="6" style="text-align:center; padding:20px; color:#777;">No pending bookings.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            {{-- Filters --}}
+            {{-- FILTERS --}}
             <div class="filter-container" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
                 <div>
                     <label for="adminBookingStatusFilter">Filter by Status:</label>
                     <select id="adminBookingStatusFilter" style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
                         <option value="All">All</option>
                         <option value="approved">Approved</option>
+                        <option value="overdue">Overdue</option>
                         <option value="cancelled">Cancelled</option>
                         <option value="checkedout">Checkout</option>
                     </select>
                 </div>
                 <div>
                     <label for="adminBookingSearchFilter">Search:</label>
-                    <input type="text" id="adminBookingSearchFilter" placeholder="Search by student, room, ID..." style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
+                    <input type="text" id="adminBookingSearchFilter" placeholder="Search..." style="padding:6px 10px; border-radius:5px; border:1px solid #ccc;">
                 </div>
             </div>
 
-            {{-- All Bookings Table --}}
+            {{-- ALL BOOKINGS --}}
             <div class="booking-section">
                 <h2 class="section-title">All Bookings</h2>
                 <table id="adminBookingsTable">
@@ -259,31 +212,36 @@
                             <th>BED</th>
                             <th>DATE</th>
                             <th>STATUS</th>
-                            <th>CHECKOUT</th>
+                            <th>ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($all as $booking)
                         <tr>
                             <td>{{ $booking->id }}</td>
-                            <td>{{ $booking->user->name }}</td>
+                            <td>
+                                {{ $booking->user->name }}
+                                {{-- ✅ CONTRACT ICON --}}
+                                @if(strtolower($booking->status) == 'approved')
+                                    <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" title="View Contract" style="color: #007bff; margin-left: 5px;"><i class="fas fa-file-contract"></i></a>
+                                @endif
+                            </td>
                             <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
                             <td><span style="font-weight:600; color:#e67e22;">#{{ $booking->bed_number ?? 'N/A' }}</span></td>
                             <td>{{ $booking->created_at->format('F d, Y') }}</td>
                             <td class="status-cell">
-                                <span class="status-badge 
-                                {{ strtolower($booking->status) == 'approved' ? 'status-approve' : 
-                                   (strtolower($booking->status) == 'cancelled' ? 'status-cancelled' : 
-                                   (strtolower($booking->status) == 'checkout' ? 'status-checkout' : 'status-pending')) }}">
-                                {{ ucfirst($booking->status) }}
-                                </span>
+                                @if($booking->is_overdue)
+                                    <span class="status-badge status-overdue">OVERDUE <i class="fas fa-exclamation-circle"></i></span>
+                                    <div style="font-size:10px; color:#dc3545; margin-top:2px; font-weight:600;">Due: {{ \Carbon\Carbon::parse($booking->payments->last()->created_at ?? $booking->created_at)->addMonth()->format('M d') }}</div>
+                                @else
+                                    <span class="status-badge {{ strtolower($booking->status) == 'approved' ? 'status-approve' : (strtolower($booking->status) == 'cancelled' ? 'status-cancelled' : (strtolower($booking->status) == 'checkout' ? 'status-checkout' : 'status-pending')) }}">
+                                    {{ ucfirst($booking->status) }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
                                 @if (in_array(strtolower($booking->status), ['approved', 'paid']))
-                                    <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" class="checkout-form" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-checkout"><i class="fas fa-sign-out-alt"></i> Checkout</button>
-                                    </form>
+                                    <form action="{{ route('admin.booking.checkout', $booking->id) }}" method="POST" class="checkout-form" style="display:inline;">@csrf<button type="submit" class="btn btn-checkout"><i class="fas fa-sign-out-alt"></i> Checkout</button></form>
                                 @endif
                             </td>
                         </tr>
@@ -295,7 +253,6 @@
     </div>
 
     <script>
-        // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
         const menuToggle = document.getElementById('menuToggle');
@@ -311,7 +268,6 @@
         window.addEventListener('resize', () => { if (window.innerWidth > 768) { sidebar.classList.remove('open'); } });
         function confirmLogout() { if (confirm("Are you sure you want to log out?")) { document.getElementById('logoutForm').submit(); } }
 
-        // Filtering Logic
         const bookingStatusFilter = document.getElementById('adminBookingStatusFilter');
         const bookingSearchFilter = document.getElementById('adminBookingSearchFilter');
         const bookingRows = document.querySelectorAll('#adminBookingsTable tbody tr');
@@ -330,63 +286,24 @@
         bookingStatusFilter.addEventListener('change', filterBookings);
         bookingSearchFilter.addEventListener('input', filterBookings);
 
-        // SWEETALERT CONFIGURATION
         document.addEventListener('DOMContentLoaded', function () {
-            
-            // ✅ 1. REJECT CONFIRMATION - DYNAMIC MESSAGE
             const rejectForms = document.querySelectorAll('.reject-form');
             rejectForms.forEach(form => {
                 const btn = form.querySelector('.btn-reject');
                 const count = btn ? (parseInt(btn.getAttribute('data-count')) || 1) : 1;
-
                 form.addEventListener('submit', function (e) {
                     e.preventDefault(); 
-                    
-                    let titleText = 'Reject Booking?';
-                    let bodyText = "Are you sure you want to reject this booking request?";
-                    let iconType = 'question';
-
-                    if (count > 1) {
-                        titleText = '⚠️ Multiple Bookings Detected';
-                        bodyText = `CAUTION: This user has ${count} pending bookings.\nAre you sure you want to reject THIS specific request?`;
-                        iconType = 'warning';
-                    }
-
-                    Swal.fire({
-                        title: titleText,
-                        text: bodyText,
-                        icon: iconType,
-                        showCancelButton: true,
-                        confirmButtonColor: '#E53935',
-                        cancelButtonColor: '#666',
-                        confirmButtonText: 'Yes, Reject it'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
+                    let titleText = count > 1 ? '⚠️ Multiple Bookings Detected' : 'Reject Booking?';
+                    let bodyText = count > 1 ? `CAUTION: This user has ${count} pending bookings.\nReject THIS specific request?` : "Reject this booking request?";
+                    let iconType = count > 1 ? 'warning' : 'question';
+                    Swal.fire({ title: titleText, text: bodyText, icon: iconType, showCancelButton: true, confirmButtonColor: '#E53935', cancelButtonColor: '#666', confirmButtonText: 'Yes, Reject it' }).then((result) => { if (result.isConfirmed) { form.submit(); } });
                 });
             });
-
-            // 2. CHECKOUT CONFIRMATION
             const checkoutForms = document.querySelectorAll('.checkout-form');
             checkoutForms.forEach(form => {
                 form.addEventListener('submit', function (e) {
                     e.preventDefault(); 
-                    Swal.fire({
-                        title: 'Checkout Tenant?',
-                        text: "Are you sure you want to checkout this student? This will free up the bed space.",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#E53935',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Yes, Checkout',
-                        cancelButtonText: 'Cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit(); 
-                        }
-                    });
+                    Swal.fire({ title: 'Checkout Tenant?', text: "Free up bed space?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#E53935', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, Checkout' }).then((result) => { if (result.isConfirmed) { form.submit(); } });
                 });
             });
         });

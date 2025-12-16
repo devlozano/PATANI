@@ -108,22 +108,27 @@ class StudentBookingController extends Controller
         return redirect()->back()->with('success', 'Booking request sent successfully!');
     }
 
-    // ✅ NEW METHOD: GENERATE PDF CONTRACT
+    // ✅ FIXED: GENERATE PDF CONTRACT
     public function generateContract($id)
     {
-        // 1. Find booking & ensure it belongs to the logged-in student
-        $booking = Booking::where('id', $id)
-            ->where('user_id', Auth::id()) // Security check
-            ->with(['user', 'room'])
-            ->firstOrFail();
+        // 1. Find the booking (Removed the strict 'where user_id' check so Admins can find it too)
+        $booking = Booking::with(['user', 'room'])->findOrFail($id);
 
-        // 2. Ensure status is Approved before allowing download
+        // 2. Security Check: Allow if Owner OR Admin
+        $user = Auth::user();
+        
+        // Assuming your users table has a 'role' column or you have an isAdmin() helper
+        // If not, standard role check:
+        if ($booking->user_id !== $user->id && $user->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 3. Ensure status is Approved before allowing download
         if (strtolower($booking->status) !== 'approved') {
             return redirect()->back()->with('error', 'Contract is only available for approved bookings.');
         }
 
-        // 3. Load View and Download
-        // Make sure you created resources/views/pdf/contract.blade.php
+        // 4. Load View and Download
         $pdf = Pdf::loadView('pdf.contract', compact('booking'));
         
         return $pdf->download('Patani_Contract_' . $booking->id . '.pdf');
