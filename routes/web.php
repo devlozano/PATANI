@@ -61,6 +61,7 @@ Route::prefix('student')->middleware(['auth'])->group(function () {
     // Booking Routes
     Route::get('/booking', [StudentBookingController::class, 'index'])->name('student.booking');
     Route::post('/booking', [StudentBookingController::class, 'store'])->name('student.booking.store');
+    Route::post('/booking/{id}/cancel', [StudentBookingController::class, 'cancel'])->name('student.booking.cancel');
     
     // ✅ NEW: PDF Contract Route
     Route::get('/booking/{id}/contract', [StudentBookingController::class, 'generateContract'])->name('student.booking.contract');

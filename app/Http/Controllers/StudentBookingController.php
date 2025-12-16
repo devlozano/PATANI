@@ -108,6 +108,18 @@ class StudentBookingController extends Controller
         return redirect()->back()->with('success', 'Booking request sent successfully!');
     }
 
+    public function cancel($id)
+{
+    $booking = Booking::where('id', $id)
+        ->where('user_id', Auth::id())
+        ->whereIn('status', ['Pending', 'Approved']) // Restrict which status can be cancelled
+        ->firstOrFail();
+
+    $booking->update(['status' => 'Cancelled']);
+
+    return redirect()->back()->with('success', 'Booking has been cancelled.');
+}
+
     // ✅ FIXED: GENERATE PDF CONTRACT
     public function generateContract($id)
     {

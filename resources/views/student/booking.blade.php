@@ -106,6 +106,23 @@
         .book-btn.unavailable { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
         .book-btn:disabled { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
 
+        /* ✅ NEW: Cancel Button Styles */
+        .btn-cancel {
+            background-color: #ff4444; 
+            color: white; 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            cursor: pointer; 
+            margin-left: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+        }
+        .btn-cancel:hover { background-color: #cc0000; }
+
         .modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; padding: 10px; }
         .modal-content { background: #fff; border-radius: 14px; padding: 25px 30px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.25); animation: slideUp 0.3s ease; display: flex; flex-direction: column; gap: 10px; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -313,6 +330,7 @@
                     <th style="padding:10px; text-align:left;">Bed</th>
                     <th style="padding:10px; text-align:left;">Status</th>
                     <th style="padding:10px; text-align:left;">Date Booked</th>
+                    <th style="padding:10px; text-align:left;">Action</th> {{-- ✅ Added Action Column --}}
                 </tr>
                 </thead>
                 <tbody>
@@ -323,12 +341,12 @@
                     <td style="padding:10px;">#{{ $booking->bed_number ?? 'N/A' }}</td>
                     <td style="padding:10px;">
                         <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;
-                        background: {{ strtolower($booking->status) === 'approved' ? '#e6ffec' : (strtolower($booking->status) === 'pending' ? '#fff4e0' : '#ffe6e6') }};
-                        color: {{ strtolower($booking->status) === 'approved' ? '#28a745' : (strtolower($booking->status) === 'pending' ? '#ff9800' : '#dc3545') }};">
+                        background: {{ strtolower($booking->status) === 'approved' ? '#e6ffec' : (strtolower($booking->status) === 'pending' ? '#fff4e0' : (strtolower($booking->status) === 'cancelled' ? '#f5f5f5' : '#ffe6e6')) }};
+                        color: {{ strtolower($booking->status) === 'approved' ? '#28a745' : (strtolower($booking->status) === 'pending' ? '#ff9800' : (strtolower($booking->status) === 'cancelled' ? '#999' : '#dc3545')) }};">
                         {{ ucfirst($booking->status) }}
                         </span>
                         
-                        {{-- ✅ CONTRACT DOWNLOAD LOGIC --}}
+                        {{-- CONTRACT DOWNLOAD LINK --}}
                         @if(strtolower($booking->status) === 'approved')
                             <div style="margin-top: 5px;">
                                 @if($booking->contract_file)
@@ -342,9 +360,21 @@
                                 @endif
                             </div>
                         @endif
-
                     </td>
                     <td style="padding:10px;">{{ $booking->created_at->format('M d, Y') }}</td>
+                    
+                    {{-- ✅ CANCEL BUTTON ACTION --}}
+                    <td style="padding:10px;">
+                        @if(in_array(strtolower($booking->status), ['pending', 'approved']))
+                            <form action="{{ route('student.booking.cancel', $booking->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to cancel this booking? This action cannot be undone.');">
+                                @csrf
+                                <button type="submit" class="btn-cancel">
+                                    <i class="bi bi-x-circle-fill"></i> Cancel
+                                </button>
+                            </form>
+                        @endif
+                    </td>
+
                     </tr>
                 @endforeach
                 </tbody>
@@ -377,7 +407,7 @@
             const modalGallery = document.getElementById('modalGallery');
             const modalRoomId = document.getElementById('modalRoomId');
             const modalBedNumber = document.getElementById('modalBedNumber');
-            const modalBedContainer = document.getElementById('modalBedContainer'); // The Wrapper Div
+            const modalBedContainer = document.getElementById('modalBedContainer'); 
             const bedMarkersContainer = document.getElementById('bedMarkersContainer');
             const selectionInfo = document.getElementById('selectionInfo');
             const confirmBookingBtn = document.getElementById('confirmBookingBtn');
