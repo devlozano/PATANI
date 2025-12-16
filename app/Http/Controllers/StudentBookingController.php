@@ -108,12 +108,30 @@ class StudentBookingController extends Controller
         return redirect()->back()->with('success', 'Booking request sent successfully!');
     }
 
-    public function cancel($id)
+   public function cancel($id)
 {
     $booking = Booking::where('id', $id)
         ->where('user_id', Auth::id())
-        ->whereIn('status', ['Pending', 'Approved']) // Restrict which status can be cancelled
         ->firstOrFail();
+
+    $status = strtolower($booking->status);
+
+    // 1. Check for Payment (Workaround logic)
+    // Find an approved payment by this user created AFTER the booking
+    $paymentSettled = \App\Models\Payment::where('user_id', Auth::id())
+                        ->where('status', 'Approved')
+                        ->where('created_at', '>=', $booking->created_at)
+                        ->exists();
+
+    // 2. Security Check
+    if (($status === 'approved' && $paymentSettled) || $status === 'paid') {
+        return redirect()->back()->with('error', 'Cannot cancel a confirmed and paid booking.');
+    }
+
+    // 3. Prevent cancelling rejected/cancelled items
+    if (!in_array($status, ['pending', 'approved'])) {
+         return redirect()->back()->with('error', 'This booking cannot be cancelled.');
+    }
 
     $booking->update(['status' => 'Cancelled']);
 
