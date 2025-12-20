@@ -2,53 +2,59 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends Controller
 {
-    // Show the registration page
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    // Handle registration form submission
     public function register(Request $request)
     {
-        // ✅ Validate input
-        $validated = $request->validate([
-            // UPDATED: Validation for separate name fields
-            'last_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\.\,\-]+$/'],
-            'first_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\.\,\-]+$/'],
-            'middle_initial' => ['nullable', 'string', 'max:5'], // Optional
-            
+        // 1. Validate the split inputs
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_initial' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed', // 'confirmed' checks password_confirmation field automatically
-            'gender' => 'required|string|in:Male,Female,Other',
-            'contact' => ['required', 'string', 'max:20', 'regex:/^[0-9\-\+\s]+$/'],
-            'address' => 'required|string|max:255',
+            'password' => 'required|string|min:6|confirmed',
+            'gender' => 'required|string',
+            'contact' => 'required|string',
+            'address' => 'required|string',
         ]);
 
-        // ✅ Create user
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // 2. Create the Full Name string manually
+        // Check if middle initial exists to avoid extra spaces
+        $middle = $request->middle_initial ? $request->middle_initial . ' ' : '';
+        $fullName = $request->first_name . ' ' . $middle . $request->last_name;
+
+        // 3. Create User
         $user = User::create([
-            // UPDATED: Save separate fields
-            'last_name' => $validated['last_name'],
-            'first_name' => $validated['first_name'],
-            'middle_initial' => $validated['middle_initial'] ?? null, 
-            
-            // We removed 'name' because your User model now combines these 3 fields automatically
-            
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'gender' => $validated['gender'],
-            'contact' => $validated['contact'],
-            'address' => $validated['address'],
+            'name' => $fullName, // ✅ FIX: This satisfies the database requirement
+            'first_name' => $request->first_name,
+            'middle_initial' => $request->middle_initial,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'gender' => $request->gender,
+            'contact' => $request->contact,
+            'address' => $request->address,
             'role' => 'student', // Default role
         ]);
 
-        // ✅ Redirect to login with success message
-        return redirect()->route('login')->with('success', 'Account created successfully! Please login.');
+        // 4. Auto login and redirect
+        Auth::login($user);
+
+        return redirect()->route('dash')->with('success', 'Registration successful!');
     }
 }

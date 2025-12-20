@@ -64,7 +64,7 @@
         }
         #backHomeBtn:hover { color: #FFF200; border-color: #FFF200; }
 
-        .form-container { width: 100%; max-width: 500px; /* Slightly wider for split names */ background: #fff; display: flex; flex-direction: column; justify-content: center; }
+        .form-container { width: 100%; max-width: 500px; background: #fff; display: flex; flex-direction: column; justify-content: center; }
         h2 { color: #1e1e1e; font-weight: 700; font-size: 1.4rem; text-align: center; margin-bottom: 20px; }
         label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #555; font-weight: 500; }
         
@@ -125,6 +125,9 @@
         }
         .password-toggle-icon:hover { color: #ff8800; }
 
+        /* Loader */
+        .loading-text { font-size: 11px; color: #888; font-style: italic; display:none; margin-top: -3px; margin-bottom: 5px; }
+
         @media (max-width: 900px) {
             body { flex-direction: column; }
             .left, .right { flex: none; width: 100%; min-height: auto; }
@@ -146,10 +149,10 @@
         <div class="form-container">
             <h2>Create an account</h2>
 
-            <form action="{{ route('register.submit') }}" method="POST">
+            <form action="{{ route('register.submit') }}" method="POST" onsubmit="updateFullAddress()">
                 @csrf
               
-                {{-- ✅ UPDATED: Split Name Fields --}}
+                {{-- SPLIT NAME FIELDS --}}
                 <label>Full Name</label>
                 <div class="row">
                     {{-- Last Name --}}
@@ -248,15 +251,41 @@
                     </div>
                 </div>
 
-                {{-- Address --}}
-                <label>Address</label>
-                {{-- Note: To implement a full Dynamic Dropdown address (Region/City/Brgy), 
-                     you need a separate large JavaScript file. Keeping as text for now to ensure submission works. --}}
-                <input type="text" name="address" 
-                       placeholder="House No., Street, Brgy, City" 
-                       value="{{ old('address') }}" 
-                       class="@error('address') input-error @enderror" 
-                       required>
+                {{-- ✅ UPDATED ADDRESS SECTION --}}
+                <label style="margin-top: 10px; font-weight: 600;">Complete Address</label>
+                
+                <div class="row">
+                    <div>
+                        <input type="text" id="house_street" placeholder="House No. / Street" oninput="updateFullAddress()">
+                    </div>
+                    <div>
+                        <input type="text" id="subdivision" placeholder="Subdivision / Village" oninput="updateFullAddress()">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div>
+                        <label style="font-size: 0.75rem;">Province</label>
+                        <select id="province" onchange="loadCities()" required></select>
+                        <span id="loader-province" class="loading-text">Loading...</span>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem;">City / Municipality</label>
+                        <select id="city" onchange="loadBarangays()" disabled required></select>
+                        <span id="loader-city" class="loading-text">Loading...</span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div>
+                        <label style="font-size: 0.75rem;">Barangay</label>
+                        <select id="barangay" onchange="updateFullAddress()" disabled required></select>
+                        <span id="loader-barangay" class="loading-text">Loading...</span>
+                    </div>
+                </div>
+
+                {{-- Hidden input stores the concatenated address for the backend --}}
+                <input type="hidden" name="address" id="full_address" value="{{ old('address') }}">
                 @error('address')
                     <span class="error">{{ $message }}</span>
                 @enderror
@@ -293,6 +322,114 @@
         // Initialize Toggles
         toggleVisibility('password', 'togglePassword');
         toggleVisibility('password_confirmation', 'togglePasswordConfirmation');
+
+        // ✅ PHILIPPINE ADDRESS SELECTOR LOGIC (Using PSGC API)
+        const apiBase = "https://psgc.gitlab.io/api";
+
+        async function loadProvinces() {
+            const provinceSelect = document.getElementById('province');
+            document.getElementById('loader-province').style.display = 'block';
+            
+            try {
+                const response = await fetch(`${apiBase}/provinces/`);
+                const data = await response.json();
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                provinceSelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
+                data.forEach(prov => {
+                    provinceSelect.innerHTML += `<option value="${prov.code}" data-name="${prov.name}">${prov.name}</option>`;
+                });
+            } catch (error) {
+                console.error("Error loading provinces:", error);
+            } finally {
+                document.getElementById('loader-province').style.display = 'none';
+            }
+        }
+
+        async function loadCities() {
+            const provinceSelect = document.getElementById('province');
+            const citySelect = document.getElementById('city');
+            const provinceCode = provinceSelect.value;
+            const barangaySelect = document.getElementById('barangay');
+
+            if (!provinceCode) return;
+
+            citySelect.disabled = true;
+            barangaySelect.disabled = true;
+            citySelect.innerHTML = '<option>Loading...</option>';
+            barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            document.getElementById('loader-city').style.display = 'block';
+
+            try {
+                const response = await fetch(`${apiBase}/provinces/${provinceCode}/cities-municipalities/`);
+                const data = await response.json();
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
+                data.forEach(city => {
+                    citySelect.innerHTML += `<option value="${city.code}" data-name="${city.name}">${city.name}</option>`;
+                });
+                citySelect.disabled = false;
+            } catch (error) {
+                console.error("Error loading cities:", error);
+            } finally {
+                document.getElementById('loader-city').style.display = 'none';
+                updateFullAddress(); 
+            }
+        }
+
+        async function loadBarangays() {
+            const citySelect = document.getElementById('city');
+            const barangaySelect = document.getElementById('barangay');
+            const cityCode = citySelect.value;
+
+            if (!cityCode) return;
+
+            barangaySelect.disabled = true;
+            barangaySelect.innerHTML = '<option>Loading...</option>';
+            document.getElementById('loader-barangay').style.display = 'block';
+
+            try {
+                const response = await fetch(`${apiBase}/cities-municipalities/${cityCode}/barangays/`);
+                const data = await response.json();
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+                data.forEach(brgy => {
+                    barangaySelect.innerHTML += `<option value="${brgy.name}">${brgy.name}</option>`;
+                });
+                barangaySelect.disabled = false;
+            } catch (error) {
+                console.error("Error loading barangays:", error);
+            } finally {
+                document.getElementById('loader-barangay').style.display = 'none';
+                updateFullAddress();
+            }
+        }
+
+        function updateFullAddress() {
+            const houseStreet = document.getElementById('house_street').value.trim();
+            const subdivision = document.getElementById('subdivision').value.trim();
+            const province = document.getElementById('province').options[document.getElementById('province').selectedIndex]?.dataset.name || '';
+            const city = document.getElementById('city').options[document.getElementById('city').selectedIndex]?.dataset.name || '';
+            const barangay = document.getElementById('barangay').value || '';
+
+            // Combine them sequentially
+            let fullAddress = '';
+            if (houseStreet) fullAddress += `${houseStreet}, `;
+            if (subdivision) fullAddress += `${subdivision}, `;
+            if (barangay) fullAddress += `${barangay}, `;
+            if (city) fullAddress += `${city}, `;
+            if (province) fullAddress += `${province}`;
+
+            // Remove trailing comma if exists
+            fullAddress = fullAddress.replace(/,\s*$/, "");
+
+            document.getElementById('full_address').value = fullAddress;
+        }
+
+        // Initialize on load
+        window.onload = loadProvinces;
     </script>
 </body>
 </html>

@@ -79,9 +79,16 @@
         .chat-header { background: linear-gradient(to right, #FFD36E, #FF9800); padding: 15px; color: #1e1e1e; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
         .chat-close { cursor: pointer; font-size: 18px; }
         .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f9f9f9; display: flex; flex-direction: column; }
-        .message { margin-bottom: 10px; max-width: 80%; padding: 10px; border-radius: 10px; font-size: 14px; line-height: 1.4; }
+        
+        .message { margin-bottom: 10px; max-width: 80%; padding: 10px; border-radius: 10px; font-size: 14px; line-height: 1.4; position: relative; }
         .message.admin { background: #e0e0e0; color: #333; align-self: flex-start; border-bottom-left-radius: 0; }
         .message.user { background: #ff9800; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        
+        /* ✅ NEW: TIMESTAMP STYLE */
+        .message-time { display: block; font-size: 10px; margin-top: 5px; opacity: 0.8; text-align: right; }
+        .message.admin .message-time { color: #666; text-align: left; }
+        .message.user .message-time { color: #fffbe6; }
+
         .chat-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white; }
         .chat-input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
         .chat-send { background: #ff9800; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
@@ -188,7 +195,6 @@
                     </div>
                 </div>
 
-                {{-- ✅ UPDATED MY ROOM CARD LOGIC --}}
                 <div class="card">
                     <div class="card-header">
                         @if($currentBooking && $currentBooking->room)
@@ -210,10 +216,21 @@
                         @if(in_array($currentBooking->status, ['Approved', 'Occupied','Paid']))
                             <div class="room-details">
                                 <p><strong>Room Number:</strong> {{ $currentBooking->room->room_number }}</p>
-                                
                                 <p><strong>Bed Number:</strong> <span style="color: #e67e22; font-weight: 700;">#{{ $currentBooking->bed_number ?? 'N/A' }}</span></p>
-                                
                                 <p><strong>Status:</strong> {{ ucfirst($currentBooking->status) }}</p>
+
+                                {{-- ✅ NEW: Expiration Logic --}}
+                                @php
+                                    $expirationDate = \Carbon\Carbon::parse($currentBooking->created_at)->addMonth();
+                                    $daysLeft = now()->diffInDays($expirationDate, false);
+                                @endphp
+                                <p style="margin-top: 10px; font-weight: 600; color: {{ $daysLeft < 5 ? '#dc3545' : '#28a745' }}">
+                                    @if($daysLeft > 0)
+                                        Due Date: {{ $expirationDate->format('M d, Y') }}
+                                    @else
+                                        Expired on: {{ $expirationDate->format('M d, Y') }}
+                                    @endif
+                                </p>
                             </div>
                         @else
                             <div class="room-empty">
@@ -250,6 +267,7 @@
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr class="text-uppercase text-muted small">
+                                            <th class="text-start">Payment ID</th> {{-- ✅ NEW COLUMN --}}
                                             <th class="text-start">Amount</th>
                                             <th class="text-center">Status</th>
                                             <th class="text-end">Date</th>
@@ -258,6 +276,7 @@
                                     <tbody>
                                         @foreach($payments as $payment)
                                             <tr class="align-middle">
+                                                <td class="text-start text-muted">#{{ $payment->id }}</td> {{-- ✅ PAYMENT ID DATA --}}
                                                 <td class="text-start fw-semibold">₱{{ number_format($payment->amount, 2) }}</td>
                                                 <td class="text-center">
                                                     @if($payment->status === 'paid')
@@ -296,7 +315,10 @@
             <i class="bi bi-x-lg chat-close" onclick="toggleChat()"></i>
         </div>
         <div class="chat-body" id="chatBody">
-            <div class="message admin">Hello {{ Auth::user()->name }}, how can I help you?</div>
+            <div class="message admin">
+                Hello {{ Auth::user()->name }}, how can I help you?
+                <span class="message-time">Just now</span>
+            </div>
         </div>
         <div class="chat-footer">
             <input type="text" class="chat-input" id="chatMessageInput" placeholder="Type a message...">
@@ -332,7 +354,7 @@
 
         // --- AJAX CHAT LOGIC ---
         const chatBody = document.getElementById('chatBody');
-        const adminId = 2; // ⚠️ CHECK DATABASE: Ensure your Admin's ID is actually 1
+        const adminId = 2; // ⚠️ CHECK DATABASE: Ensure your Admin's ID is actually 2 or 1
         const userId = {{ Auth::id() }}; // Current Student ID
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -369,7 +391,6 @@
             })
             .catch(error => {
                 console.error('Error sending message:', error);
-                // Optional: alert('Failed to send message. Please check console.');
             });
         }
 
@@ -401,21 +422,27 @@
             })
             .then(data => {
                 // Clear current messages to prevent duplicates
-                chatBody.innerHTML = '<div class="message admin">Hello {{ Auth::user()->name }}, how can I help you?</div>'; 
+                chatBody.innerHTML = '<div class="message admin">Hello {{ Auth::user()->name }}, how can I help you?<span class="message-time">Just now</span></div>'; 
                 
                 data.forEach(msg => {
                     // Check if the message sender is the current logged-in user
                     const type = msg.sender_id == userId ? 'user' : 'admin';
-                    appendMessage(msg.message, type);
+                    // ✅ Format Date from JSON response (e.g., "2023-10-25T14:30:00.000000Z")
+                    const dateObj = new Date(msg.created_at);
+                    const timeString = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    appendMessage(msg.message, type, timeString);
                 });
             })
             .catch(error => console.error('Polling error:', error));
         }
 
-        function appendMessage(text, type) {
+        // ✅ UPDATED: Accept 'time' parameter
+        function appendMessage(text, type, time = 'Just now') {
             const div = document.createElement('div');
             div.classList.add('message', type);
-            div.innerText = text;
+            // Insert text + timestamp span
+            div.innerHTML = `${text}<span class="message-time">${time}</span>`;
             chatBody.appendChild(div);
             // Auto scroll to bottom
             chatBody.scrollTop = chatBody.scrollHeight; 

@@ -31,7 +31,7 @@
         .menu i { margin-right: 15px; font-size: 1.3rem; }
 
         /* 🌟 CONTENT AREA */
-        .content { flex: 1; margin-left: 300px; transition: margin-left 0.3s ease; }
+        .content { flex: 1; margin-left: 300px; transition: margin-left 0.3s ease; min-width: 0; }
         .content.expanded { margin-left: 0; }
 
         /* 🌟 TOP BAR */
@@ -42,11 +42,11 @@
         .logout-btn:hover { background: #CC0000; transform: scale(1.05); }
 
         /* 🌟 MAIN CONTENT */
-        .main-content { padding: 40px; }
+        .main-content { padding: 40px; overflow-x: auto; }
         h1 { font-size: 36px; font-weight: 700; margin-bottom: 40px; }
 
         /* 🌟 REPORT SECTIONS */
-        .report-section { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 40px; }
+        .report-section { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 40px; overflow-x: auto; }
         .section-title { font-size: 24px; font-weight: 700; margin-bottom: 25px; }
 
         /* 🌟 FILTER BAR STYLES */
@@ -69,8 +69,8 @@
 
         /* 🌟 TABLES */
         .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; /* Ensure wide tables don't squish */ }
-        th, td { border: 1px solid #eee; padding: 15px; font-size: 14px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; min-width: unset; table-layout: auto; }
+        th, td { border: 1px solid #eee; padding: 15px; font-size: 14px; text-align: left; white-space: normal; }
         th { background: #fffbe6; font-weight: 700; text-transform: uppercase; color: #333; }
         tbody tr:hover { background: #fafafa; }
 
@@ -102,11 +102,10 @@
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); width: 100%; max-width: 250px; }
             .sidebar.open { transform: translateX(0); }
-            .content { margin-left: 0; }
-            .top-bar { padding: 15px 20px; }
-            .main-content { padding: 20px; }
-            h1 { font-size: 28px; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
+            .content { margin-left: 0; min-width: 0; }
+            .main-content { padding: 20px; overflow-x: auto; }
+            .report-section { padding: 20px; overflow-x: auto; }
+            table { min-width: unset; table-layout: auto; }
         }
     </style>
 </head>

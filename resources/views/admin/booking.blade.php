@@ -264,12 +264,8 @@
                 <span style="color: #dc3545;">Expired on {{ $expirationDate->format('F d, Y') }}</span>
             @else
                 {{-- ✅ THIS IS YOUR REQUESTED FORMAT --}}
-                <span style="color: #666;">Valid until: {{ $expirationDate->format('F d, Y') }}</span>
+                <span style="color: #666;">Due Date: {{ $expirationDate->format('F d, Y') }}</span>
             @endif
-        </div>
-    @else
-        <div style="font-size: 11px; color: #999; margin-top: 4px;">
-            {{ $bookingDate->diffForHumans() }}
         </div>
     @endif
 </td>
