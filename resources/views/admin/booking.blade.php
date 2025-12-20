@@ -158,7 +158,12 @@
                     </thead>
                     <tbody>
                         @forelse ($pending as $booking)
-                            @php $userCount = $userPendingCounts[$booking->user_id] ?? 0; @endphp
+                            @php 
+                                $userCount = $userPendingCounts[$booking->user_id] ?? 0;
+                                // Calculate expiration for pending too (optional context)
+                                $bookingDate = \Carbon\Carbon::parse($booking->created_at);
+                                $duration = $bookingDate->diffForHumans(null, true);
+                            @endphp
                             <tr style="transition: all 0.2s ease-in-out;">
                                 <td style="padding:12px; border-bottom:1px solid #eee;">#{{ $booking->id }}</td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">
@@ -169,17 +174,17 @@
                                 </td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->room->room_number ?? 'N/A' }}</td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;"><span style="font-weight:600; color:#e67e22;">#{{ $booking->bed_number ?? 'N/A' }}</span></td>
-                                <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->created_at->format('F d, Y') }}</td>
+                                <td style="padding:12px; border-bottom:1px solid #eee;">
+                                    {{ $bookingDate->format('M d, Y') }}
+                                    <div style="font-size: 11px; color: #999; margin-top: 2px;">Waited: {{ $duration }}</div>
+                                </td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">
                                     <div class="action-buttons" style="display:flex; gap:8px;">
-                                        
-                                        {{-- ✅ UPDATED: Added 'approve-form' class to trigger JS --}}
                                         <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" class="approve-form" style="display:inline;">
                                             @csrf
                                             <button type="submit" class="btn btn-approve">Approve</button>
                                         </form>
                                         
-                                        {{-- Reject triggers Modal --}}
                                         <button type="button" class="btn btn-reject" 
                                             onclick="openRejectModal('{{ route('admin.booking.reject', $booking->id) }}')">
                                             Reject
@@ -230,17 +235,45 @@
                     </thead>
                     <tbody>
                         @foreach ($all as $booking)
+                        @php
+                            // Expiration Logic
+                            $status = strtolower($booking->status);
+                            $bookingDate = \Carbon\Carbon::parse($booking->created_at);
+                            $expirationDate = $bookingDate->copy()->addMonth();
+                            $isExpired = now()->greaterThan($expirationDate);
+                        @endphp
                         <tr>
                             <td>{{ $booking->id }}</td>
                             <td>
                                 {{ $booking->user->name }}
-                                @if(strtolower($booking->status) == 'approved')
+                                @if($status == 'approved')
                                     <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" title="View Contract" style="color: #007bff; margin-left: 5px;"><i class="fas fa-file-contract"></i></a>
                                 @endif
                             </td>
                             <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
                             <td><span style="font-weight:600; color:#e67e22;">#{{ $booking->bed_number ?? 'N/A' }}</span></td>
-                            <td>{{ $booking->created_at->format('F d, Y') }}</td>
+                            
+                            {{-- ✅ UPDATED: Show Expiration --}}
+<td style="padding:10px;">
+    {{-- Display Booking Date --}}
+    {{ $bookingDate->format('F d, Y') }}
+    
+    @if($status === 'approved')
+        <div style="font-size: 11px; margin-top: 4px; font-weight: 500;">
+            @if($isExpired)
+                <span style="color: #dc3545;">Expired on {{ $expirationDate->format('F d, Y') }}</span>
+            @else
+                {{-- ✅ THIS IS YOUR REQUESTED FORMAT --}}
+                <span style="color: #666;">Valid until: {{ $expirationDate->format('F d, Y') }}</span>
+            @endif
+        </div>
+    @else
+        <div style="font-size: 11px; color: #999; margin-top: 4px;">
+            {{ $bookingDate->diffForHumans() }}
+        </div>
+    @endif
+</td>
+
                             <td class="status-cell">
                                 @if($booking->is_overdue)
                                     <span class="status-badge status-overdue">OVERDUE <i class="fas fa-exclamation-circle"></i></span>
@@ -346,7 +379,7 @@
                 });
             });
 
-            // ✅ APPROVE ALERT (NEW)
+            // ✅ APPROVE ALERT
             const approveForms = document.querySelectorAll('.approve-form');
             approveForms.forEach(form => {
                 form.addEventListener('submit', function (e) {

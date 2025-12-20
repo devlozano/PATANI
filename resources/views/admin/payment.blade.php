@@ -179,7 +179,7 @@ tbody tr:hover { background: #f9f9f9; }
                 <table>
                     <thead>
                         <tr>
-                            <th>PAYMENT ID</th>
+                            <th>PAY ID</th>
                             <th>BOARDERS</th>
                             <th>AMOUNT</th>
                             <th>METHOD</th>
@@ -261,7 +261,7 @@ tbody tr:hover { background: #f9f9f9; }
                 <table id="paymentsTable">
                     <thead>
                         <tr>
-                            <th>PAYMENT ID</th>
+                            <th>PAY ID</th>
                             <th>BOARDERS</th>
                             <th>AMOUNT</th>
                             <th>METHOD</th>

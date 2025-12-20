@@ -54,7 +54,6 @@
         .update-btn { background-color: #ff9800; border: none; color: #fff; padding: 12px 40px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 15px; box-shadow: 0 3px 6px rgba(255, 152, 0, 0.3); }
         .update-btn:hover { background-color: #f57c00; box-shadow: 0 4px 10px rgba(245, 124, 0, 0.35); }
         
-        /* Error Message Style */
         .input-error { border-color: #dc3545 !important; background-color: #fff8f8 !important; }
         .error-text { color: #dc3545; font-size: 12px; margin-top: 5px; }
 
@@ -114,7 +113,6 @@
         <div class="main-content">
             <h1>Student Profile</h1>
 
-            {{-- ✅ SUCCESS MESSAGE (GREEN) --}}
             @if(session('success'))
                 <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; display: flex; align-items: center; gap: 10px;">
                     <i class="bi bi-check-circle-fill" style="font-size: 1.2rem;"></i>
@@ -122,7 +120,6 @@
                 </div>
             @endif
 
-            {{-- ❌ GENERAL ERROR MESSAGE (RED) --}}
             @if(session('error'))
                 <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
                     <i class="bi bi-exclamation-circle-fill" style="font-size: 1.2rem;"></i>
@@ -130,7 +127,6 @@
                 </div>
             @endif
 
-            {{-- ❌ VALIDATION ERRORS LIST --}}
             @if($errors->any())
                 <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
@@ -150,6 +146,11 @@
                     <div class="avatar">
                         @if(Auth::user()->avatar)
                             <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}" alt="Avatar" class="avatar-img">
+                            <form action="{{ route('profile.removeAvatar') }}" method="POST" style="margin-top:6px;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="remove-avatar-btn">Remove</button>
+                            </form>
                         @else
                             <div class="avatar-initials">
                                 {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(strrchr(Auth::user()->name, ' '), 1, 1)) }}
@@ -184,6 +185,8 @@
 
             <div class="section">
                 <span style="font-size: 20px; font-weight: 600; color: #333;">Update Information</span>
+                
+                {{-- Form 1: Profile Update --}}
                 <div class="section-header" style="display: flex; align-items: center; justify-content: start; gap: 20px; margin-top: 20px;">
                     
                     {{-- Avatar Section --}}
@@ -209,71 +212,98 @@
                     </div>
                 </div>
 
-                {{-- ✅ UPDATE FORM WITH ERROR HANDLING --}}
                 <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>Name:</label>
-                            <input type="text" name="name" 
-                                   value="{{ old('name', Auth::user()->name) }}" 
-                                   class="@error('name') input-error @enderror" 
-                                   pattern="^[a-zA-Z\s\.\,\-]+$"
-                                   title="Name should only contain letters, spaces, dots, or hyphens (No emojis or numbers)"
+                            <label>First Name:</label>
+                            <input type="text" name="first_name" 
+                                   value="{{ old('first_name', Auth::user()->first_name) }}" 
+                                   class="@error('first_name') input-error @enderror" 
                                    required>
-                            @error('name')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
+                            @error('first_name') <span class="error-text">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Middle Initial <small style="color:#888;">(Optional)</small>:</label>
+                            <input type="text" name="middle_initial" 
+                                   value="{{ old('middle_initial', Auth::user()->middle_initial) }}" 
+                                   class="@error('middle_initial') input-error @enderror">
+                            @error('middle_initial') <span class="error-text">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Last Name:</label>
+                            <input type="text" name="last_name" 
+                                   value="{{ old('last_name', Auth::user()->last_name) }}" 
+                                   class="@error('last_name') input-error @enderror" 
+                                   required>
+                            @error('last_name') <span class="error-text">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="form-group">
                             <label>Gender:</label>
-                            <select name="gender" class="@error('gender') input-error @enderror">
+                            <select name="gender">
                                 <option value="Male" {{ (old('gender', Auth::user()->gender) === 'Male') ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ (old('gender', Auth::user()->gender) === 'Female') ? 'selected' : '' }}>Female</option>
                             </select>
-                            @error('gender')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="form-group">
                             <label>Email:</label>
-                            <input type="email" name="email" 
-                                   value="{{ old('email', Auth::user()->email) }}" 
-                                   class="@error('email') input-error @enderror" 
-                                   required>
-                            @error('email')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
+                            <input type="email" name="email" value="{{ old('email', Auth::user()->email) }}" required>
                         </div>
 
                         <div class="form-group">
                             <label>Contact:</label>
-                            <input type="text" name="contact" 
-                                   value="{{ old('contact', Auth::user()->contact) }}" 
-                                   class="@error('contact') input-error @enderror"
-                                   required>
-                            @error('contact')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
+                            <input type="text" name="contact" value="{{ old('contact', Auth::user()->contact) }}" required>
                         </div>
 
                         <div class="form-group">
                             <label>Address:</label>
-                            <input type="text" name="address" 
-                                   value="{{ old('address', Auth::user()->address) }}" 
-                                   class="@error('address') input-error @enderror">
-                            @error('address')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
+                            <input type="text" name="address" value="{{ old('address', Auth::user()->address) }}">
                         </div>
                     </div>
 
                     <div class="update-btn-wrapper">
-                        <button type="submit" class="update-btn">Update</button>
+                        <button type="submit" class="update-btn">Update Profile</button>
+                    </div>
+                </form>
+
+                {{-- ✅ DIVIDER AND PASSWORD SECTION ADDED HERE --}}
+                <hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;">
+
+                <span style="font-size: 20px; font-weight: 600; color: #333; display: block; margin-bottom: 20px;">Change Password</span>
+                
+                <form action="{{ route('profile.update') }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    {{-- Hidden input to tell controller this is a password update --}}
+                    <input type="hidden" name="update_type" value="password">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" name="current_password" required placeholder="Enter current password">
+                            @error('current_password') <span class="error-text">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" name="password" required placeholder="Enter new password">
+                            @error('password') <span class="error-text">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" name="password_confirmation" required placeholder="Confirm new password">
+                        </div>
+                    </div>
+
+                    <div class="update-btn-wrapper">
+                        <button type="submit" class="update-btn">Update Password</button>
                     </div>
                 </form>
             </div>

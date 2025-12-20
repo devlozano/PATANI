@@ -58,7 +58,7 @@
         
         /* Table Styles */
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border: 1px solid #ddd; }
+        th, td { padding: 15px; text-align: left; border: 1px solid #ddd; white-space: nowrap; } /* Added nowrap for cleaner date display */
         th { background: #f5f5f5; font-weight: 600; font-size: 14px; color: #333; }
         td { font-size: 15px; }
         
@@ -298,30 +298,55 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Recent Bookings</span>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>BOARDERS</th>
-                            <th>ROOM</th>
-                            <th>STATUS</th>
-                            <th>DATE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($recentBookings as $booking)
-                        <tr>
-                            <td>{{ $booking->user->name ?? 'Unknown' }}</td>
-                            <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
-                            <td>
-                                <span class="status-badge status-{{ strtolower($booking->status) }}">
-                                    {{ ucfirst($booking->status) }}
-                                </span>
-                            </td>
-                            <td>{{ $booking->created_at->format('M d, Y') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                {{-- NEW: Wrapper for mobile responsiveness --}}
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>BOARDERS</th>
+                                <th>ROOM</th>
+                                <th>STATUS</th>
+                                <th>DATE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentBookings as $booking)
+                            <tr>
+                                <td>{{ $booking->user->name ?? 'Unknown' }}</td>
+                                <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ strtolower($booking->status) }}">
+                                        {{ ucfirst($booking->status) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{-- Modified Date Cell --}}
+                                    {{ $booking->created_at->format('M d, Y') }}
+                                    
+                                    {{-- ✅ EXPIRATION LOGIC ADDED --}}
+                                    @if(strtolower($booking->status) == 'approved')
+                                        @php
+                                            $expirationDate = \Carbon\Carbon::parse($booking->created_at)->addMonth();
+                                            $isExpired = now()->greaterThan($expirationDate);
+                                        @endphp
+                                        <div style="font-size: 11px; margin-top: 4px; font-weight: 500;">
+                                            @if($isExpired)
+                                                <span style="color: #dc3545;">Expired on {{ $expirationDate->format('F d, Y') }}</span>
+                                            @else
+                                                <span style="color: #666;">Valid until: {{ $expirationDate->format('F d, Y') }}</span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                                            {{ $booking->created_at->diffForHumans() }}
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -360,26 +385,26 @@
                 <input type="text" placeholder="Search tenant..." id="userSearch" onkeyup="filterUsers()">
             </div>
             <div class="user-list" id="userList">
-    {{-- ✅ Loop through the SORTED users passed from controller --}}
-    @foreach($chatUsers as $student)
-        <div class="user-item" onclick="loadChat({{ $student->id }}, '{{ $student->name }}')">
-            @if($student->avatar)
-                <img src="{{ asset('storage/avatars/' . $student->avatar) }}" class="user-item-img" alt="">
-            @else
-                <div class="user-item-img" style="background: #ccc; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">
-                    {{ substr($student->name, 0, 1) }}
-                </div>
-            @endif
-            <div class="user-info">
-                <h5>{{ $student->name }}</h5>
-                {{-- Optional: Show timestamp of last activity if you want --}}
-                <p style="font-size: 11px; color: #999;">
-                    Click to view chat
-                </p>
+                {{-- ✅ Loop through the SORTED users passed from controller --}}
+                @foreach($chatUsers as $student)
+                    <div class="user-item" onclick="loadChat({{ $student->id }}, '{{ $student->name }}')">
+                        @if($student->avatar)
+                            <img src="{{ asset('storage/avatars/' . $student->avatar) }}" class="user-item-img" alt="">
+                        @else
+                            <div class="user-item-img" style="background: #ccc; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">
+                                {{ substr($student->name, 0, 1) }}
+                            </div>
+                        @endif
+                        <div class="user-info">
+                            <h5>{{ $student->name }}</h5>
+                            {{-- Optional: Show timestamp of last activity if you want --}}
+                            <p style="font-size: 11px; color: #999;">
+                                Click to view chat
+                            </p>
+                        </div>
+                    </div>
+                @endforeach
             </div>
-        </div>
-    @endforeach
-</div>
         </div>
 
         <div class="chat-main-area" id="chatMainArea">
@@ -418,8 +443,6 @@
         const content = document.getElementById('content');
         const menuToggle = document.getElementById('menuToggle');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        // ✅ DEFINED AUTH ID FOR JS
-        const authUserId = {{ Auth::id() }}; 
 
         menuToggle.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
@@ -546,7 +569,7 @@
 
                 data.forEach(msg => {
                     // Check Sender ID against Auth ID
-                    const type = msg.sender_id == authUserId ? 'outgoing' : 'incoming';
+                    const type = msg.sender_id == {{ Auth::id() }} ? 'outgoing' : 'incoming';
                     const div = document.createElement('div');
                     div.className = `message-bubble ${type}`;
                     

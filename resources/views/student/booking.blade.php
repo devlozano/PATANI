@@ -1,6 +1,11 @@
 @php
     $hasActiveBooking = $hasActiveBooking ?? false;
 
+    // ✅ 1. Sort Bookings Descending (Newest First)
+    if(isset($bookings) && $bookings instanceof \Illuminate\Support\Collection) {
+        $bookings = $bookings->sortByDesc('created_at');
+    }
+
     // ✅ Data preparation logic
     $roomsData = $rooms->map(function($room) {
         $inclusions = is_array($room->inclusions) 
@@ -182,14 +187,6 @@
         .layout-6p .bed-5 { top: 65%; left: 80%; }
         .layout-6p .bed-6 { top: 35%; left: 80%; }
 
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .content { margin-left: 0; padding: 15px 20px; }
-            .rooms-grid { grid-template-columns: 1fr; }
-            .bed-marker { width: 24px; height: 24px; font-size: 10px; }
-        }
-        
         /* ✅ Tooltip Styles */
         .reason-tooltip { position: relative; display: inline-block; cursor: pointer; color: #dc3545; margin-left: 5px; }
         .reason-tooltip:hover::after {
@@ -199,6 +196,31 @@
             background: #333; color: #fff; padding: 5px 10px;
             border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 10;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* 📱 MOBILE RESPONSIVENESS FIXES */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .content { margin-left: 0; padding: 15px 20px; }
+            .rooms-grid { grid-template-columns: 1fr; }
+            .bed-marker { width: 24px; height: 24px; font-size: 10px; }
+
+            /* ✅ Table Card Transformation */
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; } /* Hide headers */
+            tr { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; background: #fff; padding: 10px; }
+            td { 
+                border: none; border-bottom: 1px solid #eee; position: relative; padding-left: 50%; 
+                text-align: right; /* Content aligns right */
+                min-height: 35px;
+            }
+            td:last-child { border-bottom: 0; }
+            td::before { 
+                content: attr(data-label); /* Show label */
+                position: absolute; left: 10px; top: 12px; 
+                width: 45%; padding-right: 10px; white-space: nowrap; font-weight: 600; text-align: left; 
+            }
         }
     </style>
 </head>
@@ -381,45 +403,54 @@
         } elseif ($status === 'rejected' || $status === 'cancelled') {
             $badgeBg = '#ffe6e6'; $badgeColor = '#dc3545'; 
         }
+
+        // Expiration Logic
+        $bookingDate = \Carbon\Carbon::parse($booking->created_at);
+        $expirationDate = $bookingDate->copy()->addMonth();
+        $isExpired = now()->greaterThan($expirationDate);
     @endphp
 
+    {{-- ✅ ADDED: data-label attribute for mobile display --}}
     <tr style="border-bottom:1px solid #eee;">
-        <td style="padding:10px;">{{ $booking->id }}</td>
-        <td style="padding:10px;">{{ $booking->room->room_number ?? 'Room' }}</td>
-        <td style="padding:10px;">#{{ $booking->bed_number ?? 'N/A' }}</td>
-        <td style="padding:10px;">
+        <td style="padding:10px;" data-label="Booking #">{{ $booking->id }}</td>
+        <td style="padding:10px;" data-label="Room">{{ $booking->room->room_number ?? 'Room' }}</td>
+        <td style="padding:10px;" data-label="Bed">#{{ $booking->bed_number ?? 'N/A' }}</td>
+        <td style="padding:10px;" data-label="Status">
             <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; background: {{ $badgeBg }}; color: {{ $badgeColor }};">
                 {{ ucfirst($booking->status) }}
             </span>
             
-            {{-- ✅ NEW: Show Rejection Reason Icon --}}
             @if($status === 'rejected' && $booking->rejection_reason)
                 <span class="reason-tooltip" data-reason="{{ $booking->rejection_reason }}">
                     <i class="bi bi-info-circle-fill"></i>
                 </span>
             @endif
 
-             {{-- Visual Indicator for Payment --}}
              @if($isPaymentSettled && $status === 'approved')
                 <div style="font-size:10px; color:#28a745; margin-top:2px; font-weight:bold;">
                     <i class="bi bi-check-all"></i> Paid
                 </div>
              @endif
         </td>
-        <td style="padding:10px;">
-    {{ $booking->created_at->format('M d, Y') }}
-    
-    {{-- ✅ NEW: Duration Logic --}}
-    @php
-        $start = \Carbon\Carbon::parse($booking->created_at);
-        $duration = $start->diffForHumans(null, true);
-    @endphp
-    <div style="font-size: 11px; color: #666; margin-top: 4px; font-weight: 500;">
-        Duration: {{ $duration }}
-    </div>
-</td>
+        <td style="padding:10px;" data-label="Date">
+            {{ $bookingDate->format('M d, Y') }}
+            
+            @if($status === 'approved')
+                <div style="font-size: 11px; margin-top: 4px; font-weight: 500;">
+                    @if($isExpired)
+                        <span style="color: #dc3545;">Expired on {{ $expirationDate->format('F d, Y') }}</span>
+                    @else
+                        <span style="color: #666;">Valid until: {{ $expirationDate->format('F d, Y') }}</span>
+                    @endif
+                </div>
+            @else
+                <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                    {{ $bookingDate->diffForHumans() }}
+                </div>
+            @endif
+        </td>
         
-        <td style="padding:10px;">
+        <td style="padding:10px;" data-label="Action">
             
             @if($status === 'approved' || $status === 'paid')
                 <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" class="btn-contract">
