@@ -58,7 +58,7 @@
         
         /* Table Styles */
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border: 1px solid #ddd; white-space: nowrap; } /* Added nowrap for cleaner date display */
+        th, td { padding: 15px; text-align: left; border: 1px solid #ddd; white-space: nowrap; } 
         th { background: #f5f5f5; font-weight: 600; font-size: 14px; color: #333; }
         td { font-size: 15px; }
         
@@ -104,8 +104,13 @@
         .user-item.active { background: #ffe0b2; }
         .user-item-img { width: 45px; height: 45px; border-radius: 50%; background: #ccc; object-fit: cover; flex-shrink: 0; }
         .user-info { flex: 1; overflow: hidden; }
-        .user-info h5 { font-size: 15px; margin: 0 0 4px 0; color: #333; }
-        .user-info p { font-size: 13px; color: #777; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* ✅ UPDATED: User name style */
+        .user-info h5 { font-size: 15px; margin: 0 0 4px 0; color: #333; font-weight: 700; } /* Made Bold */
+        
+        /* ✅ UPDATED: Message preview style */
+        .user-info p { font-size: 13px; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; } 
+
         .chat-main-area { flex: 1; display: flex; flex-direction: column; background: #f4f6f8; position: relative; }
         .chat-main-header { padding: 15px 25px; background: white; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .chat-header-user { display: flex; align-items: center; gap: 15px; }
@@ -141,7 +146,6 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
         <div class="profile">
-            {{-- ✅ Dynamic Avatar Check --}}
             <img src="{{ Auth::user()->avatar ? asset('storage/avatars/'.Auth::user()->avatar) : asset('images/Screenshot 2025-10-28 033031.png') }}" alt="User Photo">
             <h2>{{ Auth::user()->name }}</h2>
             <p>{{ Auth::user()->contact }}</p>
@@ -298,7 +302,6 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Recent Bookings</span>
                 </div>
-                {{-- NEW: Wrapper for mobile responsiveness --}}
                 <div style="overflow-x:auto;">
                     <table>
                         <thead>
@@ -320,10 +323,8 @@
                                     </span>
                                 </td>
                                 <td>
-                                    {{-- Modified Date Cell --}}
                                     {{ $booking->created_at->format('M d, Y') }}
                                     
-                                    {{-- ✅ EXPIRATION LOGIC ADDED --}}
                                     @if(strtolower($booking->status) == 'approved')
                                         @php
                                             $expirationDate = \Carbon\Carbon::parse($booking->created_at)->addMonth();
@@ -396,10 +397,25 @@
                             </div>
                         @endif
                         <div class="user-info">
+                            {{-- ✅ UPDATED: Name is now BOLD (CSS handled in head) --}}
                             <h5>{{ $student->name }}</h5>
-                            {{-- Optional: Show timestamp of last activity if you want --}}
-                            <p style="font-size: 11px; color: #999;">
-                                Click to view chat
+                            
+                            {{-- ✅ UPDATED: Message Preview logic --}}
+                            @php
+                                $lastMessage = \App\Models\Message::where(function($q) use ($student) {
+                                    $q->where('sender_id', Auth::id())->where('receiver_id', $student->id);
+                                })->orWhere(function($q) use ($student) {
+                                    $q->where('sender_id', $student->id)->where('receiver_id', Auth::id());
+                                })->latest()->first();
+                            @endphp
+
+                            <p style="font-size: 12px; color: #666;">
+                                @if($lastMessage)
+                                    {{ Str::limit($lastMessage->message, 25) }}
+                                    <span style="font-size:10px; color:#999;"> • {{ $lastMessage->created_at->diffForHumans(null, true, true) }}</span>
+                                @else
+                                    <span style="font-style:italic; color:#999;">Start a conversation</span>
+                                @endif
                             </p>
                         </div>
                     </div>

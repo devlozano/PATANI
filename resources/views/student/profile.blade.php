@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
-        /* [YOUR EXISTING CSS REMAINS EXACTLY THE SAME] */
+        /* [EXISTING CSS REMAINS THE SAME] */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Poppins", sans-serif; }
         body { display: flex; min-height: 100vh; background: #f5f5f5; }
         .sidebar { width: 300px; background: linear-gradient(to bottom, #FFD36E, #FF9800); color: #1e1e1e; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; transition: transform 0.3s ease; }
@@ -56,6 +56,9 @@
         
         .input-error { border-color: #dc3545 !important; background-color: #fff8f8 !important; }
         .error-text { color: #dc3545; font-size: 12px; margin-top: 5px; }
+
+        /* Loader */
+        .loading-text { font-size: 12px; color: #888; font-style: italic; display:none; margin-top: 5px; }
 
         @media (max-width: 1024px) { .info-grid, .form-grid { grid-template-columns: 1fr; gap: 20px; } }
         @media (max-width: 768px) { .sidebar { width: 300px; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .content { margin-left: 0; } .top-bar { padding: 15px 20px; } .main-content { padding: 20px; } .dashboard-grid { grid-template-columns: 1fr; gap: 20px; } }
@@ -186,10 +189,8 @@
             <div class="section">
                 <span style="font-size: 20px; font-weight: 600; color: #333;">Update Information</span>
                 
-                {{-- Form 1: Profile Update --}}
                 <div class="section-header" style="display: flex; align-items: center; justify-content: start; gap: 20px; margin-top: 20px;">
-                    
-                    {{-- Avatar Section --}}
+                    {{-- Avatar Section in Update form --}}
                     <div class="avatar" style="text-align: center;">
                         @if(Auth::user()->avatar)
                             <img src="{{ asset('storage/avatars/' . Auth::user()->avatar) }}" alt="Avatar" class="avatar-img">
@@ -212,34 +213,26 @@
                     </div>
                 </div>
 
-                <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" onsubmit="updateFullAddress()">
                     @csrf
                     @method('PUT')
 
                     <div class="form-grid">
                         <div class="form-group">
                             <label>First Name:</label>
-                            <input type="text" name="first_name" 
-                                   value="{{ old('first_name', Auth::user()->first_name) }}" 
-                                   class="@error('first_name') input-error @enderror" 
-                                   required>
+                            <input type="text" name="first_name" value="{{ old('first_name', Auth::user()->first_name) }}" class="@error('first_name') input-error @enderror" required>
                             @error('first_name') <span class="error-text">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="form-group">
                             <label>Middle Initial <small style="color:#888;">(Optional)</small>:</label>
-                            <input type="text" name="middle_initial" 
-                                   value="{{ old('middle_initial', Auth::user()->middle_initial) }}" 
-                                   class="@error('middle_initial') input-error @enderror">
+                            <input type="text" name="middle_initial" value="{{ old('middle_initial', Auth::user()->middle_initial) }}" class="@error('middle_initial') input-error @enderror">
                             @error('middle_initial') <span class="error-text">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="form-group">
                             <label>Last Name:</label>
-                            <input type="text" name="last_name" 
-                                   value="{{ old('last_name', Auth::user()->last_name) }}" 
-                                   class="@error('last_name') input-error @enderror" 
-                                   required>
+                            <input type="text" name="last_name" value="{{ old('last_name', Auth::user()->last_name) }}" class="@error('last_name') input-error @enderror" required>
                             @error('last_name') <span class="error-text">{{ $message }}</span> @enderror
                         </div>
 
@@ -261,10 +254,37 @@
                             <input type="text" name="contact" value="{{ old('contact', Auth::user()->contact) }}" required>
                         </div>
 
+                        {{-- ✅ NEW ADDRESS FIELDS --}}
                         <div class="form-group">
-                            <label>Address:</label>
-                            <input type="text" name="address" value="{{ old('address', Auth::user()->address) }}">
+                            <label>House No. / Street:</label>
+                            <input type="text" id="house_street" class="form-control" placeholder="e.g. 123 Main St." oninput="updateFullAddress()">
                         </div>
+
+                        <div class="form-group">
+                            <label>Subdivision / Village:</label>
+                            <input type="text" id="subdivision" class="form-control" placeholder="e.g. Greenfields Subd." oninput="updateFullAddress()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Province:</label>
+                            <select id="province" class="form-control" onchange="loadCities()"></select>
+                            <span id="loader-province" class="loading-text">Loading...</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>City / Municipality:</label>
+                            <select id="city" class="form-control" onchange="loadBarangays()" disabled></select>
+                            <span id="loader-city" class="loading-text">Loading...</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Barangay:</label>
+                            <select id="barangay" class="form-control" onchange="updateFullAddress()" disabled></select>
+                            <span id="loader-barangay" class="loading-text">Loading...</span>
+                        </div>
+
+                        {{-- Hidden input stores the concatenated address for the backend --}}
+                        <input type="hidden" name="address" id="full_address" value="{{ old('address', Auth::user()->address) }}">
                     </div>
 
                     <div class="update-btn-wrapper">
@@ -272,7 +292,6 @@
                     </div>
                 </form>
 
-                {{-- ✅ DIVIDER AND PASSWORD SECTION ADDED HERE --}}
                 <hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;">
 
                 <span style="font-size: 20px; font-weight: 600; color: #333; display: block; margin-bottom: 20px;">Change Password</span>
@@ -280,7 +299,6 @@
                 <form action="{{ route('profile.update') }}" method="POST">
                     @csrf
                     @method('PUT')
-                    {{-- Hidden input to tell controller this is a password update --}}
                     <input type="hidden" name="update_type" value="password">
 
                     <div class="form-grid">
@@ -314,7 +332,6 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const content = document.getElementById('content');
-            
             sidebar.classList.toggle('open');
             sidebar.classList.toggle('collapsed');
             content.classList.toggle('expanded');
@@ -323,14 +340,120 @@
         document.addEventListener('click', function(event) {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.querySelector('.menu-toggle');
-            
-            if (window.innerWidth <= 768 && 
-                !sidebar.contains(event.target) && 
-                !toggle.contains(event.target) &&
-                sidebar.classList.contains('open')) {
+            if (window.innerWidth <= 768 && !sidebar.contains(event.target) && !toggle.contains(event.target) && sidebar.classList.contains('open')) {
                 sidebar.classList.remove('open');
             }
         });
+
+        // ✅ PHILIPPINE ADDRESS SELECTOR LOGIC (Using PSGC API)
+        const apiBase = "https://psgc.gitlab.io/api";
+
+        async function loadProvinces() {
+            const provinceSelect = document.getElementById('province');
+            document.getElementById('loader-province').style.display = 'block';
+            
+            try {
+                const response = await fetch(`${apiBase}/provinces/`);
+                const data = await response.json();
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                provinceSelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
+                data.forEach(prov => {
+                    provinceSelect.innerHTML += `<option value="${prov.code}" data-name="${prov.name}">${prov.name}</option>`;
+                });
+            } catch (error) {
+                console.error("Error loading provinces:", error);
+            } finally {
+                document.getElementById('loader-province').style.display = 'none';
+            }
+        }
+
+        async function loadCities() {
+            const provinceSelect = document.getElementById('province');
+            const citySelect = document.getElementById('city');
+            const provinceCode = provinceSelect.value;
+            const barangaySelect = document.getElementById('barangay');
+
+            if (!provinceCode) return;
+
+            citySelect.disabled = true;
+            barangaySelect.disabled = true;
+            citySelect.innerHTML = '<option>Loading...</option>';
+            barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            document.getElementById('loader-city').style.display = 'block';
+
+            try {
+                const response = await fetch(`${apiBase}/provinces/${provinceCode}/cities-municipalities/`);
+                const data = await response.json();
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
+                data.forEach(city => {
+                    citySelect.innerHTML += `<option value="${city.code}" data-name="${city.name}">${city.name}</option>`;
+                });
+                citySelect.disabled = false;
+            } catch (error) {
+                console.error("Error loading cities:", error);
+            } finally {
+                document.getElementById('loader-city').style.display = 'none';
+                updateFullAddress(); 
+            }
+        }
+
+        async function loadBarangays() {
+            const citySelect = document.getElementById('city');
+            const barangaySelect = document.getElementById('barangay');
+            const cityCode = citySelect.value;
+
+            if (!cityCode) return;
+
+            barangaySelect.disabled = true;
+            barangaySelect.innerHTML = '<option>Loading...</option>';
+            document.getElementById('loader-barangay').style.display = 'block';
+
+            try {
+                const response = await fetch(`${apiBase}/cities-municipalities/${cityCode}/barangays/`);
+                const data = await response.json();
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+                data.forEach(brgy => {
+                    barangaySelect.innerHTML += `<option value="${brgy.name}">${brgy.name}</option>`;
+                });
+                barangaySelect.disabled = false;
+            } catch (error) {
+                console.error("Error loading barangays:", error);
+            } finally {
+                document.getElementById('loader-barangay').style.display = 'none';
+                updateFullAddress();
+            }
+        }
+
+        function updateFullAddress() {
+            const houseStreet = document.getElementById('house_street').value.trim();
+            const subdivision = document.getElementById('subdivision').value.trim();
+            const province = document.getElementById('province').options[document.getElementById('province').selectedIndex]?.dataset.name || '';
+            const city = document.getElementById('city').options[document.getElementById('city').selectedIndex]?.dataset.name || '';
+            const barangay = document.getElementById('barangay').value || '';
+
+            // Combine them sequentially
+            let fullAddress = '';
+            if (houseStreet) fullAddress += `${houseStreet}, `;
+            if (subdivision) fullAddress += `${subdivision}, `;
+            if (barangay) fullAddress += `${barangay}, `;
+            if (city) fullAddress += `${city}, `;
+            if (province) fullAddress += `${province}`;
+
+            // Remove trailing comma if exists
+            fullAddress = fullAddress.replace(/,\s*$/, "");
+
+            if(fullAddress) {
+                document.getElementById('full_address').value = fullAddress;
+            }
+        }
+
+        // Initialize on load
+        window.onload = loadProvinces;
     </script>
 </body>
 </html>
