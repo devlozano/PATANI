@@ -106,10 +106,18 @@
         .user-info { flex: 1; overflow: hidden; }
         
         /* ✅ UPDATED: User name style */
-        .user-info h5 { font-size: 15px; margin: 0 0 4px 0; color: #333; font-weight: 700; } /* Made Bold */
+        .user-info h5 { font-size: 15px; margin: 0 0 4px 0; color: #333; font-weight: 600; }
         
         /* ✅ UPDATED: Message preview style */
         .user-info p { font-size: 13px; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; } 
+
+        /* 🔥 NEW STYLES FOR UNREAD MESSAGES */
+        .user-item.unread-msg { background-color: #fff9ed; } /* Subtle highlight background */
+        .user-item.unread-msg .user-info h5 { font-weight: 800; color: #000; } /* Extra Bold Name */
+        .user-item.unread-msg .user-info p { font-weight: 700; color: #1e1e1e; } /* Bold Message */
+        .unread-dot {
+            height: 8px; width: 8px; background-color: #ff4444; border-radius: 50%; display: inline-block; margin-left: 6px; vertical-align: middle;
+        }
 
         .chat-main-area { flex: 1; display: flex; flex-direction: column; background: #f4f6f8; position: relative; }
         .chat-main-header { padding: 15px 25px; background: white; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
@@ -382,9 +390,22 @@
                 <input type="text" placeholder="Search tenant..." id="userSearch" onkeyup="filterUsers()">
             </div>
             <div class="user-list" id="userList">
-                {{-- ✅ Loop through the SORTED users passed from controller --}}
                 @foreach($chatUsers as $student)
-                    <div class="user-item" onclick="loadChat({{ $student->id }}, '{{ $student->name }}')">
+                    @php
+                        // Fetch last message
+                        $lastMessage = \App\Models\Message::where(function($q) use ($student) {
+                            $q->where('sender_id', Auth::id())->where('receiver_id', $student->id);
+                        })->orWhere(function($q) use ($student) {
+                            $q->where('sender_id', $student->id)->where('receiver_id', Auth::id());
+                        })->latest()->first();
+
+                        // ✅ Check if unread: Message exists AND Sent by student AND Not read
+                        // Make sure your messages table has an 'is_read' column (boolean or integer 0/1)
+                        $isUnread = $lastMessage && $lastMessage->sender_id == $student->id && $lastMessage->is_read == 0;
+                    @endphp
+
+                    {{-- ✅ Apply 'unread-msg' class if $isUnread is true --}}
+                    <div class="user-item {{ $isUnread ? 'unread-msg' : '' }}" onclick="loadChat({{ $student->id }}, '{{ $student->name }}')">
                         @if($student->avatar)
                             <img src="{{ asset('storage/avatars/' . $student->avatar) }}" class="user-item-img" alt="">
                         @else
@@ -393,22 +414,18 @@
                             </div>
                         @endif
                         <div class="user-info">
-                            {{-- ✅ UPDATED: Name is now BOLD (CSS handled in head) --}}
-                            <h5>{{ $student->name }}</h5>
+                            <h5>
+                                {{ $student->name }}
+                                @if($isUnread) <span class="unread-dot"></span> @endif
+                            </h5>
                             
-                            {{-- ✅ UPDATED: Message Preview logic --}}
-                            @php
-                                $lastMessage = \App\Models\Message::where(function($q) use ($student) {
-                                    $q->where('sender_id', Auth::id())->where('receiver_id', $student->id);
-                                })->orWhere(function($q) use ($student) {
-                                    $q->where('sender_id', $student->id)->where('receiver_id', Auth::id());
-                                })->latest()->first();
-                            @endphp
-
-                            <p style="font-size: 12px; color: #666;">
+                            <p>
                                 @if($lastMessage)
+                                    @if($lastMessage->sender_id == Auth::id())
+                                        <span>You: </span>
+                                    @endif
                                     {{ Str::limit($lastMessage->message, 25) }}
-                                    <span style="font-size:10px; color:#999;"> • {{ $lastMessage->created_at->diffForHumans(null, true, true) }}</span>
+                                    <span style="font-size:10px; color:#999; font-weight:400;"> • {{ $lastMessage->created_at->diffForHumans(null, true, true) }}</span>
                                 @else
                                     <span style="font-style:italic; color:#999;">Start a conversation</span>
                                 @endif
@@ -545,8 +562,16 @@
 
             // Highlight selected user
             const items = document.querySelectorAll('.user-item');
-            items.forEach(item => item.classList.remove('active'));
+            items.forEach(item => {
+                item.classList.remove('active');
+                // Optional: When we click a user, we can remove the "unread" bolding visually 
+                // However, the real unread status should be updated in DB via the fetch call
+            });
             event.currentTarget.classList.add('active');
+            // Remove unread class immediately for better UX
+            event.currentTarget.classList.remove('unread-msg');
+            const dot = event.currentTarget.querySelector('.unread-dot');
+            if(dot) dot.style.display = 'none';
 
             if (window.innerWidth <= 768) {
                 chatSidebarList.classList.add('mobile-hidden');
