@@ -88,7 +88,7 @@
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; }
         @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
 
-        /* Full Page Chat CSS (Kept from previous) */
+        /* Full Page Chat CSS */
         .chat-widget-btn { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: #ff9800; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; transition: all 0.3s; font-size: 30px; }
         .chat-widget-btn:hover { transform: scale(1.1); background: #f57c00; }
         .full-screen-chat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: row; }
@@ -141,7 +141,8 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
         <div class="profile">
-            <img src="/images/Screenshot 2025-10-28 033031.png" alt="User Photo">
+            {{-- ✅ Dynamic Avatar Check --}}
+            <img src="{{ Auth::user()->avatar ? asset('storage/avatars/'.Auth::user()->avatar) : asset('images/Screenshot 2025-10-28 033031.png') }}" alt="User Photo">
             <h2>{{ Auth::user()->name }}</h2>
             <p>{{ Auth::user()->contact }}</p>
         </div>
@@ -182,7 +183,6 @@
         <div class="main-content">
             <h1>Admin Dashboard</h1>
 
-            {{-- ✅ SUCCESS MESSAGE BLOCK (Added This) --}}
             @if(session('success'))
             <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; display: flex; align-items: center; gap: 10px;">
                 <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
@@ -190,7 +190,6 @@
             </div>
             @endif
 
-            {{-- ❌ ERROR MESSAGE BLOCK (Added This) --}}
             @if(session('error'))
             <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb; display: flex; align-items: center; gap: 10px;">
                 <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
@@ -203,28 +202,28 @@
                     <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
                     <div class="stat-info">
                         <h3>TOTAL BOARDERS</h3>
-                        <p>{{ \App\Models\User::where('role','!=','admin')->count() }}</p>
+                        <p>{{ $totalStudents }}</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-door-open"></i></div>
                     <div class="stat-info">
                         <h3>TOTAL ROOMS</h3>
-                        <p>{{ \App\Models\Room::count() }}</p>
+                        <p>{{ $totalRooms }}</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
                     <div class="stat-info">
                         <h3>PENDING BOOKINGS</h3>
-                        <p>{{ \App\Models\Booking::where('status', 'Pending')->count() }}</p>
+                        <p>{{ $pendingBookings }}</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-clock"></i></div>
                     <div class="stat-info">
                         <h3>PENDING PAYMENTS</h3>
-                        <p>{{ \App\Models\Payment::where('status', 'Pending')->count() }}</p>
+                        <p>{{ $pendingPayments }}</p>
                     </div>
                 </div>
             </div>
@@ -309,7 +308,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach(\App\Models\Booking::with('user','room')->latest()->take(5)->get() as $booking)
+                        @foreach($recentBookings as $booking)
                         <tr>
                             <td>{{ $booking->user->name ?? 'Unknown' }}</td>
                             <td>{{ $booking->room->room_number ?? 'N/A' }}</td>
@@ -347,6 +346,7 @@
         </div>
     </div>
 
+    {{-- CHAT WIDGET --}}
     <div class="chat-widget-btn" onclick="openFullChat()">
         <i class="fas fa-comments"></i>
     </div>
@@ -355,28 +355,31 @@
        <div class="chat-sidebar-list" id="chatSidebarList">
             <div class="chat-sidebar-header">
                 <h2>Inbox</h2>
-                <i class="fas fa-times close-chat-btn" onclick="closeFullChat()" style="font-size: 20px;"></i> 
             </div>
             <div class="chat-search">
                 <input type="text" placeholder="Search tenant..." id="userSearch" onkeyup="filterUsers()">
             </div>
             <div class="user-list" id="userList">
-                @foreach(\App\Models\User::where('role', '!=', 'admin')->get() as $student)
-                    <div class="user-item" onclick="loadChat({{ $student->id }}, '{{ $student->name }}')">
-                        @if($student->avatar)
-                            <img src="{{ asset('storage/avatars/' . $student->avatar) }}" class="user-item-img" alt="">
-                        @else
-                            <div class="user-item-img" style="background: #ccc; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">
-                                {{ substr($student->name, 0, 1) }}
-                            </div>
-                        @endif
-                        <div class="user-info">
-                            <h5>{{ $student->name }}</h5>
-                            <p>Click to start chat</p>
-                        </div>
-                    </div>
-                @endforeach
+    {{-- ✅ Loop through the SORTED users passed from controller --}}
+    @foreach($chatUsers as $student)
+        <div class="user-item" onclick="loadChat({{ $student->id }}, '{{ $student->name }}')">
+            @if($student->avatar)
+                <img src="{{ asset('storage/avatars/' . $student->avatar) }}" class="user-item-img" alt="">
+            @else
+                <div class="user-item-img" style="background: #ccc; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">
+                    {{ substr($student->name, 0, 1) }}
+                </div>
+            @endif
+            <div class="user-info">
+                <h5>{{ $student->name }}</h5>
+                {{-- Optional: Show timestamp of last activity if you want --}}
+                <p style="font-size: 11px; color: #999;">
+                    Click to view chat
+                </p>
             </div>
+        </div>
+    @endforeach
+</div>
         </div>
 
         <div class="chat-main-area" id="chatMainArea">
@@ -411,11 +414,12 @@
     </div>
 
     <script>
-        // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
         const content = document.getElementById('content');
         const menuToggle = document.getElementById('menuToggle');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // ✅ DEFINED AUTH ID FOR JS
+        const authUserId = {{ Auth::id() }}; 
 
         menuToggle.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
@@ -440,16 +444,14 @@
             }
         }
 
-        // ✅ EDIT ANNOUNCEMENT LOGIC
+        // --- ANNOUNCEMENT LOGIC ---
         function openEditModal(id, title, message) {
             const modal = document.getElementById('editAnnouncementModal');
             const form = document.getElementById('editAnnouncementForm');
             const titleInput = document.getElementById('editTitle');
             const messageInput = document.getElementById('editMessage');
 
-            // Set Action URL dynamically
             form.action = `/admin/announcement/${id}`; 
-
             titleInput.value = title;
             messageInput.value = message;
             modal.style.display = 'flex';
@@ -459,7 +461,6 @@
             document.getElementById('editAnnouncementModal').style.display = 'none';
         }
 
-        // ✅ DELETE ANNOUNCEMENT CONFIRMATION (Warning Icon)
         document.addEventListener('DOMContentLoaded', function () {
             const deleteForms = document.querySelectorAll('.delete-form');
             deleteForms.forEach(form => {
@@ -480,12 +481,9 @@
                     });
                 });
             });
-            
-            // ✅ I REMOVED THE SWEETALERT SUCCESS BLOCK HERE
-            // The success message will now appear in the HTML block added above
         });
 
-        // [Chat Scripts]
+        // --- CHAT LOGIC ---
         const fullScreenChat = document.getElementById('fullScreenChat');
         const chatSidebarList = document.getElementById('chatSidebarList');
         const chatMainArea = document.getElementById('chatMainArea');
@@ -510,6 +508,7 @@
             document.getElementById('chatUserStatus').innerText = 'Viewing History';
             document.getElementById('chatAvatarInitials').innerText = userName.charAt(0).toUpperCase();
 
+            // Highlight selected user
             const items = document.querySelectorAll('.user-item');
             items.forEach(item => item.classList.remove('active'));
             event.currentTarget.classList.add('active');
@@ -534,6 +533,7 @@
         function fetchMessages() {
             if(!currentChatUserId) return;
 
+            // ✅ Make sure you have this route in web.php: Route::get('/chat/messages/{id}', ...)
             fetch(`/chat/messages/${currentChatUserId}`)
             .then(response => response.json())
             .then(data => {
@@ -545,14 +545,25 @@
                 }
 
                 data.forEach(msg => {
-                    const type = msg.sender_id == {{ Auth::id() }} ? 'outgoing' : 'incoming';
+                    // Check Sender ID against Auth ID
+                    const type = msg.sender_id == authUserId ? 'outgoing' : 'incoming';
                     const div = document.createElement('div');
                     div.className = `message-bubble ${type}`;
-                    div.innerHTML = `${msg.message}`;
+                    
+                    // Format Time
+                    const time = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    div.innerHTML = `
+                        ${msg.message}
+                        <span class="message-time">${time}</span>
+                    `;
                     chatContainer.appendChild(div);
                 });
+                
+                // Auto scroll to bottom
                 chatContainer.scrollTop = chatContainer.scrollHeight;
-            });
+            })
+            .catch(error => console.error('Error fetching messages:', error));
         }
 
         function sendAdminMessage() {
@@ -560,14 +571,18 @@
             const message = input.value;
             if(!message.trim() || !currentChatUserId) return;
 
+            // Optimistic UI Update (Show message immediately)
             const chatContainer = document.getElementById('chatMessages');
             const div = document.createElement('div');
             div.className = `message-bubble outgoing`;
-            div.innerHTML = `${message}`;
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            div.innerHTML = `${message}<span class="message-time">${time}</span>`;
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             input.value = '';
 
+            // Send to Server
+            // ✅ Make sure you have this route in web.php: Route::post('/chat/send', ...)
             fetch('{{ route('chat.send') }}', {
                 method: 'POST',
                 headers: {
@@ -579,7 +594,11 @@
                     message: message
                 })
             })
-            .then(() => console.log('Sent'));
+            .then(res => res.json())
+            .then(data => {
+                console.log('Message sent', data);
+            })
+            .catch(err => console.error('Error sending message:', err));
         }
 
         document.getElementById('adminChatInput').addEventListener("keypress", function(event) {
@@ -599,7 +618,7 @@
                 const h5 = items[i].getElementsByTagName("h5")[0];
                 const txtValue = h5.textContent || h5.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    items[i].style.display = "";
+                    items[i].style.display = "flex";
                 } else {
                     items[i].style.display = "none";
                 }

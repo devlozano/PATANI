@@ -53,7 +53,6 @@
         .modal-content h2 { margin-bottom: 20px; }
         .modal-content select, .modal-content .submit-btn { width: 100%; padding: 10px; margin-top: 15px; }
         
-        /* New Style for Account Info Box */
         .account-info-box {
             background: #f8f9fa;
             border: 1px dashed #ccc;
@@ -61,13 +60,29 @@
             margin-top: 15px;
             border-radius: 8px;
             text-align: left;
-            display: none; /* Hidden by default */
+            display: none;
         }
         .account-info-box h5 { margin: 0 0 5px 0; font-size: 14px; color: #333; }
         .account-info-box p { margin: 3px 0; font-size: 13px; color: #555; }
         .account-info-box strong { color: #000; }
 
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .content { margin-left: 0; } }
+        
+        /* Status Alert Styles */
+        .status-alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            border: 1px solid transparent;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+        .status-approved { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .status-icon { font-size: 1.2rem; }
     </style>
 </head>
 <body>
@@ -113,182 +128,151 @@
         <div class="main-content">
             <h1>My Payments</h1>
 
-<style>
-    /* Status Alert Styles */
-    .status-alert {
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.95rem;
-        border: 1px solid transparent;
-    }
+            <div class="section">
+                <div class="section-title">Make Payments</div>
 
-    .status-pending {
-        background-color: #fff3cd;
-        color: #856404;
-        border-color: #ffeeba;
-    }
+                @php
+                    $student = auth()->user();
 
-    .status-approved {
-        background-color: #d4edda;
-        color: #155724;
-        border-color: #c3e6cb;
-    }
+                    // Get approved bookings
+                    $bookings = $student->bookings()
+                        ->where('status', 'Approved')
+                        ->with('room') 
+                        ->get();
+                @endphp
 
-    .status-rejected {
-        background-color: #f8d7da;
-        color: #721c24;
-        border-color: #f5c6cb;
-    }
-    
-    .status-icon { font-size: 1.2rem; }
-</style>
+                @forelse($bookings as $booking)
+                    @php
+                        $room = $booking->room;
+                        $latestPayment = null;
+                        
+                        if($room) {
+                            $latestPayment = \App\Models\Payment::where('user_id', $student->id)
+                                ->where('room_id', $room->id)
+                                ->where('created_at', '>=', $booking->created_at)
+                                ->latest()
+                                ->first();
+                        }
 
-<div class="section">
-    <div class="section-title">Make Payments</div>
+                        $hidePayButton = $latestPayment && in_array($latestPayment->status, ['Pending', 'Approved']);
+                    @endphp
 
-    @php
-        $student = auth()->user();
+                    <div class="payment-card">
+                        <h3>Room {{ $room->room_number ?? 'N/A' }} - {{ $room->room_floor ?? '' }}</h3>
+                        <div class="amount">Monthly Rent: ₱{{ number_format($room->rent_fee ?? 0, 2) }}</div>
 
-        // Get approved bookings
-        $bookings = $student->bookings()
-            ->where('status', 'Approved')
-            ->with('room') 
-            ->get();
-    @endphp
+                        {{-- STATUS MESSAGES --}}
+                        @if($latestPayment)
+                            @if($latestPayment->status == 'Pending')
+                                <div class="status-alert status-pending">
+                                    <i class="bi bi-hourglass-split status-icon"></i>
+                                    <div>
+                                        <strong>Payment Pending:</strong> 
+                                        Your payment is currently under review by the admin.
+                                    </div>
+                                </div>
+                            @elseif($latestPayment->status == 'Approved')
+                                <div class="status-alert status-approved">
+                                    <i class="bi bi-check-circle-fill status-icon"></i>
+                                    <div>
+                                        <strong>Payment Accepted:</strong> 
+                                        Your payment has been verified. Thank you!
+                                    </div>
+                                </div>
+                            @elseif($latestPayment->status == 'Rejected')
+                                <div class="status-alert status-rejected">
+                                    <i class="bi bi-x-circle-fill status-icon"></i>
+                                    <div>
+                                        <strong>Payment Rejected:</strong> 
+                                        The admin rejected your payment. Please review your details and pay again.
+                                    </div>
+                                </div>
+                            @endif
+                        @endif
 
-    @forelse($bookings as $booking)
-        @php
-            $room = $booking->room;
-            
-            // ✅ UPDATED LOGIC: Get the latest payment record for this room
-            // We fetch the object (first()) instead of just checking exists()
-            // so we can read the status 'Approved', 'Pending', or 'Rejected'.
-            $latestPayment = null;
-            
-            if($room) {
-                $latestPayment = \App\Models\Payment::where('user_id', $student->id)
-                    ->where('room_id', $room->id)
-                    ->where('created_at', '>=', $booking->created_at) // Only payments after booking
-                    ->latest() // Get the most recent attempt
-                    ->first();
-            }
+                        {{-- PAY BUTTON --}}
+                        @if($room && !$hidePayButton)
+                            {{-- This form is for the fallback (non-JS) but we use the modal primarily --}}
+                            <form action="{{ route('payment.store') }}" method="POST" enctype="multipart/form-data" style="margin-top: 15px;">
+                                @csrf
+                                <input type="hidden" name="room_id" value="{{ $room->id }}">
+                                <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                                <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
 
-            // Determine if we should hide the pay button (Hide if Pending or Approved)
-            $hidePayButton = $latestPayment && in_array($latestPayment->status, ['Pending', 'Approved']);
-        @endphp
-
-        <div class="payment-card">
-            <h3>Room {{ $room->room_number ?? 'N/A' }} - {{ $room->room_floor ?? '' }}</h3>
-            <div class="amount">Monthly Rent: ₱{{ number_format($room->rent_fee ?? 0, 2) }}</div>
-
-            {{-- ✅ STATUS MESSAGES --}}
-            @if($latestPayment)
-                @if($latestPayment->status == 'Pending')
-                    <div class="status-alert status-pending">
-                        <i class="fas fa-hourglass-half status-icon"></i>
-                        <div>
-                            <strong>Payment Pending:</strong> 
-                            Your payment is currently under review by the admin.
-                        </div>
+                                <button type="button" class="pay-btn"
+                                    onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}', {{ $booking->id }})">
+                                    {{ $latestPayment && $latestPayment->status == 'Rejected' ? 'Try Paying Again' : 'Pay Now' }}
+                                </button>
+                            </form>
+                        @endif
                     </div>
-                @elseif($latestPayment->status == 'Approved')
-                    <div class="status-alert status-approved">
-                        <i class="fas fa-check-circle status-icon"></i>
-                        <div>
-                            <strong>Payment Accepted:</strong> 
-                            Your payment has been verified. Thank you!
+
+                @empty
+                    <p>No approved bookings available for payment.</p>
+                @endforelse
+            </div>
+
+            <div id="paymentModal" class="payment-modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closePaymentModal()">&times;</span>
+                    <h2>Payment Method</h2>
+                    <p id="roomInfo"></p>
+
+                    {{-- ✅ UPDATED: Added enctype for file upload --}}
+                    <form id="paymentForm" method="POST" action="{{ route('payment.store') }}" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="room_id" id="modalRoomId">
+                        <input type="hidden" name="booking_id" id="modalBookingId">
+                        <input type="hidden" name="amount" id="modalAmount">
+
+                        <div class="form-group">
+                            <label style="display:block; text-align:left; margin-bottom:5px;">Name:</label>
+                            <input type="text" name="student_name" value="{{ Auth::user()->name }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
                         </div>
-                    </div>
-                @elseif($latestPayment->status == 'Rejected')
-                    <div class="status-alert status-rejected">
-                        <i class="fas fa-times-circle status-icon"></i>
-                        <div>
-                            <strong>Payment Rejected:</strong> 
-                            The admin rejected your payment. Please review your details and pay again.
+
+                        <div class="form-group" style="margin-top:10px;">
+                            <label style="display:block; text-align:left; margin-bottom:5px;">Email:</label>
+                            <input type="email" name="student_email" value="{{ Auth::user()->email }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
                         </div>
-                    </div>
-                @endif
-            @endif
 
-            {{-- ✅ PAY BUTTON (Only show if no active payment exists or if last payment was rejected) --}}
-            @if($room && !$hidePayButton)
-                <form action="{{ route('payment.store') }}" method="POST" style="margin-top: 15px;">
-                    @csrf
-                    <input type="hidden" name="room_id" value="{{ $room->id }}">
-                    <input type="hidden" name="booking_id" value="{{ $booking->id }}">
-                    <input type="hidden" name="amount" value="{{ $room->rent_fee }}">
+                        <div class="form-group" style="margin-top:10px;">
+                            <label style="display:block; text-align:left; margin-bottom:5px;">Select Payment Method:</label>
+                            <select name="payment_method" id="paymentMethodSelect" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                                <option value="" disabled selected>-- Choose --</option>
+                                <option value="cash">Cash</option>
+                                <option value="gcash">GCash</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="credit_card">Credit Card</option>
+                            </select>
+                        </div>
 
-                    <button type="button" class="pay-btn"
-                        onclick="openPaymentModal({{ $room->id }}, '{{ $room->rent_fee }}', {{ $booking->id }})">
-                        {{ $latestPayment && $latestPayment->status == 'Rejected' ? 'Try Paying Again' : 'Pay Now' }}
-                    </button>
-                </form>
-            @endif
-        </div>
+                        <div id="accountInfoBox" class="account-info-box">
+                            <h5 id="accountTitle">Account Details</h5>
+                            <p id="accountDetails"></p>
+                        </div>
 
-    @empty
-        <p>No approved bookings available for payment.</p>
-    @endforelse
-</div>
+                        {{-- ✅ UPDATED: PROOF OF PAYMENT UPLOAD (With ID) --}}
+                        {{-- Hidden by default (display:none), shown via JS for GCash/Bank --}}
+                        <div class="form-group" id="proofSection" style="margin-top:15px; text-align:left; display:none;">
+                            <label style="font-weight:600; margin-bottom:5px; display:block;">Upload Proof of Payment</label>
+                            <p style="font-size:0.8rem; color:#666; margin-bottom:5px;">Please attach a screenshot of your GCash/Bank receipt.</p>
+                            <input type="file" name="proof_image" id="proofInput" accept="image/*" class="form-control" style="padding: 10px; border: 1px solid #ddd; width: 100%; border-radius: 5px;">
+                        </div>
 
-{{-- MODAL CODE REMAINS THE SAME --}}
-<div id="paymentModal" class="payment-modal" style="display:none;">
-    <div class="modal-content">
-        <span class="close" onclick="closePaymentModal()">&times;</span>
-        <h2>Payment Method</h2>
-        <p id="roomInfo"></p>
+                        <div class="optional-policies" style="margin-top: 20px; font-size: 0.85rem; color: #555; text-align:left;">
+                            <h4 style="font-size:0.9rem; color:#d32f2f;">Important Payment Policies:</h4>
+                            <ul style="padding-left: 20px; margin-top: 5px;">
+                                <li><strong>No Refunds:</strong> Payments made are strictly non-refundable unless approved by admin.</li>
+                                <li><strong>Proof of Payment:</strong> Required for GCash and Bank Transfers.</li>
+                                <li><strong>Exact Amount:</strong> Ensure you pay the exact amount displayed.</li>
+                                <li>Payments are pending until Admin approval.</li>
+                            </ul>
+                        </div>
 
-        <form id="paymentForm" method="POST" action="{{ route('payment.store') }}">
-            @csrf
-            <input type="hidden" name="room_id" id="modalRoomId">
-            <input type="hidden" name="booking_id" id="modalBookingId">
-            <input type="hidden" name="amount" id="modalAmount">
-
-            <div class="form-group">
-                <label style="display:block; text-align:left; margin-bottom:5px;">Name:</label>
-                <input type="text" name="student_name" value="{{ Auth::user()->name }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
+                        <button type="submit" class="pay-btn submit-btn" style="margin-top: 20px;">Confirm Payment</button>
+                    </form>
+                </div>
             </div>
-
-            <div class="form-group" style="margin-top:10px;">
-                <label style="display:block; text-align:left; margin-bottom:5px;">Email:</label>
-                <input type="email" name="student_email" value="{{ Auth::user()->email }}" readonly style="width:100%; padding:10px; background:#eee; border:1px solid #ddd; border-radius:5px;">
-            </div>
-
-            <div class="form-group" style="margin-top:10px;">
-                <label style="display:block; text-align:left; margin-bottom:5px;">Select Payment Method:</label>
-                <select name="payment_method" id="paymentMethodSelect" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
-                    <option value="" disabled selected>-- Choose --</option>
-                    <option value="cash">Cash</option>
-                    <option value="gcash">GCash</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="credit_card">Credit Card</option>
-                </select>
-            </div>
-
-            <div id="accountInfoBox" class="account-info-box">
-                <h5 id="accountTitle">Account Details</h5>
-                <p id="accountDetails"></p>
-            </div>
-
-            <div class="optional-policies" style="margin-top: 20px; font-size: 0.85rem; color: #555; text-align:left;">
-                <h4 style="font-size:0.9rem; color:#d32f2f;">Important Payment Policies:</h4>
-                <ul style="padding-left: 20px; margin-top: 5px;">
-                    <li><strong>No Refunds:</strong> Payments made are strictly non-refundable unless approved by admin.</li>
-                    <li><strong>Proof of Payment:</strong> Please take a screenshot of your transaction for GCash/Bank Transfer. You may be asked to present it.</li>
-                    <li><strong>Exact Amount:</strong> Ensure you pay the exact amount displayed.</li>
-                    <li><strong>Late Penalties:</strong> Late payments will incur a 1% monthly penalty fee. Please pay at least 3 days before the due date.</li>
-                    <li>Payments are pending until Admin approval.</li>
-                </ul>
-            </div>
-
-            <button type="submit" class="pay-btn submit-btn" style="margin-top: 20px;">Confirm Payment</button>
-        </form>
-    </div>
-</div>
 
             <div class="section">
                 <div class="section-title">All Payments</div>
@@ -296,13 +280,14 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>PAYMENT ID</th>
+                                <th>PAY ID</th>
                                 <th>NAME</th>
                                 <th>AMOUNT</th>
                                 <th>ROOM NUMBER</th>
                                 <th>DATE</th>
                                 <th>STATUS</th>
                                 <th>NOTES</th>
+                                <th>RECEIPT</th> 
                             </tr>
                         </thead>
                         <tbody>
@@ -325,10 +310,19 @@
                                         @endif
                                     </td>
                                     <td>{{ $payment->notes ?? '-' }}</td>
+                                    <td>
+                                        @if ($payment->status === 'Approved')
+                                            <a href="{{ route('student.payment.receipt', $payment->id) }}" target="_blank" style="color: #007bff; text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 5px;">
+                                                <i class="bi bi-file-earmark-arrow-down-fill"></i> Download
+                                            </a>
+                                        @else
+                                            <span style="color: #ccc; font-size: 0.85rem;">-</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" style="text-align:center;">No payment records found.</td>
+                                    <td colspan="8" style="text-align:center;">No payment records found.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -347,7 +341,6 @@
             content.classList.toggle('expanded');
         }
 
-        // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.querySelector('.menu-toggle');
@@ -356,25 +349,20 @@
             }
         });
 
-        // Payment Modal Functions
         function openPaymentModal(roomId, rentFee, bookingId) {
             const modal = document.getElementById('paymentModal');
-            const roomInfo = document.getElementById('roomInfo');
-            const modalRoomId = document.getElementById('modalRoomId');
-            const modalBookingId = document.getElementById('modalBookingId');
-            const modalAmount = document.getElementById('modalAmount');
-            const paymentMethodSelect = document.getElementById('paymentMethodSelect');
-            const accountInfoBox = document.getElementById('accountInfoBox');
-
-            modal.style.display = 'flex';
-            roomInfo.textContent = `Room ID: ${roomId} - Amount: ₱${parseFloat(rentFee).toFixed(2)}`;
-            modalRoomId.value = roomId;
-            modalBookingId.value = bookingId;
-            modalAmount.value = rentFee;
+            document.getElementById('roomInfo').textContent = `Room ID: ${roomId} - Amount: ₱${parseFloat(rentFee).toFixed(2)}`;
+            document.getElementById('modalRoomId').value = roomId;
+            document.getElementById('modalBookingId').value = bookingId;
+            document.getElementById('modalAmount').value = rentFee;
+            document.getElementById('paymentMethodSelect').selectedIndex = 0;
+            document.getElementById('accountInfoBox').style.display = 'none';
             
-            // Reset fields
-            paymentMethodSelect.selectedIndex = 0;
-            accountInfoBox.style.display = 'none';
+            // Reset Proof Logic
+            document.getElementById('proofSection').style.display = 'none';
+            document.getElementById('proofInput').required = false;
+            
+            modal.style.display = 'flex';
         }
 
         function closePaymentModal() {
@@ -383,9 +371,7 @@
 
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('paymentModal');
-            if (event.target === modal) {
-                closePaymentModal();
-            }
+            if (event.target === modal) closePaymentModal();
         });
 
         // ✅ HANDLE PAYMENT METHOD CHANGE
@@ -394,9 +380,26 @@
             const infoBox = document.getElementById('accountInfoBox');
             const title = document.getElementById('accountTitle');
             const details = document.getElementById('accountDetails');
+            
+            // New Variables for Upload Section
+            const proofSection = document.getElementById('proofSection');
+            const proofInput = document.getElementById('proofInput');
 
             infoBox.style.display = 'block';
 
+            // Logic to Show/Hide Upload Field
+            if (method === 'gcash' || method === 'bank_transfer') {
+                // Show Upload Field & Make it Required
+                proofSection.style.display = 'block';
+                proofInput.required = true;
+            } else {
+                // Hide Upload Field & Remove Required (For Cash/Credit Card)
+                proofSection.style.display = 'none';
+                proofInput.required = false;
+                proofInput.value = ''; // Clear any selected file
+            }
+
+            // Update Text Details
             if (method === 'gcash') {
                 title.textContent = 'GCash Account';
                 details.innerHTML = '<strong>Name:</strong> Cora P. Trinidad <br><strong>Number:</strong> 0912-345-6789';
@@ -413,10 +416,12 @@
             }
         });
 
-        // AJAX Payment Submission
         document.getElementById('paymentForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // 1. Create FormData (this grabs the file automatically)
             const formData = new FormData(this);
+
             const btn = this.querySelector('.submit-btn');
             btn.disabled = true;
             btn.textContent = 'Processing...';
@@ -426,6 +431,8 @@
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
+                    // ⚠️ DO NOT ADD 'Content-Type': 'application/json' HERE!
+                    // It will break the file upload.
                 },
                 body: formData
             })
@@ -436,7 +443,8 @@
                     closePaymentModal();
                     location.reload(); 
                 } else {
-                    alert('Payment failed: ' + (data.message || 'Unknown error'));
+                    // Show validation error if image is missing
+                    alert('Error: ' + (data.message || 'Check your inputs.'));
                     btn.disabled = false;
                     btn.textContent = 'Confirm Payment';
                 }

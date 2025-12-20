@@ -37,12 +37,19 @@ class AdminBookingController extends Controller
         return redirect()->back()->with('success', 'Booking approved successfully.');
     }
 
-    public function reject($id)
+    // ✅ UPDATED: Reject with Reason
+    public function reject(Request $request, $id)
     {
+        // 1. Validate that a reason was provided
+        $request->validate([
+            'rejection_reason' => 'required|string|max:255',
+        ]);
+
         $booking = Booking::findOrFail($id);
         
-        // Update status to Cancelled
-        $booking->status = 'Cancelled';
+        // 2. Update status to 'Rejected' and save the reason
+        $booking->status = 'Rejected';
+        $booking->rejection_reason = $request->rejection_reason; // Save the message
         $booking->save();
 
         // ✅ USES 'error' KEY: This triggers the RED message in your HTML

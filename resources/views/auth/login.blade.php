@@ -261,6 +261,12 @@
                     <div class="error">{{ $message }}</div>
                 @enderror
 
+                {{-- NEW FORGOT PASSWORD LINK START --}}
+                <div style="text-align: right; margin-bottom: 15px; margin-top: -10px;">
+                    <a href="{{ route('password.request') }}" style="color: #666; font-size: 0.85rem; text-decoration: none;">Forgot Password?</a>
+                </div>
+                {{-- NEW FORGOT PASSWORD LINK END --}}
+
                 <button type="submit">Login</button>
             </form>
             

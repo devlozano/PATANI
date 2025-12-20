@@ -13,11 +13,11 @@ class Payment extends Model
         'user_id',
         'room_id',
         'amount',
-        'booking_id',
         'payment_date',
         'payment_method',
         'status',
         'notes',
+        'proof_image' // ✅ Added for file upload path
     ];
 
     // Relationships
@@ -32,8 +32,7 @@ class Payment extends Model
     }
 
     public function booking()
-{
-    return $this->belongsTo(Booking::class, 'booking_id');
-}
-
+    {
+        return $this->belongsTo(Booking::class, 'booking_id');
+    }
 }

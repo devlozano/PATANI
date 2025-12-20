@@ -21,7 +21,25 @@ use App\Http\Controllers\AdminRoomController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ForgotPasswordController; // We will create this next
 
+// 1. Show the form to enter email
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])
+    ->name('password.request');
+
+// 2. Handle the form submission (send the email)
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+    ->name('password.email');
+
+// 3. Show the form to enter the NEW password (clicked from email)
+// CORRECT (Add {token}):
+Route::get('reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])
+    ->name('password.reset');
+
+// 4. Handle the new password submission
+Route::post('reset-password', [ForgotPasswordController::class, 'reset'])
+    ->name('password.update');
+    
 // 🏠 LANDING PAGE
 Route::get('/', [LandingController::class, 'index'])->name('landing.home');
 Route::get('/home', fn() => redirect()->route('landing.home'));
@@ -70,6 +88,8 @@ Route::prefix('student')->middleware(['auth'])->group(function () {
     Route::get('/payment', [PaymentController::class, 'index'])->name('student.payment');
     Route::post('/payment/store', [PaymentController::class, 'store'])->name('payment.store');
     
+    Route::get('/payment/{id}/receipt', [PaymentController::class, 'generateReceipt'])->name('student.payment.receipt');
+    
     Route::get('/room', [BookingController::class, 'index'])->name('student.room');
 });
 
@@ -77,6 +97,11 @@ Route::prefix('student')->middleware(['auth'])->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+
+// Inside your admin/auth middleware group:
+Route::get('/chat/messages/{id}', [AdminDashboardController::class, 'getMessages'])->name('chat.messages');
+Route::post('/chat/send', [AdminDashboardController::class, 'sendMessage'])->name('chat.send');
 
     // Announcements Routes
     Route::post('/announcement/post', [AdminDashboardController::class, 'postAnnouncement'])->name('post.announcement');

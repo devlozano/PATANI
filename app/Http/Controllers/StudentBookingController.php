@@ -70,34 +70,41 @@ class StudentBookingController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Prevent booking if student already has an active booking
+        // 1. Existing Check: Prevent multiple active bookings for the same user
         $hasActiveBooking = Booking::where('user_id', $user->id)
-            ->whereIn('status', ['Approved', 'Paid'])
+            ->whereIn('status', ['Approved', 'Paid', 'Occupied']) // strictly active
             ->exists();
 
         if ($hasActiveBooking) {
-            return redirect()->back()->with('error', 'You already have an active booking. Please wait until you are checked out.');
+            return redirect()->back()->with('error', 'You already have an active booking.');
         }
 
-        // 2. Validate inputs
         $request->validate([
             'room_id' => 'required|exists:rooms,id',
             'bed_number' => 'required|string',
         ]);
 
-        // 3. GENDER RESTRICTION LOGIC
-        $room = Room::findOrFail($request->room_id);
+        // ✅ CRITICAL FIX: Check if this SPECIFIC Bed is already taken
+        // We check for any booking that is NOT Cancelled or Rejected
+        $isBedTaken = Booking::where('room_id', $request->room_id)
+            ->where('bed_number', $request->bed_number)
+            ->whereIn('status', ['Pending', 'Approved', 'Paid', 'Occupied']) 
+            ->exists();
 
-        // Normalize string case
+        if ($isBedTaken) {
+            return redirect()->back()->with('error', "Bed {$request->bed_number} is already occupied or pending approval. Please choose another bed.");
+        }
+
+        // 2. Gender Restriction Check
+        $room = Room::findOrFail($request->room_id);
         $userGender = strtolower($user->gender); 
         $roomGender = strtolower($room->gender);
 
-        // Check restriction:
         if ($roomGender !== 'mixed' && $roomGender !== $userGender) {
             return redirect()->back()->with('error', 'You cannot book this room. It is designated for ' . ucfirst($roomGender) . 's only.');
         }
 
-        // 4. Create Booking
+        // 3. Create Booking
         Booking::create([
             'user_id'    => $user->id,
             'room_id'    => $request->room_id,

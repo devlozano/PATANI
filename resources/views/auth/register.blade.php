@@ -64,7 +64,7 @@
         }
         #backHomeBtn:hover { color: #FFF200; border-color: #FFF200; }
 
-        .form-container { width: 100%; max-width: 400px; background: #fff; display: flex; flex-direction: column; justify-content: center; }
+        .form-container { width: 100%; max-width: 500px; /* Slightly wider for split names */ background: #fff; display: flex; flex-direction: column; justify-content: center; }
         h2 { color: #1e1e1e; font-weight: 700; font-size: 1.4rem; text-align: center; margin-bottom: 20px; }
         label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #555; font-weight: 500; }
         
@@ -149,19 +149,45 @@
             <form action="{{ route('register.submit') }}" method="POST">
                 @csrf
               
-                {{-- Name --}}
+                {{-- ✅ UPDATED: Split Name Fields --}}
                 <label>Full Name</label>
-                {{-- ✅ UPDATED: Pattern added to reject emojis/numbers on frontend --}}
-                <input type="text" name="name" 
-                       placeholder="e.g., Juan Dela Cruz" 
-                       value="{{ old('name') }}" 
-                       class="@error('name') input-error @enderror" 
-                       pattern="^[a-zA-Z\s\.\,\-]+$"
-                       title="Name should only contain letters, spaces, dots, or hyphens (No emojis or numbers)"
-                       required>
-                @error('name')
-                    <span class="error">{{ $message }}</span>
-                @enderror
+                <div class="row">
+                    {{-- Last Name --}}
+                    <div>
+                        <input type="text" name="last_name" 
+                               placeholder="Last Name" 
+                               value="{{ old('last_name') }}" 
+                               class="@error('last_name') input-error @enderror" 
+                               required>
+                        @error('last_name')
+                            <span class="error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- First Name --}}
+                    <div>
+                        <input type="text" name="first_name" 
+                               placeholder="First Name" 
+                               value="{{ old('first_name') }}" 
+                               class="@error('first_name') input-error @enderror" 
+                               required>
+                        @error('first_name')
+                            <span class="error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Middle Initial (Smaller Column) --}}
+                    <div style="flex: 0.4;">
+                        <input type="text" name="middle_initial" 
+                               placeholder="M.I." 
+                               value="{{ old('middle_initial') }}" 
+                               maxlength="3"
+                               class="@error('middle_initial') input-error @enderror">
+                        @error('middle_initial')
+                            <span class="error">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
 
                 {{-- Email --}}
                 <label>Email</label>
@@ -224,8 +250,10 @@
 
                 {{-- Address --}}
                 <label>Address</label>
+                {{-- Note: To implement a full Dynamic Dropdown address (Region/City/Brgy), 
+                     you need a separate large JavaScript file. Keeping as text for now to ensure submission works. --}}
                 <input type="text" name="address" 
-                       placeholder="Complete Address" 
+                       placeholder="House No., Street, Brgy, City" 
                        value="{{ old('address') }}" 
                        class="@error('address') input-error @enderror" 
                        required>

@@ -24,21 +24,23 @@ class AdminPaymentController extends Controller
 
         // 📊 Filter by status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status !== 'All') {
+                $query->where('status', $request->status);
+            }
         }
 
         // 📅 Filter by date range
         if ($request->filled('from_date')) {
-            $query->whereDate('payment_date', '>=', $request->from_date);
+            $query->whereDate('created_at', '>=', $request->from_date);
         }
         if ($request->filled('to_date')) {
-            $query->whereDate('payment_date', '<=', $request->to_date);
+            $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        // 🧾 Get filtered payments
+        // 🧾 Get filtered payments (History)
         $payments = $query->latest()->get();
 
-        // 🕓 Pending payments only
+        // 🕓 Pending payments only (For the top table)
         $pendingPayments = Payment::with('user', 'room')
             ->where('status', 'Pending')
             ->latest()
@@ -47,61 +49,52 @@ class AdminPaymentController extends Controller
         return view('admin.payment', compact('payments', 'pendingPayments'));
     }
 
-public function approve($id)
-{
-    // Find the payment being approved
-    $payment = Payment::findOrFail($id);
+    public function approve($id)
+    {
+        // Find the payment being approved
+        $payment = Payment::findOrFail($id);
 
-    // Approve this payment
-    $payment->status = 'Approved';
-    $payment->save();
+        // Approve this payment
+        $payment->status = 'Approved';
+        $payment->save();
 
-    // Automatically cancel or delete other payments for the same student
-    Payment::where('user_id', $payment->user_id)
-        ->where('id', '!=', $payment->id) // Exclude the approved payment
-        ->whereIn('status', ['Pending', 'Submitted']) // Only remove pending/submitted
-        ->update(['status' => 'Cancelled']); // Or delete() if you prefer: ->delete()
+        // ✅ LOGIC: If you want to reject other PENDING payments for the SAME MONTH/ROOM automatically:
+        // This prevents double payments for the same cycle.
+        Payment::where('user_id', $payment->user_id)
+            ->where('id', '!=', $payment->id) // Exclude this one
+            ->where('status', 'Pending') // Only pending ones
+            ->update(['status' => 'Rejected', 'notes' => 'Duplicate payment request automatically rejected.']);
 
-    return redirect()->back()->with('success', 'Payment approved. Other payments have been cancelled.');
-}
+        return redirect()->back()->with('success', 'Payment approved successfully.');
+    }
 
     /**
      * Reject a payment.
      */
-    public function reject(Request $request, Payment $payment)
+    public function reject(Request $request, $id)
     {
         $request->validate([
             'reason' => 'required|string|max:255',
         ]);
 
+        $payment = Payment::findOrFail($id);
         $payment->status = 'Rejected';
         $payment->notes = $request->reason; // store reason in `notes` column
         $payment->save();
 
-        return redirect()->back()->with('success', 'Payment rejected with reason.');
+        return redirect()->back()->with('success', 'Payment rejected.');
     }
 
+    // Note: The 'store' method is usually for the Student side, but if Admins can create payments manually:
     public function store(Request $request)
-{
-    $user = auth()->user();
+    {
+        // Admin creating a payment record manually?
+        // Usually not needed if students submit it, but keeping your existing logic structure:
+        
+        /* If this is intended for Student submission, it should be in PaymentController, not AdminPaymentController.
+           If this IS for admin manual entry, remove auth()->user() check or adjust accordingly.
+        */
 
-    // Prevent multiple active payments
-    $hasApprovedPayment = Payment::where('user_id', $user->id)
-        ->where('status', 'Approved')
-        ->exists();
-
-    if ($hasApprovedPayment) {
-        return redirect()->back()->with('error', 'You already have an approved payment. You cannot pay another until your current payment is processed.');
+        return redirect()->back(); 
     }
-
-    Payment::create([
-        'user_id' => $user->id,
-        'room_id' => $request->room_id,
-        'amount' => $request->amount,
-        'status' => 'Pending',
-    ]);
-
-    return redirect()->back()->with('success', 'Payment submitted successfully.');
-}
-
 }

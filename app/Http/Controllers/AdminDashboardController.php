@@ -16,8 +16,6 @@ class AdminDashboardController extends Controller
     public function index()
     {
         // Stats
-        // Count users where role is NOT admin (assuming 'role' column, or is_admin)
-        // Adjust 'role' vs 'is_admin' based on your specific database structure
         $totalStudents = User::where('role', '!=', 'admin')->count(); 
         $totalRooms = Room::count();
         $pendingBookings = Booking::where('status', 'Pending')->count();
@@ -27,13 +25,29 @@ class AdminDashboardController extends Controller
         $recentBookings = Booking::with('user', 'room')->latest()->take(5)->get();
         $recentPayments = Payment::with('user', 'room')->latest()->take(5)->get();
 
+        // ✅ NEW LOGIC: Get Chat Users Sorted by Latest Message
+        // 1. Get all students
+        $allStudents = User::where('role', '!=', 'admin')->get();
+
+        // 2. Sort them by their most recent message interaction
+        $chatUsers = $allStudents->sortByDesc(function($user) {
+            $lastMessage = Message::where('sender_id', $user->id)
+                ->orWhere('receiver_id', $user->id)
+                ->latest()
+                ->first();
+
+            // If they have a message, use that time. If not, put them at the bottom.
+            return $lastMessage ? $lastMessage->created_at : '2000-01-01 00:00:00';
+        });
+
         return view('admin.dashboard', compact(
             'totalStudents',
             'totalRooms',
             'pendingBookings',
             'pendingPayments',
             'recentBookings',
-            'recentPayments'
+            'recentPayments',
+            'chatUsers' // ✅ Pass the sorted list to the view
         ));
     }
 
@@ -54,7 +68,7 @@ class AdminDashboardController extends Controller
         return redirect()->back()->with('success', 'Announcement posted successfully!');
     }
 
-    // ✅ NEW: Update Announcement
+    // ✅ Update Announcement
     public function updateAnnouncement(Request $request, $id)
     {
         $request->validate([
@@ -72,7 +86,7 @@ class AdminDashboardController extends Controller
         return redirect()->back()->with('success', 'Announcement updated successfully!');
     }
 
-    // ✅ NEW: Delete Announcement
+    // ✅ Delete Announcement
     public function destroyAnnouncement($id)
     {
         $announcement = Announcement::findOrFail($id);

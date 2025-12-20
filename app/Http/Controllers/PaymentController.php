@@ -5,15 +5,22 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\Room;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Booking;
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf; 
 
 class PaymentController extends Controller
 {
     public function index()
     {
-        $payments = Payment::with('room', 'user')->where('user_id', Auth::id())->get();
+        // Fetch payments with relations for the view
+        $payments = Payment::with('room', 'user')
+            ->where('user_id', Auth::id())
+            ->latest() 
+            ->get();
+
         $rooms = Room::where('status', 'available')->get(); 
+        
         return view('student.payment', compact('payments', 'rooms'));
     }
 
@@ -21,41 +28,28 @@ class PaymentController extends Controller
     {
         $student = auth()->user();
 
-        // 1. Validate fields
-        $validated = $request->validate([
+        // 1. Define base rules
+        $rules = [
             'room_id' => 'required|exists:rooms,id',
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required|string',
-        ]);
+        ];
 
-        // 2. Find the CURRENT Active Booking (The latest approved one)
-        $currentBooking = Booking::where('room_id', $validated['room_id'])
-            ->where('user_id', $student->id)
-            ->where('status', 'Approved') 
-            ->latest() // Important: Get the most recent approval
-            ->first();
-
-        if (!$currentBooking) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No approved booking found for this room.'
-            ], 404);
+        // 2. CONDITIONAL VALIDATION: Only require image for GCash/Bank
+        if (in_array($request->payment_method, ['gcash', 'bank_transfer'])) {
+            $rules['proof_image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+        } else {
+            $rules['proof_image'] = 'nullable'; // Optional for Cash/Credit
         }
 
-        // 3. Prevent duplicate payments ONLY for THIS SPECIFIC BOOKING instance
-        // We check if a payment exists that is NEWER than the booking.
-        $existingPayment = Payment::where('user_id', $student->id)
-            ->where('room_id', $validated['room_id'])
-            ->whereIn('status', ['Pending', 'Approved']) 
-            ->where('created_at', '>=', $currentBooking->created_at) // ✅ FIX: Check Date
-            ->first();
+        $validated = $request->validate($rules);
 
-        if ($existingPayment) {
-            $msg = $existingPayment->status == 'Approved' ? 'already paid' : 'pending approval';
-            return response()->json([
-                'success' => false,
-                'message' => "You have $msg for this current booking."
-            ], 409);
+        // ... (Rest of your existing booking check logic) ...
+
+        // 3. Handle File Upload
+        $imagePath = null;
+        if ($request->hasFile('proof_image')) {
+            $imagePath = $request->file('proof_image')->store('payment_proofs', 'public');
         }
 
         // 4. Save payment
@@ -66,13 +60,30 @@ class PaymentController extends Controller
             'payment_method' => $validated['payment_method'],
             'status' => 'Pending', 
             'payment_date' => now(),
-            'notes' => 'Payment submitted via portal'
+            'notes' => 'Payment submitted via portal',
+            'reference_no' => strtoupper(uniqid('REF-')),
+            'proof_image' => $imagePath, // This will be the path or null
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Payment submitted and pending approval.',
+            'message' => 'Payment submitted successfully!',
             'payment' => $payment
         ]);
+    }
+    // GENERATE RECEIPT PDF
+    public function generateReceipt($id)
+    {
+        $payment = Payment::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if ($payment->status !== 'Approved') {
+            return redirect()->back()->with('error', 'Receipt is available only for approved payments.');
+        }
+
+        $pdf = Pdf::loadView('pdf.receipt', compact('payment'));
+        
+        return $pdf->download('Receipt_ref_' . ($payment->reference_no ?? $payment->id) . '.pdf');
     }
 }

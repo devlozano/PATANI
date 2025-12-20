@@ -12,6 +12,7 @@
     <title>Manage Bookings - Patani Trinidad</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Molle:ital@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {{-- ✅ SweetAlert is required for the modal --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
@@ -75,6 +76,15 @@
 
         .multiple-badge { display: inline-block; background-color: #ffeeba; color: #856404; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: 600; border: 1px solid #ffe8a1; }
 
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 25px; border: 1px solid #888; width: 400px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; color: #333; }
+        .modal-textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; margin-bottom: 15px; font-family: inherit; }
+        .modal-btn { width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+
         @media (max-width: 768px) {
             .sidebar { width: 300px; transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -86,20 +96,12 @@
             .booking-section { padding: 20px; overflow-x: auto; }
             table { min-width: 800px; }
         }
-        @media (max-width: 480px) {
-            .top-bar { padding: 12px 15px; }
-            .logo { font-size: 20px; }
-            .main-content { padding: 15px; }
-            h1 { font-size: 24px; }
-            .booking-section { padding: 15px; }
-        }
     </style>
 </head>
 <body>
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">Patani Trinidad</div>
         <div class="profile">
-            {{-- ✅ RESTORED PROFILE PIC LOGIC --}}
             <img src="{{ Auth::user()->avatar ? asset('storage/avatars/'.Auth::user()->avatar) : asset('images/Screenshot 2025-10-28 033031.png') }}" alt="User Photo">
             <h2>{{ Auth::user()->name }}</h2>
             <p>{{ Auth::user()->contact }}</p>
@@ -170,8 +172,18 @@
                                 <td style="padding:12px; border-bottom:1px solid #eee;">{{ $booking->created_at->format('F d, Y') }}</td>
                                 <td style="padding:12px; border-bottom:1px solid #eee;">
                                     <div class="action-buttons" style="display:flex; gap:8px;">
-                                        <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" style="display:inline;">@csrf<button type="submit" class="btn btn-approve">Approve</button></form>
-                                        <form action="{{ route('admin.booking.reject', $booking->id) }}" method="POST" class="reject-form" style="display:inline;">@csrf<button type="submit" class="btn btn-reject" data-count="{{ $userCount }}">Reject</button></form>
+                                        
+                                        {{-- ✅ UPDATED: Added 'approve-form' class to trigger JS --}}
+                                        <form action="{{ route('admin.booking.approve', $booking->id) }}" method="POST" class="approve-form" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-approve">Approve</button>
+                                        </form>
+                                        
+                                        {{-- Reject triggers Modal --}}
+                                        <button type="button" class="btn btn-reject" 
+                                            onclick="openRejectModal('{{ route('admin.booking.reject', $booking->id) }}')">
+                                            Reject
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -192,6 +204,7 @@
                         <option value="overdue">Overdue</option>
                         <option value="cancelled">Cancelled</option>
                         <option value="checkedout">Checkout</option>
+                        <option value="rejected">Rejected</option>
                     </select>
                 </div>
                 <div>
@@ -221,7 +234,6 @@
                             <td>{{ $booking->id }}</td>
                             <td>
                                 {{ $booking->user->name }}
-                                {{-- ✅ CONTRACT ICON --}}
                                 @if(strtolower($booking->status) == 'approved')
                                     <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" title="View Contract" style="color: #007bff; margin-left: 5px;"><i class="fas fa-file-contract"></i></a>
                                 @endif
@@ -234,9 +246,13 @@
                                     <span class="status-badge status-overdue">OVERDUE <i class="fas fa-exclamation-circle"></i></span>
                                     <div style="font-size:10px; color:#dc3545; margin-top:2px; font-weight:600;">Due: {{ \Carbon\Carbon::parse($booking->payments->last()->created_at ?? $booking->created_at)->addMonth()->format('M d') }}</div>
                                 @else
-                                    <span class="status-badge {{ strtolower($booking->status) == 'approved' ? 'status-approve' : (strtolower($booking->status) == 'cancelled' ? 'status-cancelled' : (strtolower($booking->status) == 'checkout' ? 'status-checkout' : 'status-pending')) }}">
+                                    <span class="status-badge {{ strtolower($booking->status) == 'approved' ? 'status-approve' : (strtolower($booking->status) == 'cancelled' ? 'status-cancelled' : (strtolower($booking->status) == 'rejected' ? 'status-rejected' : (strtolower($booking->status) == 'checkout' ? 'status-checkout' : 'status-pending'))) }}">
                                     {{ ucfirst($booking->status) }}
                                     </span>
+                                @endif
+                                
+                                @if(strtolower($booking->status) == 'rejected' && $booking->rejection_reason)
+                                    <div style="font-size:11px; color:#777; margin-top:2px; font-style:italic;">"{{ Str::limit($booking->rejection_reason, 20) }}"</div>
                                 @endif
                             </td>
                             <td>
@@ -249,6 +265,21 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    {{-- REJECT MODAL --}}
+    <div id="rejectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRejectModal()">&times;</span>
+            <div class="modal-title"><i class="fas fa-exclamation-triangle" style="color: #FF4444;"></i> Reject Booking</div>
+            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #555;">Please provide a reason for rejecting this booking.</p>
+            
+            <form id="rejectForm" method="POST" action="">
+                @csrf
+                <textarea name="rejection_reason" class="modal-textarea" required placeholder="e.g., Room is under maintenance, Gender mismatch..."></textarea>
+                <button type="submit" class="btn btn-reject modal-btn">Confirm Rejection</button>
+            </form>
         </div>
     </div>
 
@@ -286,24 +317,51 @@
         bookingStatusFilter.addEventListener('change', filterBookings);
         bookingSearchFilter.addEventListener('input', filterBookings);
 
+        // MODAL LOGIC
+        function openRejectModal(actionUrl) {
+            const modal = document.getElementById('rejectModal');
+            const form = document.getElementById('rejectForm');
+            form.action = actionUrl; 
+            modal.style.display = "block";
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('rejectModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            const rejectForms = document.querySelectorAll('.reject-form');
-            rejectForms.forEach(form => {
-                const btn = form.querySelector('.btn-reject');
-                const count = btn ? (parseInt(btn.getAttribute('data-count')) || 1) : 1;
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault(); 
-                    let titleText = count > 1 ? '⚠️ Multiple Bookings Detected' : 'Reject Booking?';
-                    let bodyText = count > 1 ? `CAUTION: This user has ${count} pending bookings.\nReject THIS specific request?` : "Reject this booking request?";
-                    let iconType = count > 1 ? 'warning' : 'question';
-                    Swal.fire({ title: titleText, text: bodyText, icon: iconType, showCancelButton: true, confirmButtonColor: '#E53935', cancelButtonColor: '#666', confirmButtonText: 'Yes, Reject it' }).then((result) => { if (result.isConfirmed) { form.submit(); } });
-                });
-            });
+            // CHECKOUT ALERT
             const checkoutForms = document.querySelectorAll('.checkout-form');
             checkoutForms.forEach(form => {
                 form.addEventListener('submit', function (e) {
                     e.preventDefault(); 
                     Swal.fire({ title: 'Checkout Tenant?', text: "Free up bed space?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#E53935', cancelButtonColor: '#3085d6', confirmButtonText: 'Yes, Checkout' }).then((result) => { if (result.isConfirmed) { form.submit(); } });
+                });
+            });
+
+            // ✅ APPROVE ALERT (NEW)
+            const approveForms = document.querySelectorAll('.approve-form');
+            approveForms.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); 
+                    Swal.fire({ 
+                        title: 'Approve Booking?', 
+                        text: "This will confirm the reservation.", 
+                        icon: 'question', 
+                        showCancelButton: true, 
+                        confirmButtonColor: '#4CAF50', 
+                        cancelButtonColor: '#666', 
+                        confirmButtonText: 'Yes, Approve' 
+                    }).then((result) => { 
+                        if (result.isConfirmed) { form.submit(); } 
+                    });
                 });
             });
         });

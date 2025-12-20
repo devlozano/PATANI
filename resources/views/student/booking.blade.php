@@ -106,7 +106,6 @@
         .book-btn.unavailable { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
         .book-btn:disabled { background-color: #e0e0e0; color: #999; cursor: not-allowed; }
 
-        /* ✅ NEW: Cancel Button Styles */
         .btn-cancel {
             background-color: #ff4444; 
             color: white; 
@@ -124,24 +123,24 @@
         .btn-cancel:hover { background-color: #cc0000; }
 
         /* Contract Button Style (Blue) */
-.btn-contract {
-    background-color: #0d6efd; /* Bootstrap Primary Blue */
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 11px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none;
-    transition: background 0.2s;
-}
-.btn-contract:hover {
-    background-color: #0b5ed7;
-    color: white;
-}
+        .btn-contract {
+            background-color: #0d6efd; /* Bootstrap Primary Blue */
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-contract:hover {
+            background-color: #0b5ed7;
+            color: white;
+        }
 
         .modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.65); backdrop-filter: blur(4px); justify-content: center; align-items: center; padding: 10px; }
         .modal-content { background: #fff; border-radius: 14px; padding: 25px 30px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.25); animation: slideUp 0.3s ease; display: flex; flex-direction: column; gap: 10px; }
@@ -166,24 +165,22 @@
         .selection-info { text-align: center; font-size: 14px; margin-top: 5px; font-weight: 500; height: 20px; color: #ff8800; }
 
         /* --- DEFAULT / 8-PERSON ROOM COORDINATES --- */
-        /* 4 Columns: Left, Center-Left, Center-Right, Right */
-        .bed-1 { top: 65%; left: 12%; } /* Lower Left */
-        .bed-2 { top: 35%; left: 12%; } /* Upper Left */
-        .bed-3 { top: 65%; left: 36%; } /* Lower CL */
-        .bed-4 { top: 35%; left: 36%; } /* Upper CL */
-        .bed-5 { top: 65%; left: 62%; } /* Lower CR */
-        .bed-6 { top: 35%; left: 62%; } /* Upper CR */
-        .bed-7 { top: 65%; left: 86%; } /* Lower Right */
-        .bed-8 { top: 35%; left: 86%; } /* Upper Right */
+        .bed-1 { top: 65%; left: 12%; }
+        .bed-2 { top: 35%; left: 12%; }
+        .bed-3 { top: 65%; left: 36%; }
+        .bed-4 { top: 35%; left: 36%; }
+        .bed-5 { top: 65%; left: 62%; }
+        .bed-6 { top: 35%; left: 62%; }
+        .bed-7 { top: 65%; left: 86%; }
+        .bed-8 { top: 35%; left: 86%; }
 
-        /* --- 6-PERSON ROOM OVERRIDES (Using class .layout-6p) --- */
-        /* 3 Columns: Left, Center, Right */
-        .layout-6p .bed-1 { top: 65%; left: 20%; } /* Lower Left */
-        .layout-6p .bed-2 { top: 35%; left: 20%; } /* Upper Left */
-        .layout-6p .bed-3 { top: 65%; left: 50%; } /* Lower Center */
-        .layout-6p .bed-4 { top: 35%; left: 50%; } /* Upper Center */
-        .layout-6p .bed-5 { top: 65%; left: 80%; } /* Lower Right */
-        .layout-6p .bed-6 { top: 35%; left: 80%; } /* Upper Right */
+        /* --- 6-PERSON ROOM OVERRIDES --- */
+        .layout-6p .bed-1 { top: 65%; left: 20%; }
+        .layout-6p .bed-2 { top: 35%; left: 20%; }
+        .layout-6p .bed-3 { top: 65%; left: 50%; }
+        .layout-6p .bed-4 { top: 35%; left: 50%; }
+        .layout-6p .bed-5 { top: 65%; left: 80%; }
+        .layout-6p .bed-6 { top: 35%; left: 80%; }
 
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
@@ -191,6 +188,17 @@
             .content { margin-left: 0; padding: 15px 20px; }
             .rooms-grid { grid-template-columns: 1fr; }
             .bed-marker { width: 24px; height: 24px; font-size: 10px; }
+        }
+        
+        /* ✅ Tooltip Styles */
+        .reason-tooltip { position: relative; display: inline-block; cursor: pointer; color: #dc3545; margin-left: 5px; }
+        .reason-tooltip:hover::after {
+            content: attr(data-reason);
+            position: absolute;
+            bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: #333; color: #fff; padding: 5px 10px;
+            border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -383,6 +391,14 @@
             <span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; background: {{ $badgeBg }}; color: {{ $badgeColor }};">
                 {{ ucfirst($booking->status) }}
             </span>
+            
+            {{-- ✅ NEW: Show Rejection Reason Icon --}}
+            @if($status === 'rejected' && $booking->rejection_reason)
+                <span class="reason-tooltip" data-reason="{{ $booking->rejection_reason }}">
+                    <i class="bi bi-info-circle-fill"></i>
+                </span>
+            @endif
+
              {{-- Visual Indicator for Payment --}}
              @if($isPaymentSettled && $status === 'approved')
                 <div style="font-size:10px; color:#28a745; margin-top:2px; font-weight:bold;">
@@ -390,18 +406,26 @@
                 </div>
              @endif
         </td>
-        <td style="padding:10px;">{{ $booking->created_at->format('M d, Y') }}</td>
+        <td style="padding:10px;">
+    {{ $booking->created_at->format('M d, Y') }}
+    
+    {{-- ✅ NEW: Duration Logic --}}
+    @php
+        $start = \Carbon\Carbon::parse($booking->created_at);
+        $duration = $start->diffForHumans(null, true);
+    @endphp
+    <div style="font-size: 11px; color: #666; margin-top: 4px; font-weight: 500;">
+        Duration: {{ $duration }}
+    </div>
+</td>
         
-        {{-- ✅ ACTION COLUMN: Shows Contract OR Cancel --}}
         <td style="padding:10px;">
             
-            {{-- 1. SHOW CONTRACT: If Approved or Paid --}}
             @if($status === 'approved' || $status === 'paid')
                 <a href="{{ route('student.booking.contract', $booking->id) }}" target="_blank" class="btn-contract">
                     <i class="bi bi-file-earmark-pdf-fill"></i> View Contract
                 </a>
             
-            {{-- 2. SHOW CANCEL: Only if Pending --}}
             @elseif($status === 'pending')
                 <form action="{{ route('student.booking.cancel', $booking->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to cancel?');">
                     @csrf
@@ -411,7 +435,6 @@
                     </button>
                 </form>
 
-            {{-- 3. LOCKED: If Rejected or Cancelled --}}
             @else
                 <span style="color: #ccc; font-size: 11px;">-</span>
             @endif

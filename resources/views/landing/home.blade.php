@@ -571,7 +571,7 @@
 
 <div class="contact-item">
   <img src="/images/ic_sharp-email.png" alt="Email Icon" class="icon-image" />
-  <span>demo@gmail.com</span>
+  <span>patani@gmail.com</span>
 </div>
 
 <div class="contact-item">
@@ -628,7 +628,7 @@
   </p>
   <p style="display: flex; align-items: center; gap: 8px;">
     <img src="/images/email_black.png" alt="Email" style="vertical-align: middle;">
-    demo@gmail.com
+    patani@gmail.com
   </p>
   <p style="display: flex; align-items: center; gap: 8px;">
     <img src="/images/location_black.png" alt="Location" style="vertical-align: middle;">
@@ -658,7 +658,7 @@ const roomsData = [
   {id:2,title:"Room 2 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/room.png","/images/kitchen.jpg","/images/toilet.jpg"]},
   {id:3,title:"Room 3 - Ground Floor for Females",price:"₱1600/Month",desc:"Convenient and secure bedspace for ladies.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/room.png","/images/kitchen.jpg","/images/toilet.jpg"]},
   {id:4,title:"Room 4 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/fem.png","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
-  {id:5,title:"Room 5 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/fem.png","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
+  {id:5,title:"Room 5 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/room 6.png","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]},
   {id:6,title:"Room 6 - Second Floor for Males",price:"₱1600/Month",desc:"Affordable bedspace designed for men.",inclusions:["Study Desk","WiFi","Bathroom","Fan","Kitchen"],images:["/images/yell 1.png","/images/fem.png","/images/kitchen1.jpg","/images/Philippines Bathroom.jpg"]}
 ];
 
