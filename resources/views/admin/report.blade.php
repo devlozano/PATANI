@@ -152,9 +152,9 @@
                         <label>Status</label>
                         <select id="statusFilter" class="filter-input">
                             <option value="all">All Statuses</option>
-                            <option value="approved">Approved</option>
-                            <option value="pending">Pending</option>
-                            <option value="rejected">Rejected</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Rejected">Rejected</option>
                         </select>
                     </div>
                     <div class="filter-group">
