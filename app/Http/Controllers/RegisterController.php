@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
+// use Illuminate\Support\Facades\Auth; // ✅ Remove or comment this out if not used elsewhere
 
 class RegisterController extends Controller
 {
@@ -17,7 +17,7 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {
-        // 1. Validate the split inputs
+        // 1. Validate inputs
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -33,14 +33,13 @@ class RegisterController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // 2. Create the Full Name string manually
-        // Check if middle initial exists to avoid extra spaces
+        // 2. Create Full Name
         $middle = $request->middle_initial ? $request->middle_initial . ' ' : '';
         $fullName = $request->first_name . ' ' . $middle . $request->last_name;
 
         // 3. Create User
-        $user = User::create([
-            'name' => $fullName, // ✅ FIX: This satisfies the database requirement
+        User::create([
+            'name' => $fullName,
             'first_name' => $request->first_name,
             'middle_initial' => $request->middle_initial,
             'last_name' => $request->last_name,
@@ -49,12 +48,12 @@ class RegisterController extends Controller
             'gender' => $request->gender,
             'contact' => $request->contact,
             'address' => $request->address,
-            'role' => 'student', // Default role
+            'role' => 'student',
         ]);
 
-        // 4. Auto login and redirect
-        Auth::login($user);
+        // 4. ✅ FIX: Do NOT auto-login. Redirect directly to login page.
+        // Auth::login($user); <--- Removed this line
 
-        return redirect()->route('dash')->with('success', 'Registration successful!');
+        return redirect()->route('login')->with('success', 'Registration successful! Please log in.');
     }
 }
